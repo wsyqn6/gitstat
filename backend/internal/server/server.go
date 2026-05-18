@@ -3,6 +3,8 @@ package server
 import (
 	"net/http"
 
+	"gitstat/internal/handler"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -12,7 +14,13 @@ func NewServer() *chi.Mux {
 	// CORS中间件
 	r.Use(corsMiddleware)
 
-	// 路由注册（暂时为空，后续添加）
+	// 路由注册
+	r.Post("/api/scan", handler.ScanHandler)
+	r.Get("/api/repositories", handler.GetRepositoriesHandler)
+	r.Get("/api/stats/overview", handler.GetOverviewStatsHandler)
+	r.Get("/api/stats/daily", handler.GetDailyStatsHandler)
+	r.Post("/api/export/json", handler.ExportDataHandler)
+
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})

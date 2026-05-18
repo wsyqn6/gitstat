@@ -10,6 +10,11 @@
 # Dependency directories
 vendor/
 
+# Node
+node_modules/
+dist/
+.pnpm-store/
+
 # IDE
 .vscode/
 .idea/

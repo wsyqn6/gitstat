@@ -3,9 +3,12 @@ package model
 import "time"
 
 type Repository struct {
-	Path    string   `json:"path"`
-	Name    string   `json:"name"`
-	Commits []Commit `json:"commits"`
+	Path           string   `json:"path"`
+	Name           string   `json:"name"`
+	CurrentBranch  string   `json:"currentBranch"`
+	LastCommitTime string   `json:"lastCommitTime"`
+	UserEmail      string   `json:"userEmail"`
+	Commits        []Commit `json:"commits"`
 }
 
 type Commit struct {
@@ -35,4 +38,21 @@ type OverviewStats struct {
 	TotalDeletions  int `json:"totalDeletions"`
 	ActiveAuthors   int `json:"activeAuthors"`
 	RepositoryCount int `json:"repositoryCount"`
+}
+
+type AuthorDailyStats struct {
+	Author    string `json:"author"`
+	Email     string `json:"email"`
+	Commits   int    `json:"commits"`
+	Additions int    `json:"additions"`
+	Deletions int    `json:"deletions"`
+	IsMe      bool   `json:"isMe"`
+}
+
+type RepositoryDailyStats struct {
+	RepoName       string             `json:"repoName"`
+	RepoPath       string             `json:"repoPath"`
+	CurrentBranch  string             `json:"currentBranch"`
+	LastCommitTime string             `json:"lastCommitTime"`
+	Authors        []AuthorDailyStats `json:"authors"`
 }

@@ -11,6 +11,6 @@ import (
 func main() {
 	r := server.NewServer()
 
-	fmt.Println("GitStat server starting on :8080...")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	fmt.Println("GitStat server starting on :12580...")
+	log.Fatal(http.ListenAndServe(":12580", r))
 }
