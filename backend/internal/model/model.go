@@ -41,12 +41,20 @@ type OverviewStats struct {
 }
 
 type AuthorDailyStats struct {
-	Author    string `json:"author"`
-	Email     string `json:"email"`
+	Author    string          `json:"author"`
+	Email     string          `json:"email"`
+	Commits   int             `json:"commits"`
+	Additions int             `json:"additions"`
+	Deletions int             `json:"deletions"`
+	IsMe      bool            `json:"isMe"`
+	DailyData []DayCommitData `json:"dailyData,omitempty"`
+}
+
+type DayCommitData struct {
+	Date      string `json:"date"`
 	Commits   int    `json:"commits"`
 	Additions int    `json:"additions"`
 	Deletions int    `json:"deletions"`
-	IsMe      bool   `json:"isMe"`
 }
 
 type RepositoryDailyStats struct {

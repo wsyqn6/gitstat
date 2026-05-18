@@ -44,8 +44,15 @@ export async function exportData() {
   return response.blob()
 }
 
-export async function getDailyStats(email) {
-  const url = email ? `${API_BASE}/stats/daily?email=${encodeURIComponent(email)}` : `${API_BASE}/stats/daily`
+export async function getDailyStats(email, timeRange = '7', repos = []) {
+  const params = new URLSearchParams()
+  if (email) params.append('email', email)
+  if (timeRange) params.append('range', timeRange)
+  if (repos.length > 0) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
+  
+  const url = `${API_BASE}/stats/daily?${params.toString()}`
   const response = await fetch(url)
   
   if (!response.ok) {

@@ -81,7 +81,10 @@ func AggregateByTime(commits []model.Commit, granularity string) []map[string]in
 }
 
 func AggregateDailyStats(repos []model.Repository, userEmail string) []model.RepositoryDailyStats {
-	today := time.Now().Format("2006-01-02")
+	return AggregateDailyStatsWithRange(repos, userEmail, time.Time{})
+}
+
+func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, startDate time.Time) []model.RepositoryDailyStats {
 	var result []model.RepositoryDailyStats
 
 	// 如果没有提供邮箱，从仓库配置中获取（使用第一个有配置的）
@@ -96,10 +99,13 @@ func AggregateDailyStats(repos []model.Repository, userEmail string) []model.Rep
 
 	for _, repo := range repos {
 		authorMap := make(map[string]*model.AuthorDailyStats)
+		dailyDataMap := make(map[string]map[string]*model.DayCommitData) // email -> date -> data
 
 		for _, commit := range repo.Commits {
 			commitDate := commit.Date.Format("2006-01-02")
-			if commitDate != today {
+
+			// 如果指定了起始日期，过滤掉之前的数据
+			if !startDate.IsZero() && commit.Date.Before(startDate) {
 				continue
 			}
 
@@ -110,17 +116,41 @@ func AggregateDailyStats(repos []model.Repository, userEmail string) []model.Rep
 					Email:  commit.Email,
 					IsMe:   commit.Email == userEmail,
 				}
+				if dailyDataMap[key] == nil {
+					dailyDataMap[key] = make(map[string]*model.DayCommitData)
+				}
 			}
 
 			stats := authorMap[key]
 			stats.Commits++
 			stats.Additions += commit.Additions
 			stats.Deletions += commit.Deletions
+
+			// 收集每日数据
+			if _, exists := dailyDataMap[key][commitDate]; !exists {
+				dailyDataMap[key][commitDate] = &model.DayCommitData{
+					Date: commitDate,
+				}
+			}
+			dayData := dailyDataMap[key][commitDate]
+			dayData.Commits++
+			dayData.Additions += commit.Additions
+			dayData.Deletions += commit.Deletions
 		}
 
 		if len(authorMap) > 0 {
 			var authors []model.AuthorDailyStats
-			for _, stats := range authorMap {
+			for email, stats := range authorMap {
+				// 转换每日数据为数组并排序
+				var dailyData []model.DayCommitData
+				for _, dayData := range dailyDataMap[email] {
+					dailyData = append(dailyData, *dayData)
+				}
+				slices.SortFunc(dailyData, func(a, b model.DayCommitData) int {
+					return cmp.Compare(a.Date, b.Date)
+				})
+				stats.DailyData = dailyData
+
 				authors = append(authors, *stats)
 			}
 
