@@ -81,10 +81,10 @@ func AggregateByTime(commits []model.Commit, granularity string) []map[string]in
 }
 
 func AggregateDailyStats(repos []model.Repository, userEmail string) []model.RepositoryDailyStats {
-	return AggregateDailyStatsWithRange(repos, userEmail, time.Time{})
+	return AggregateDailyStatsWithRange(repos, userEmail, time.Time{}, time.Time{})
 }
 
-func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, startDate time.Time) []model.RepositoryDailyStats {
+func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.RepositoryDailyStats {
 	var result []model.RepositoryDailyStats
 
 	// 如果没有提供邮箱，从仓库配置中获取（使用第一个有配置的）
@@ -104,8 +104,11 @@ func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, st
 		for _, commit := range repo.Commits {
 			commitDate := commit.Date.Format("2006-01-02")
 
-			// 如果指定了起始日期，过滤掉之前的数据
+			// 过滤时间范围
 			if !startDate.IsZero() && commit.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && commit.Date.After(endDate) {
 				continue
 			}
 

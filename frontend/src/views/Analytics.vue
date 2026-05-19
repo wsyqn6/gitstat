@@ -11,12 +11,46 @@
         <div class="controls-inline">
           <div class="control-item">
             <label class="control-label">时间范围</label>
-            <select v-model="selectedTimeRange" class="cyber-select">
-              <option value="7">本周 (7天)</option>
-              <option value="30">本月 (30天)</option>
-              <option value="90">近三月 (90天)</option>
-              <option value="all">全部时间</option>
-            </select>
+            <div class="time-selector-cyber">
+              <div class="quick-options-cyber">
+                <button 
+                  v-for="option in timeOptions" 
+                  :key="option.value"
+                  @click="selectTimeRange(option.value)"
+                  class="cyber-time-btn"
+                  :class="{ active: selectedTimeRange === option.value }"
+                >
+                  <span class="btn-glow"></span>
+                  <span class="btn-text-cyber">{{ option.label }}</span>
+                </button>
+              </div>
+              
+              <div class="custom-range-cyber" v-if="selectedTimeRange === 'custom' || (customStartDate && customEndDate)">
+                <div class="date-input-wrapper">
+                  <input 
+                    type="date" 
+                    v-model="customStartDate"
+                    @change="handleCustomDateChange"
+                    class="cyber-date-input"
+                  />
+                  <div class="input-glow"></div>
+                </div>
+                <div class="date-connector">
+                  <div class="connector-line"></div>
+                  <span class="connector-icon">→</span>
+                  <div class="connector-line"></div>
+                </div>
+                <div class="date-input-wrapper">
+                  <input 
+                    type="date" 
+                    v-model="customEndDate"
+                    @change="handleCustomDateChange"
+                    class="cyber-date-input"
+                  />
+                  <div class="input-glow"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="control-item">
@@ -25,7 +59,7 @@
               <button 
                 @click.stop="showRepoDropdown = !showRepoDropdown"
                 class="repo-dropdown-btn"
-                :class="{ active: showRepoDropdown }"
+                :class="{ active: showRepoDropdown, 'has-selection': selectedRepos.length > 0 }"
               >
                 <span class="btn-text">
                   {{ selectedRepos.length === 0 ? '选择仓库' : 
@@ -65,7 +99,12 @@
           </div>
 
           <div class="control-item">
-            <button @click="loadData" :disabled="loading" class="analyze-btn">
+            <button 
+              @click="loadData" 
+              :disabled="loading || selectedRepos.length === 0" 
+              class="analyze-btn"
+              :class="{ 'can-analyze': selectedRepos.length > 0 }"
+            >
               <svg v-if="!loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
@@ -74,6 +113,26 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 概览统计卡片 -->
+    <div v-if="overviewStats" class="overview-cards">
+      <div class="stat-card">
+        <div class="stat-value">{{ overviewStats.totalCommits }}</div>
+        <div class="stat-label">总提交数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ overviewStats.totalAdditions }}</div>
+        <div class="stat-label">新增行数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
+        <div class="stat-label">删除行数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ overviewStats.activeAuthors }}</div>
+        <div class="stat-label">活跃作者</div>
       </div>
     </div>
 
@@ -104,14 +163,39 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import ChartContainer from '../components/ChartContainer.vue'
-import { getDailyStats, getRepositories } from '../api'
+import { getDailyStats, getRepositories, getOverviewStats } from '../api'
 
 const loading = ref(false)
-const selectedTimeRange = ref('7')
+const overviewStats = ref(null)
+const selectedTimeRange = ref('week')
+const customStartDate = ref('')
+const customEndDate = ref('')
 const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
 const showRepoDropdown = ref(false)
+
+// 时间选项配置
+const timeOptions = [
+  { label: '本周', value: 'week' },
+  { label: '上周', value: 'lastWeek' },
+  { label: '本月', value: 'month' },
+  { label: '本年', value: 'year' }
+]
+
+// 选择时间范围
+const selectTimeRange = (value) => {
+  selectedTimeRange.value = value
+  customStartDate.value = ''
+  customEndDate.value = ''
+}
+
+// 处理自定义日期变化
+const handleCustomDateChange = () => {
+  if (customStartDate.value && customEndDate.value) {
+    selectedTimeRange.value = 'custom'
+  }
+}
 
 // 计算所有仓库是否都选中
 const allReposSelected = computed(() => {
@@ -140,6 +224,14 @@ const toggleAllRepos = () => {
 
 // 获取过滤后的统计数据
 const filteredStats = computed(() => {
+  console.log('filteredStats computed:', {
+    selectedRepos: selectedRepos.value,
+    dailyStatsLength: dailyStats.value.length,
+    resultLength: dailyStats.value.filter(stat => 
+      selectedRepos.value.length === 0 || selectedRepos.value.includes(stat.repoPath)
+    ).length
+  })
+  
   if (selectedRepos.value.length === 0) {
     return dailyStats.value
   }
@@ -294,67 +386,61 @@ const codeChangeOption = computed(() => {
     }
   }
 
-  // 为每个用户创建新增和删除系列
+  // 为每个用户创建一个系列（新增为正，删除为负）
   const series = []
   const colors = ['#00f5ff', '#ff00ff', '#ffd700', '#00ff88', '#ff6b6b', '#a78bfa']
   
   authors.forEach((author, idx) => {
     const baseColor = colors[idx % colors.length]
     
-    // 新增系列
-    const additionsData = dates.map(date => {
+    // 计算净变化：新增为正，删除为负
+    const netData = dates.map(date => {
       let additions = 0
-      filteredStats.value.forEach(repo => {
-        const authorStat = repo.authors?.find(a => a.email === author.email)
-        if (authorStat && authorStat.dailyData) {
-          const dayData = authorStat.dailyData.find(d => d.date === date)
-          if (dayData) additions += dayData.additions
-        }
-      })
-      return additions
-    })
-
-    // 删除系列
-    const deletionsData = dates.map(date => {
       let deletions = 0
       filteredStats.value.forEach(repo => {
         const authorStat = repo.authors?.find(a => a.email === author.email)
         if (authorStat && authorStat.dailyData) {
           const dayData = authorStat.dailyData.find(d => d.date === date)
-          if (dayData) deletions += dayData.deletions
+          if (dayData) {
+            additions += dayData.additions
+            deletions += dayData.deletions
+          }
         }
       })
-      return deletions
+      // 返回净变化（新增-删除），但为了可视化，我们分别显示
+      return { additions, deletions }
     })
 
     series.push({
-      name: `${author.name} - 新增`,
+      name: author.name,
       type: 'bar',
-      stack: `add-${idx}`,
+      stack: 'total',
+      barWidth: '40%',
       emphasis: { focus: 'series' },
+      data: netData.map(item => item.additions),
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           { offset: 0, color: baseColor },
           { offset: 1, color: adjustColor(baseColor, -30) }
         ]),
         borderRadius: [4, 4, 0, 0]
-      },
-      data: additionsData
+      }
     })
 
     series.push({
       name: `${author.name} - 删除`,
       type: 'bar',
-      stack: `del-${idx}`,
+      stack: 'total',
+      barWidth: '40%',
       emphasis: { focus: 'series' },
+      data: netData.map(item => -item.deletions),
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           { offset: 0, color: adjustColor(baseColor, -60) },
           { offset: 1, color: adjustColor(baseColor, -90) }
         ]),
         borderRadius: [0, 0, 4, 4]
-      },
-      data: deletionsData.map(v => -v) // 负值向下显示
+      }
     })
   })
 
@@ -369,11 +455,11 @@ const codeChangeOption = computed(() => {
         shadowStyle: { color: 'rgba(0, 245, 255, 0.1)' }
       },
       formatter: (params) => {
-        let result = `<strong>${params[0].axisValue}</strong><br/>`
+        let result = `<div style="font-weight:bold;margin-bottom:5px">${params[0].axisValue}</div>`
         params.forEach(param => {
           const value = Math.abs(param.value)
-          const marker = param.marker
-          result += `${marker} ${param.seriesName}: ${value}<br/>`
+          const type = param.value >= 0 ? '新增' : '删除'
+          result += `<div>${param.seriesName}: <span style="color:${param.color}">${value}</span> (${type})</div>`
         })
         return result
       }
@@ -429,25 +515,88 @@ const loadData = async () => {
   if (repositories.value.length === 0) {
     try {
       repositories.value = await getRepositories()
+      console.log('仓库列表:', repositories.value)
     } catch (error) {
       console.error('加载仓库失败:', error)
       return
     }
   }
   
+  // 验证必选条件
+  if (selectedRepos.value.length === 0) {
+    return
+  }
+  
   loading.value = true
   try {
-    const stats = await getDailyStats(null, selectedTimeRange.value, selectedRepos.value)
+    // 构建时间参数
+    let startDate, endDate
+    const now = new Date()
+    
+    switch (selectedTimeRange.value) {
+      case 'today': // 今日
+        startDate = now.toISOString().split('T')[0]
+        endDate = now.toISOString().split('T')[0]
+        break
+      case 'week': // 本周（从周一开始）
+        const currentDay = now.getDay() || 7
+        const monday = new Date(now)
+        monday.setDate(now.getDate() - currentDay + 1)
+        startDate = monday.toISOString().split('T')[0]
+        endDate = now.toISOString().split('T')[0]
+        break
+      case 'lastWeek': // 上周
+        const lastWeekMonday = new Date(now)
+        lastWeekMonday.setDate(now.getDate() - (now.getDay() || 7) - 6)
+        const lastWeekSunday = new Date(lastWeekMonday)
+        lastWeekSunday.setDate(lastWeekMonday.getDate() + 6)
+        startDate = lastWeekMonday.toISOString().split('T')[0]
+        endDate = lastWeekSunday.toISOString().split('T')[0]
+        break
+      case 'month': // 本月
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+        startDate = firstDay.toISOString().split('T')[0]
+        endDate = now.toISOString().split('T')[0]
+        break
+      case 'year': // 本年
+        const firstDayOfYear = new Date(now.getFullYear(), 0, 1)
+        startDate = firstDayOfYear.toISOString().split('T')[0]
+        endDate = now.toISOString().split('T')[0]
+        break
+      case 'custom': // 自定义
+        startDate = customStartDate.value
+        endDate = customEndDate.value
+        break
+      default:
+        startDate = null
+        endDate = null
+    }
+    
+    // TODO: 在此处增加检查逻辑，如果缓存不足，先调用 performIncrementalScan
+    
+    // 并行请求 overview 和 daily
+    const [overview, stats] = await Promise.all([
+      getOverviewStats(startDate, endDate),
+      getDailyStats(null, selectedTimeRange.value, selectedRepos.value, startDate, endDate)
+    ])
+    overviewStats.value = overview
     console.log('后端返回数据:', JSON.stringify(stats, null, 2))
-    dailyStats.value = stats
+    dailyStats.value = stats || []
     console.log('dailyStats:', dailyStats.value)
     console.log('filteredStats:', filteredStats.value)
     console.log('allDates:', allDates.value)
     console.log('allAuthors:', allAuthors.value)
+    
+    // 先关闭 loading，让图表容器显示
+    loading.value = false
+    
+    // 等待DOM更新和图表渲染
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
     console.log('commitTrendOption:', commitTrendOption.value)
+    console.log('codeChangeOption:', codeChangeOption.value)
   } catch (error) {
     console.error('加载数据失败:', error)
-  } finally {
     loading.value = false
   }
 }
@@ -468,6 +617,46 @@ onMounted(() => {
 .header-section {
   margin-bottom: 1.5rem;
   position: relative;
+}
+
+/* 概览统计卡片 */
+.overview-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: rgba(10, 14, 39, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00d4ff, #7800ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #a0aec0;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
 }
 
 .title-row {
@@ -532,15 +721,22 @@ onMounted(() => {
   box-shadow: 0 4px 15px rgba(0, 245, 255, 0.4);
   height: fit-content;
   align-self: flex-end;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.analyze-btn:hover:not(:disabled) {
+.analyze-btn.can-analyze {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.analyze-btn.can-analyze:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 25px rgba(0, 245, 255, 0.6);
 }
 
 .analyze-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -565,6 +761,204 @@ onMounted(() => {
   letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 600;
+}
+
+/* 时间选择器 - 赛博朋克风格 */
+.time-selector-cyber {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quick-options-cyber {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.cyber-time-btn {
+  position: relative;
+  background: rgba(10, 14, 39, 0.6);
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  overflow: hidden;
+  min-width: 80px;
+}
+
+.cyber-time-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.cyber-time-btn:hover::before {
+  left: 100%;
+}
+
+.cyber-time-btn:hover {
+  border-color: rgba(0, 245, 255, 0.5);
+  color: #e2e8f0;
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.2), inset 0 0 20px rgba(0, 245, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.cyber-time-btn.active {
+  background: rgba(0, 245, 255, 0.15);
+  border-color: #00f5ff;
+  color: #00f5ff;
+  box-shadow: 
+    0 0 30px rgba(0, 245, 255, 0.4),
+    inset 0 0 30px rgba(0, 245, 255, 0.1),
+    0 0 60px rgba(0, 245, 255, 0.2);
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.8);
+}
+
+.cyber-time-btn.active .btn-glow {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #00f5ff, #ff00ff, #00f5ff);
+  border-radius: 4px;
+  opacity: 0.3;
+  filter: blur(8px);
+  animation: glow-pulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.btn-text-cyber {
+  position: relative;
+  z-index: 1;
+}
+
+/* 自定义日期范围 - 赛博朋克风格 */
+.custom-range-cyber {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(10, 14, 39, 0.4);
+  border: 1px solid rgba(0, 245, 255, 0.15);
+  border-radius: 8px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.date-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.cyber-date-input {
+  width: 100%;
+  background: rgba(10, 14, 39, 0.8);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  border-radius: 4px;
+  padding: 0.6rem 0.9rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  outline: none;
+  font-family: 'Rajdhani', sans-serif;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.cyber-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) hue-rotate(180deg);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.cyber-date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.cyber-date-input:focus {
+  border-color: #00f5ff;
+  box-shadow: 
+    0 0 20px rgba(0, 245, 255, 0.3),
+    inset 0 0 20px rgba(0, 245, 255, 0.05);
+}
+
+.input-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px;
+  background: radial-gradient(circle at center, rgba(0, 245, 255, 0.1), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.date-input-wrapper:focus-within .input-glow {
+  opacity: 1;
+}
+
+/* 日期连接器 */
+.date-connector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #00f5ff;
+}
+
+.connector-line {
+  width: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00f5ff, transparent);
+  animation: line-flow 2s ease-in-out infinite;
+}
+
+@keyframes line-flow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.connector-icon {
+  font-size: 1.2rem;
+  color: #00f5ff;
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.8);
+  animation: arrow-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes arrow-pulse {
+  0%, 100% { transform: translateX(0); opacity: 0.6; }
+  50% { transform: translateX(3px); opacity: 1; }
 }
 
 .cyber-select {
@@ -787,6 +1181,7 @@ onMounted(() => {
 
 .chart-card {
   min-height: 500px;
+  height: 500px;
 }
 
 @media (max-width: 1200px) {

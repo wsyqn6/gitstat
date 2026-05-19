@@ -64,3 +64,9 @@ type RepositoryDailyStats struct {
 	LastCommitTime string             `json:"lastCommitTime"`
 	Authors        []AuthorDailyStats `json:"authors"`
 }
+
+type ApiResponse struct {
+	Code    int         `json:"code"`
+	Data    interface{} `json:"data,omitempty"`
+	Message string      `json:"message,omitempty"`
+}

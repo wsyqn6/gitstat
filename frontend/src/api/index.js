@@ -14,8 +14,27 @@ export async function scanRepositories(path, timeRange) {
   return response.json()
 }
 
-export async function getOverviewStats() {
-  const response = await fetch(`${API_BASE}/stats/overview`)
+export async function setScanPath(path) {
+  const response = await fetch(`${API_BASE}/scan/path`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path })
+  })
+  
+  if (!response.ok) {
+    throw new Error('Set path failed')
+  }
+  
+  return response.json()
+}
+
+export async function getOverviewStats(startDate = null, endDate = null) {
+  const params = new URLSearchParams()
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
+  
+  const url = `${API_BASE}/stats/overview?${params.toString()}`
+  const response = await fetch(url)
   
   if (!response.ok) {
     throw new Error('Failed to fetch stats')
@@ -44,10 +63,12 @@ export async function exportData() {
   return response.blob()
 }
 
-export async function getDailyStats(email, timeRange = '7', repos = []) {
+export async function getDailyStats(email, timeRange = 'week', repos = [], startDate = null, endDate = null) {
   const params = new URLSearchParams()
   if (email) params.append('email', email)
   if (timeRange) params.append('range', timeRange)
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
   if (repos.length > 0) {
     repos.forEach(repo => params.append('repo', repo))
   }

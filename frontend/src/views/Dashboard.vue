@@ -1,20 +1,15 @@
 <template>
   <div class="dashboard">
-    <div v-if="!state.repositories.length" class="empty-state">
-      <ScanForm />
+    <div class="header-actions">
+      <button @click="handleSwitchDirectory" class="btn switch-btn">
+        <span class="btn-icon">↻</span>
+        切换目录
+      </button>
     </div>
     
-    <div v-else>
-      <div class="header-actions">
-        <button @click="handleSwitchDirectory" class="btn switch-btn">
-          <span class="btn-icon">↻</span>
-          切换目录
-        </button>
-      </div>
-      
-      <ScanForm v-if="showScanForm" @scan-complete="handleScanComplete" />
-      
-      <!-- 今日统计概览 -->
+    <ScanForm v-if="showScanForm" @scan-complete="handleScanComplete" />
+    
+    <!-- 今日统计概览 -->
       <div v-if="state.overviewStats" class="stats-grid">
         <StatCard 
           :value="todayCommits" 
@@ -83,13 +78,12 @@
           </div>
         </div>
       </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { state, performScan, refreshDailyStats } from '../stores/data'
+import { state, performScan, refreshDailyStats, refreshStats } from '../stores/data'
 import ScanForm from '../components/ScanForm.vue'
 import StatCard from '../components/StatCard.vue'
 
@@ -118,27 +112,20 @@ function handleSwitchDirectory() {
 
 async function handleScanComplete() {
   showScanForm.value = false
+  await refreshStats()
   await refreshDailyStats()
 }
 
-// 首次加载时自动扫描当日数据
+// 首次加载直接请求数据，触发后端懒加载
 onMounted(async () => {
-  if (!state.repositories.length) {
-    try {
-      await performScan('D:/work', '1d')
-      await refreshDailyStats()
-    } catch (err) {
-      console.error('Initial scan failed:', err)
-    }
-  } else {
-    await refreshDailyStats()
-  }
+  await refreshStats()
 })
 </script>
 
 <style scoped>
 .dashboard {
   max-width: 1400px;
+  margin: 0 auto;
   animation: fadeIn 0.5s ease-out;
 }
 

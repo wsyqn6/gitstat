@@ -34,18 +34,66 @@ const chartRef = ref(null)
 let chartInstance = null
 
 onMounted(() => {
-  chartInstance = echarts.init(chartRef.value)
-  updateChart()
-  
-  // 响应窗口大小变化
+  // 不在 mounted 时初始化，等待 loading 结束
   window.addEventListener('resize', handleResize)
 })
 
-watch(() => props.option, updateChart, { deep: true })
+watch(() => props.loading, (newVal) => {
+  if (!newVal && !chartInstance && chartRef.value) {
+    // loading 结束后初始化图表
+    setTimeout(() => {
+      chartInstance = echarts.init(chartRef.value)
+      if (props.option) {
+        chartInstance.setOption(props.option, true)
+        chartInstance.resize()
+      }
+    }, 50)
+  } else if (!newVal && chartInstance) {
+    // 已存在则 resize
+    setTimeout(() => {
+      chartInstance.resize()
+    }, 100)
+  }
+}, { immediate: false })
+
+watch(() => props.option, (newVal) => {
+  console.log('ChartContainer option updated:', newVal ? 'has data' : 'no data')
+  if (newVal && chartInstance) {
+    updateChart()
+    // 确保图表正确渲染
+    setTimeout(() => {
+      if (chartInstance) {
+        chartInstance.resize()
+      }
+    }, 50)
+  }
+}, { deep: true })
 
 function updateChart() {
+  console.log('updateChart called, chartInstance:', !!chartInstance, 'option:', !!props.option)
   if (chartInstance && props.option) {
+    // 检查容器尺寸
+    const container = chartRef.value
+    if (container) {
+      console.log('Chart container size:', {
+        offsetWidth: container.offsetWidth,
+        offsetHeight: container.offsetHeight,
+        clientWidth: container.clientWidth,
+        clientHeight: container.clientHeight
+      })
+    }
+    
     chartInstance.setOption(props.option, true)
+    console.log('Chart updated successfully')
+    
+    // 强制resize确保渲染
+    setTimeout(() => {
+      if (chartInstance) {
+        chartInstance.resize()
+      }
+    }, 10)
+  } else {
+    console.warn('Chart update skipped:', { hasInstance: !!chartInstance, hasOption: !!props.option })
   }
 }
 
@@ -147,5 +195,6 @@ function handleResize() {
 
 .chart {
   height: 400px;
+  width: 100%;
 }
 </style>

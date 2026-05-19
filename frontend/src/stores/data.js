@@ -14,8 +14,9 @@ export async function performScan(path, timeRange) {
   state.error = null
   
   try {
-    const result = await api.scanRepositories(path, timeRange)
-    state.repositories = result.repositories
+    // 调用新接口设置路径，触发后端注册仓库
+    await api.setScanPath(path)
+    // 重新加载数据（后端会懒加载）
     await refreshStats()
   } catch (err) {
     state.error = err.message
@@ -25,16 +26,24 @@ export async function performScan(path, timeRange) {
 }
 
 export async function refreshStats() {
+  const today = new Date().toISOString().split('T')[0]
   try {
-    state.overviewStats = await api.getOverviewStats()
+    // 并行请求 overview 和 daily，触发后端懒加载
+    const [overview, daily] = await Promise.all([
+      api.getOverviewStats(today, today),
+      api.getDailyStats('', null, [], today, today)
+    ])
+    state.overviewStats = overview
+    state.dailyStats = daily
   } catch (err) {
     console.error('Failed to refresh stats:', err)
   }
 }
 
 export async function refreshDailyStats() {
+  const today = new Date().toISOString().split('T')[0]
   try {
-    state.dailyStats = await api.getDailyStats('')
+    state.dailyStats = await api.getDailyStats('', null, [], today, today)
   } catch (err) {
     console.error('Failed to refresh daily stats:', err)
   }

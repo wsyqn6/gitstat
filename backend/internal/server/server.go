@@ -16,6 +16,7 @@ func NewServer() *chi.Mux {
 
 	// 路由注册
 	r.Post("/api/scan", handler.ScanHandler)
+	r.Post("/api/scan/path", handler.SetScanPathHandler)
 	r.Get("/api/repositories", handler.GetRepositoriesHandler)
 	r.Get("/api/stats/overview", handler.GetOverviewStatsHandler)
 	r.Get("/api/stats/daily", handler.GetDailyStatsHandler)
