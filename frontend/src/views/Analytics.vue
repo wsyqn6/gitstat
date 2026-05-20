@@ -224,20 +224,17 @@ const toggleAllRepos = () => {
 
 // 获取过滤后的统计数据
 const filteredStats = computed(() => {
-  console.log('filteredStats computed:', {
+  const result = selectedRepos.value.length === 0
+    ? dailyStats.value
+    : dailyStats.value.filter(stat => selectedRepos.value.includes(stat.repoPath))
+  
+  console.log('[filteredStats]', {
     selectedRepos: selectedRepos.value,
-    dailyStatsLength: dailyStats.value.length,
-    resultLength: dailyStats.value.filter(stat => 
-      selectedRepos.value.length === 0 || selectedRepos.value.includes(stat.repoPath)
-    ).length
+    dailyStatsCount: dailyStats.value.length,
+    filteredCount: result.length
   })
   
-  if (selectedRepos.value.length === 0) {
-    return dailyStats.value
-  }
-  return dailyStats.value.filter(stat => 
-    selectedRepos.value.includes(stat.repoPath)
-  )
+  return result
 })
 
 // 提取所有日期
@@ -248,7 +245,9 @@ const allDates = computed(() => {
       author.dailyData?.forEach(day => dateSet.add(day.date))
     })
   })
-  return Array.from(dateSet).sort()
+  const result = Array.from(dateSet).sort()
+  console.log('[allDates]', result)
+  return result
 })
 
 // 提取所有用户
@@ -265,7 +264,9 @@ const allAuthors = computed(() => {
       }
     })
   })
-  return Array.from(authorMap.values())
+  const result = Array.from(authorMap.values())
+  console.log('[allAuthors]', result.map(a => a.name))
+  return result
 })
 
 // 提交趋势图配置
@@ -273,7 +274,10 @@ const commitTrendOption = computed(() => {
   const dates = allDates.value
   const authors = allAuthors.value
   
+  console.log('[commitTrendOption]', { datesCount: dates.length, authorsCount: authors.length })
+  
   if (dates.length === 0 || authors.length === 0) {
+    console.warn('[commitTrendOption] No data - returning empty state')
     return {
       title: { 
         text: '暂无数据', 
@@ -512,16 +516,6 @@ function adjustColor(color, amount) {
 
 // 加载数据
 const loadData = async () => {
-  if (repositories.value.length === 0) {
-    try {
-      repositories.value = await getRepositories()
-      console.log('仓库列表:', repositories.value)
-    } catch (error) {
-      console.error('加载仓库失败:', error)
-      return
-    }
-  }
-  
   // 验证必选条件
   if (selectedRepos.value.length === 0) {
     return
@@ -580,29 +574,33 @@ const loadData = async () => {
       getDailyStats(null, selectedTimeRange.value, selectedRepos.value, startDate, endDate)
     ])
     overviewStats.value = overview
-    console.log('后端返回数据:', JSON.stringify(stats, null, 2))
+    console.log('[loadData] daily API response:', stats)
     dailyStats.value = stats || []
-    console.log('dailyStats:', dailyStats.value)
-    console.log('filteredStats:', filteredStats.value)
-    console.log('allDates:', allDates.value)
-    console.log('allAuthors:', allAuthors.value)
+    console.log('[loadData] dailyStats assigned, length:', dailyStats.value.length)
+    
+    // 等待 computed 重新计算
+    await new Promise(resolve => setTimeout(resolve, 50))
+    
+    console.log('[loadData] After assignment:')
+    console.log('  - filteredStats.length:', filteredStats.value.length)
+    console.log('  - allDates:', allDates.value)
+    console.log('  - allAuthors:', allAuthors.value.map(a => a.name))
     
     // 先关闭 loading，让图表容器显示
     loading.value = false
-    
-    // 等待DOM更新和图表渲染
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
-    console.log('commitTrendOption:', commitTrendOption.value)
-    console.log('codeChangeOption:', codeChangeOption.value)
   } catch (error) {
     console.error('加载数据失败:', error)
     loading.value = false
   }
 }
 
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  // 只加载仓库列表，不自动选择，不自动加载数据
+  try {
+    repositories.value = await getRepositories()
+  } catch (error) {
+    console.error('加载仓库失败:', error)
+  }
 })
 </script>
 

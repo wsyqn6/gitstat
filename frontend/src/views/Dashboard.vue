@@ -38,7 +38,7 @@
       </div>
       
       <!-- 分仓库分人统计 -->
-      <div v-if="state.dailyStats.length > 0" class="daily-stats-section">
+      <div v-if="state.dailyStats && state.dailyStats.length > 0" class="daily-stats-section">
         <div class="section-header">
           <h3>今日提交详情</h3>
         </div>
@@ -118,7 +118,14 @@ async function handleScanComplete() {
 
 // 首次加载直接请求数据，触发后端懒加载
 onMounted(async () => {
-  await refreshStats()
+  // 先检查是否有仓库
+  const repos = await fetch('/api/repositories').then(r => r.json())
+  if (!repos || repos.length === 0) {
+    // 没有仓库，显示扫描表单
+    showScanForm.value = true
+  } else {
+    await refreshStats()
+  }
 })
 </script>
 

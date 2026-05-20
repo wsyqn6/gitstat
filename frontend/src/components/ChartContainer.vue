@@ -11,16 +11,16 @@
         <span></span>
       </div>
     </div>
-    <div v-if="loading" class="chart-loading">
+    <div v-show="loading" class="chart-loading">
       <div class="loading-spinner"></div>
       <p>加载中...</p>
     </div>
-    <div v-else ref="chartRef" class="chart"></div>
+    <div v-show="!loading" ref="chartRef" class="chart"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
 const props = defineProps({
@@ -38,64 +38,42 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
 
-watch(() => props.loading, (newVal) => {
-  if (!newVal && !chartInstance && chartRef.value) {
-    // loading 结束后初始化图表
-    setTimeout(() => {
+watch(() => props.loading, async (newVal) => {
+  console.log('[ChartContainer] loading changed:', newVal, 'chartRef:', !!chartRef.value)
+  if (!newVal && chartRef.value) {
+    // loading 结束后初始化或更新图表
+    await nextTick()
+    console.log('[ChartContainer] After nextTick, initializing chart, has option:', !!props.option)
+    if (!chartInstance) {
       chartInstance = echarts.init(chartRef.value)
-      if (props.option) {
-        chartInstance.setOption(props.option, true)
-        chartInstance.resize()
-      }
-    }, 50)
-  } else if (!newVal && chartInstance) {
-    // 已存在则 resize
-    setTimeout(() => {
+      console.log('[ChartContainer] Chart instance created')
+    }
+    if (props.option) {
+      console.log('[ChartContainer] Setting initial option')
+      chartInstance.setOption(props.option, true)
       chartInstance.resize()
-    }, 100)
+    } else {
+      console.warn('[ChartContainer] No option to set')
+    }
+  } else if (!newVal) {
+    console.warn('[ChartContainer] loading=false but chartRef is null')
   }
 }, { immediate: false })
 
 watch(() => props.option, (newVal) => {
-  console.log('ChartContainer option updated:', newVal ? 'has data' : 'no data')
+  console.log('[ChartContainer] option changed, has chartInstance:', !!chartInstance)
   if (newVal && chartInstance) {
-    updateChart()
-    // 确保图表正确渲染
+    console.log('[ChartContainer] Updating chart with new option')
+    chartInstance.setOption(newVal, true)
     setTimeout(() => {
       if (chartInstance) {
         chartInstance.resize()
       }
     }, 50)
+  } else if (!chartInstance) {
+    console.warn('[ChartContainer] No chart instance to update')
   }
 }, { deep: true })
-
-function updateChart() {
-  console.log('updateChart called, chartInstance:', !!chartInstance, 'option:', !!props.option)
-  if (chartInstance && props.option) {
-    // 检查容器尺寸
-    const container = chartRef.value
-    if (container) {
-      console.log('Chart container size:', {
-        offsetWidth: container.offsetWidth,
-        offsetHeight: container.offsetHeight,
-        clientWidth: container.clientWidth,
-        clientHeight: container.clientHeight
-      })
-    }
-    
-    chartInstance.setOption(props.option, true)
-    console.log('Chart updated successfully')
-    
-    // 强制resize确保渲染
-    setTimeout(() => {
-      if (chartInstance) {
-        chartInstance.resize()
-      }
-    }, 10)
-  } else {
-    console.warn('Chart update skipped:', { hasInstance: !!chartInstance, hasOption: !!props.option })
-  }
-}
 
 function handleResize() {
   if (chartInstance) {

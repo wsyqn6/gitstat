@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -16,12 +17,14 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 	endDateStr := r.URL.Query().Get("endDate")
 	repoPaths := r.URL.Query()["repo"] // 支持多个 repo 参数
 
+	log.Printf("[Overview] Request: email=%s, start=%s, end=%s, repos=%v", userEmail, startDateStr, endDateStr, repoPaths)
+
 	// 解析时间范围
 	var startDate, endDate time.Time
 
 	if startDateStr != "" && endDateStr != "" {
-		startDate, _ = time.Parse("2006-01-02", startDateStr)
-		endDate, _ = time.Parse("2006-01-02", endDateStr)
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
 		endDate = endDate.Add(24*time.Hour - time.Second)
 	} else {
 		// 默认当日
@@ -80,6 +83,13 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	stats := aggregator.AggregateOverview(filteredCommits, len(repos))
 
+	// 打印响应JSON
+	if respJSON, err := json.MarshalIndent(stats, "", "  "); err == nil {
+		log.Printf("[Overview] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[Overview] Response error: %v", err)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(stats)
 }
@@ -91,13 +101,16 @@ func GetDailyStatsHandler(w http.ResponseWriter, r *http.Request) {
 	endDateStr := r.URL.Query().Get("endDate")
 	repoPaths := r.URL.Query()["repo"] // 支持多个 repo 参数
 
+	log.Printf("[Daily] Request: email=%s, range=%s, start=%s, end=%s, repos=%v",
+		userEmail, timeRange, startDateStr, endDateStr, repoPaths)
+
 	// 解析时间范围
 	var startDate, endDate time.Time
 
 	// 优先使用自定义日期范围
 	if startDateStr != "" && endDateStr != "" {
-		startDate, _ = time.Parse("2006-01-02", startDateStr)
-		endDate, _ = time.Parse("2006-01-02", endDateStr)
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
 		endDate = endDate.Add(24*time.Hour - time.Second)
 	} else {
 		// 使用预设时间范围
@@ -136,6 +149,13 @@ func GetDailyStatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dailyStats := aggregator.AggregateDailyStatsWithRange(repos, userEmail, startDate, endDate)
+
+	// 打印响应JSON
+	if respJSON, err := json.MarshalIndent(dailyStats, "", "  "); err == nil {
+		log.Printf("[Daily] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[Daily] Response: repos=%d (marshal error: %v)", len(dailyStats), err)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(dailyStats)

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -29,6 +30,10 @@ func getScanMutex(path string) *sync.Mutex {
 func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 	caches := store.GlobalStore.GetAllCaches()
 	now := time.Now()
+
+	if len(caches) == 0 {
+		return
+	}
 
 	for _, cache := range caches {
 		// 过滤未选中仓库
@@ -67,6 +72,7 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 			if cache != nil && cache.EarliestDate.After(startDate) {
 				newCommits, err := scanner.ScanIncremental(cache.Path, startDate, cache.EarliestDate)
 				if err == nil && len(newCommits) > 0 {
+					log.Printf("[LazyLoad] Merged %d commits for %s", len(newCommits), cache.Path)
 					store.GlobalStore.MergeCommits(cache.Path, newCommits)
 				}
 			}
@@ -80,15 +86,18 @@ func initRepoCache(path string, startDate, endDate time.Time) {
 	// 1. 扫描元数据
 	meta, err := scanner.ScanMetadata(path)
 	if err != nil {
+		log.Printf("[LazyLoad] Failed to scan metadata for %s: %v", path, err)
 		return
 	}
 
 	// 2. 扫描指定时间范围的提交
 	commits, err := scanner.ScanCommitsByRange(path, startDate, endDate)
 	if err != nil {
+		log.Printf("[LazyLoad] Failed to scan commits for %s: %v", path, err)
 		commits = []model.Commit{}
 	}
 
 	// 3. 存入缓存
 	store.GlobalStore.InitRepoCache(path, meta, commits)
+	log.Printf("[LazyLoad] Initialized %s with %d commits", path, len(commits))
 }
