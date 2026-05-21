@@ -56,10 +56,16 @@ const messages = {
     },
     settings: {
       title: '设置',
+      scanConfig: '扫描配置',
+      directoryPath: '目录路径',
+      pathPlaceholder: '/path/to/repos',
+      startScan: '开始扫描',
+      scanning: '扫描中...',
+      scanSuccess: '扫描完成',
       dataManagement: '数据管理',
       exportData: '导出数据 (JSON)',
       about: '关于',
-      version: 'v1.0 - Git提交统计平台'
+      platformName: 'Git提交统计平台'
     }
   },
   en: {
@@ -117,10 +123,16 @@ const messages = {
     },
     settings: {
       title: 'Settings',
+      scanConfig: 'Scan Configuration',
+      directoryPath: 'Directory Path',
+      pathPlaceholder: '/path/to/repos',
+      startScan: 'Start Scan',
+      scanning: 'Scanning...',
+      scanSuccess: 'Scan completed',
       dataManagement: 'Data Management',
       exportData: 'Export Data (JSON)',
       about: 'About',
-      version: 'v1.0 - Git Commit Statistics Platform'
+      platformName: 'Git Commit Statistics Platform'
     }
   }
 }

@@ -82,3 +82,14 @@ export async function getDailyStats(email, timeRange = 'week', repos = [], start
   
   return response.json()
 }
+
+export async function getVersion() {
+  const response = await fetch(`${API_BASE}/version`)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch version')
+  }
+  
+  const data = await response.json()
+  return data.version
+}

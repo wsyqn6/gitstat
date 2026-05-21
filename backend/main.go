@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"gitstat/internal/server"
 	"gitstat/internal/store"
 )
+
+const Version = "v0.2.0"
 
 func main() {
 	// 默认扫描路径（开发调试用）
@@ -22,6 +25,12 @@ func main() {
 	}
 
 	r := server.NewServer()
+
+	// 版本接口
+	r.HandleFunc("/api/version", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"version": Version})
+	})
 
 	fmt.Println("GitStat server starting on :12580...")
 	log.Fatal(http.ListenAndServe(":12580", r))
