@@ -24,9 +24,9 @@
       </nav>
     </header>
     <main class="main-content">
-      <Dashboard v-if="currentView === 'dashboard'" />
-      <Analytics v-if="currentView === 'analytics'" />
-      <Settings v-if="currentView === 'settings'" />
+      <Dashboard v-show="currentView === 'dashboard'" />
+      <Analytics v-show="currentView === 'analytics'" />
+      <Settings v-show="currentView === 'settings'" />
     </main>
   </div>
 </template>

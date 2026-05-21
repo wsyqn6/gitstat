@@ -1,14 +1,5 @@
 <template>
   <div class="dashboard">
-    <div class="header-actions">
-      <button @click="handleSwitchDirectory" class="btn switch-btn">
-        <span class="btn-icon">↻</span>
-        {{ t('dashboard.switchDirectory') }}
-      </button>
-    </div>
-    
-    <ScanForm v-if="showScanForm" @scan-complete="handleScanComplete" />
-    
     <!-- 今日统计概览 -->
       <div v-if="state.overviewStats" class="stats-grid">
         <StatCard 
@@ -84,12 +75,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../i18n'
-import { state, performScan, refreshDailyStats, refreshStats } from '../stores/data'
-import ScanForm from '../components/ScanForm.vue'
+import { state, refreshDailyStats, refreshStats } from '../stores/data'
 import StatCard from '../components/StatCard.vue'
 
 const { t } = useI18n()
-const showScanForm = ref(false)
 
 const today = new Date().toISOString().split('T')[0]
 
@@ -108,26 +97,9 @@ const todayDeletions = computed(() => {
   return state.overviewStats.totalDeletions
 })
 
-function handleSwitchDirectory() {
-  showScanForm.value = true
-}
-
-async function handleScanComplete() {
-  showScanForm.value = false
-  await refreshStats()
-  await refreshDailyStats()
-}
-
 // 首次加载直接请求数据，触发后端懒加载
 onMounted(async () => {
-  // 先检查是否有仓库
-  const repos = await fetch('/api/repositories').then(r => r.json())
-  if (!repos || repos.length === 0) {
-    // 没有仓库，显示扫描表单
-    showScanForm.value = true
-  } else {
-    await refreshStats()
-  }
+  await refreshStats()
 })
 </script>
 
