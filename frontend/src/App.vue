@@ -8,16 +8,19 @@
       <nav>
         <a @click="currentView = 'dashboard'" :class="{ active: currentView === 'dashboard' }">
           <span class="nav-icon">◈</span>
-          Dashboard
+          {{ t('nav.dashboard') }}
         </a>
         <a @click="currentView = 'analytics'" :class="{ active: currentView === 'analytics' }">
           <span class="nav-icon">◉</span>
-          Analytics
+          {{ t('nav.analytics') }}
         </a>
         <a @click="currentView = 'settings'" :class="{ active: currentView === 'settings' }">
           <span class="nav-icon">⚙</span>
-          Settings
+          {{ t('nav.settings') }}
         </a>
+        <button @click="toggleLanguage" class="lang-switcher" :title="locale === 'zh' ? 'Switch to English' : '切换到中文'">
+          <span class="lang-icon">{{ locale === 'zh' ? '中' : 'EN' }}</span>
+        </button>
       </nav>
     </header>
     <main class="main-content">
@@ -30,11 +33,17 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from './i18n'
 import Dashboard from './views/Dashboard.vue'
 import Analytics from './views/Analytics.vue'
 import Settings from './views/Settings.vue'
 
+const { t, locale, setLocale } = useI18n()
 const currentView = ref('dashboard')
+
+function toggleLanguage() {
+  setLocale(locale.value === 'zh' ? 'en' : 'zh')
+}
 </script>
 
 <style scoped>
@@ -136,6 +145,31 @@ const currentView = ref('dashboard')
   background: linear-gradient(90deg, #00d4ff, #7800ff);
   box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
   animation: slideIn 0.3s ease-out;
+}
+
+.lang-switcher {
+  margin-left: 1.5rem;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  color: #00d4ff;
+  letter-spacing: 1px;
+}
+
+.lang-switcher:hover {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: #00d4ff;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.lang-icon {
+  font-weight: 700;
 }
 
 @keyframes slideIn {

@@ -1,7 +1,7 @@
 <template>
   <div class="scan-form card">
     <div class="form-header">
-      <h3>扫描Git仓库</h3>
+      <h3>{{ t('scan.title') }}</h3>
       <div class="tech-lines">
         <span></span>
         <span></span>
@@ -9,15 +9,15 @@
       </div>
     </div>
     <div class="form-group">
-      <label>目录路径:</label>
+      <label>{{ t('scan.directoryPath') }}:</label>
       <input v-model="path" placeholder="/path/to/repos" />
       <div class="input-glow"></div>
     </div>
     <button @click="handleScan" :disabled="loading" class="btn scan-btn">
-      <span v-if="!loading">开始扫描</span>
+      <span v-if="!loading">{{ t('scan.startScan') }}</span>
       <span v-else class="loading-text">
         <span class="spinner"></span>
-        扫描中...
+        {{ t('scan.scanning') }}
       </span>
     </button>
     <p v-if="error" class="error">{{ error }}</p>
@@ -26,8 +26,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from '../i18n'
 import { performScan, state } from '../stores/data'
 
+const { t } = useI18n()
 const path = ref('D:/work')
 const loading = ref(false)
 const error = ref('')

@@ -1,10 +1,10 @@
 <template>
   <div class="settings">
-    <h2 class="page-title">设置</h2>
+    <h2 class="page-title">{{ t('settings.title') }}</h2>
     
     <div class="card settings-card">
       <div class="card-header">
-        <h3>数据管理</h3>
+        <h3>{{ t('settings.dataManagement') }}</h3>
         <div class="tech-lines">
           <span></span>
           <span></span>
@@ -13,13 +13,13 @@
       </div>
       <button @click="handleExport" class="btn export-btn">
         <span class="btn-icon">↓</span>
-        导出数据 (JSON)
+        {{ t('settings.exportData') }}
       </button>
     </div>
     
     <div class="card settings-card">
       <div class="card-header">
-        <h3>关于</h3>
+        <h3>{{ t('settings.about') }}</h3>
         <div class="tech-lines">
           <span></span>
           <span></span>
@@ -28,7 +28,7 @@
       </div>
       <div class="about-content">
         <div class="logo-text">GITSTAT</div>
-        <p class="version">v1.0 - Git提交统计平台</p>
+        <p class="version">{{ t('settings.version') }}</p>
         <div class="tech-stack">
           <div class="tech-item">
             <span class="tech-icon">⚡</span>
@@ -49,7 +49,10 @@
 </template>
 
 <script setup>
+import { useI18n } from '../i18n'
 import * as api from '../api'
+
+const { t } = useI18n()
 
 async function handleExport() {
   try {

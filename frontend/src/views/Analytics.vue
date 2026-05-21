@@ -61,11 +61,11 @@
                 class="repo-dropdown-btn"
                 :class="{ active: showRepoDropdown, 'has-selection': selectedRepos.length > 0 }"
               >
-                <span class="btn-text">
-                  {{ selectedRepos.length === 0 ? '选择仓库' : 
-                     selectedRepos.length === repositories.length ? '全部仓库' : 
-                     `${selectedRepos.length} 个仓库` }}
-                </span>
+                  <span class="btn-text">
+                    {{ selectedRepos.length === 0 ? t('analytics.selectRepo') : 
+                       selectedRepos.length === repositories.length ? t('analytics.allRepos') : 
+                       `${selectedRepos.length} ${t('analytics.reposSelected')}` }}
+                  </span>
                 <svg class="dropdown-icon" :class="{ rotated: showRepoDropdown }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -74,7 +74,7 @@
               <div v-show="showRepoDropdown" class="repo-dropdown-menu">
                 <div class="dropdown-header">
                   <button @click.stop="toggleAllRepos" class="select-all-btn">
-                    {{ allReposSelected ? '取消全选' : '全选' }}
+                    {{ allReposSelected ? t('analytics.cancelSelectAll') : t('analytics.selectAll') }}
                   </button>
                   <span class="selected-count">{{ selectedRepos.length }}/{{ repositories.length }}</span>
                 </div>
@@ -109,7 +109,7 @@
                 <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
               <div v-else class="btn-spinner"></div>
-              <span>{{ loading ? '分析中...' : '开始分析' }}</span>
+              <span>{{ loading ? t('analytics.analyzing') : t('analytics.startAnalyze') }}</span>
             </button>
           </div>
         </div>
@@ -120,19 +120,19 @@
     <div v-if="overviewStats" class="overview-cards">
       <div class="stat-card">
         <div class="stat-value">{{ overviewStats.totalCommits }}</div>
-        <div class="stat-label">总提交数</div>
+        <div class="stat-label">{{ t('analytics.totalCommits') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">{{ overviewStats.totalAdditions }}</div>
-        <div class="stat-label">新增行数</div>
+        <div class="stat-label">{{ t('analytics.totalAdditions') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
-        <div class="stat-label">删除行数</div>
+        <div class="stat-label">{{ t('analytics.totalDeletions') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">{{ overviewStats.activeAuthors }}</div>
-        <div class="stat-label">活跃作者</div>
+        <div class="stat-label">{{ t('analytics.activeAuthors') }}</div>
       </div>
     </div>
 
@@ -140,8 +140,8 @@
     <div class="charts-grid">
       <!-- 提交趋势图 -->
       <ChartContainer 
-        title="每日提交趋势" 
-        subtitle="多用户对比分析"
+        :title="t('analytics.commitTrend')" 
+        :subtitle="t('analytics.commitTrendSub')"
         :option="commitTrendOption" 
         :loading="loading"
         class="chart-card primary"
@@ -149,8 +149,8 @@
       
       <!-- 代码变更图 -->
       <ChartContainer 
-        title="代码变更分布" 
-        subtitle="新增 vs 删除"
+        :title="t('analytics.codeChange')" 
+        :subtitle="t('analytics.codeChangeSub')"
         :option="codeChangeOption" 
         :loading="loading"
         class="chart-card secondary"
@@ -161,10 +161,12 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '../i18n'
 import * as echarts from 'echarts'
 import ChartContainer from '../components/ChartContainer.vue'
 import { getDailyStats, getRepositories, getOverviewStats } from '../api'
 
+const { t } = useI18n()
 const loading = ref(false)
 const overviewStats = ref(null)
 const selectedTimeRange = ref('week')
@@ -177,10 +179,10 @@ const showRepoDropdown = ref(false)
 
 // 时间选项配置
 const timeOptions = [
-  { label: '本周', value: 'week' },
-  { label: '上周', value: 'lastWeek' },
-  { label: '本月', value: 'month' },
-  { label: '本年', value: 'year' }
+  { label: computed(() => t('analytics.thisWeek')), value: 'week' },
+  { label: computed(() => t('analytics.lastWeek')), value: 'lastWeek' },
+  { label: computed(() => t('analytics.thisMonth')), value: 'month' },
+  { label: computed(() => t('analytics.thisYear')), value: 'year' }
 ]
 
 // 选择时间范围
@@ -571,7 +573,7 @@ const loadData = async () => {
     // 并行请求 overview 和 daily
     const [overview, stats] = await Promise.all([
       getOverviewStats(startDate, endDate),
-      getDailyStats(null, selectedTimeRange.value, selectedRepos.value, startDate, endDate)
+      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null)
     ])
     overviewStats.value = overview
     console.log('[loadData] daily API response:', stats)

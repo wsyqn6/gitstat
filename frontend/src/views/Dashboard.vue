@@ -3,7 +3,7 @@
     <div class="header-actions">
       <button @click="handleSwitchDirectory" class="btn switch-btn">
         <span class="btn-icon">↻</span>
-        切换目录
+        {{ t('dashboard.switchDirectory') }}
       </button>
     </div>
     
@@ -13,25 +13,25 @@
       <div v-if="state.overviewStats" class="stats-grid">
         <StatCard 
           :value="todayCommits" 
-          label="今日提交数"
+          :label="t('dashboard.todayCommits')"
           icon="◈"
           color="#00d4ff"
         />
         <StatCard 
           :value="todayAdditions" 
-          label="今日新增行数"
+          :label="t('dashboard.todayAdditions')"
           icon="↑"
           color="#00ff88"
         />
         <StatCard 
           :value="todayDeletions" 
-          label="今日删除行数"
+          :label="t('dashboard.todayDeletions')"
           icon="↓"
           color="#ff6b9d"
         />
         <StatCard 
           :value="state.overviewStats.activeAuthors" 
-          label="活跃作者数"
+          :label="t('dashboard.activeAuthors')"
           icon="◉"
           color="#ffd700"
         />
@@ -40,7 +40,7 @@
       <!-- 分仓库分人统计 -->
       <div v-if="state.dailyStats && state.dailyStats.length > 0" class="daily-stats-section">
         <div class="section-header">
-          <h3>今日提交详情</h3>
+          <h3>{{ t('dashboard.todayDetails') }}</h3>
         </div>
         
         <div v-for="repo in state.dailyStats" :key="repo.repoPath" class="repo-daily-card card">
@@ -49,16 +49,16 @@
               <h4>{{ repo.repoName }}</h4>
               <div class="repo-meta">
                 <span class="branch-badge">{{ repo.currentBranch }}</span>
-                <span class="last-commit">最后提交: {{ repo.lastCommitTime }}</span>
+                <span class="last-commit">{{ t('dashboard.lastCommit') }}: {{ repo.lastCommitTime }}</span>
               </div>
             </div>
           </div>
           
           <div class="authors-table">
             <div class="table-header">
-              <div class="col-author">作者</div>
-              <div class="col-commits">提交数</div>
-              <div class="col-changes">变更</div>
+              <div class="col-author">{{ t('dashboard.author') }}</div>
+              <div class="col-commits">{{ t('dashboard.commits') }}</div>
+              <div class="col-changes">{{ t('dashboard.changes') }}</div>
             </div>
             <div 
               v-for="author in repo.authors" 
@@ -67,7 +67,7 @@
             >
               <div class="col-author">
                 <span class="author-name">{{ author.author }}</span>
-                <span v-if="author.isMe" class="me-badge" title="我的提交">ME</span>
+                <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">ME</span>
               </div>
               <div class="col-commits">{{ author.commits }}</div>
               <div class="col-changes">
@@ -83,10 +83,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from '../i18n'
 import { state, performScan, refreshDailyStats, refreshStats } from '../stores/data'
 import ScanForm from '../components/ScanForm.vue'
 import StatCard from '../components/StatCard.vue'
 
+const { t } = useI18n()
 const showScanForm = ref(false)
 
 const today = new Date().toISOString().split('T')[0]
