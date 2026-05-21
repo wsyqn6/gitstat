@@ -2,7 +2,11 @@ package aggregator
 
 import (
 	"cmp"
+	"fmt"
+	"math"
 	"slices"
+	"strconv"
+	"strings"
 	"time"
 
 	"gitstat/internal/model"
@@ -171,6 +175,158 @@ func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, st
 			})
 		}
 	}
+
+	return result
+}
+
+// 开发者排行榜聚合
+func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.AuthorRankItem {
+	authorMap := make(map[string]*model.AuthorRankItem)
+
+	for _, repo := range repos {
+		for _, commit := range repo.Commits {
+			// 时间过滤
+			if !startDate.IsZero() && commit.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && commit.Date.After(endDate) {
+				continue
+			}
+
+			key := commit.Email
+			if _, exists := authorMap[key]; !exists {
+				authorMap[key] = &model.AuthorRankItem{
+					Author: commit.Author,
+					Email:  commit.Email,
+					IsMe:   commit.Email == userEmail,
+				}
+			}
+
+			stats := authorMap[key]
+			stats.Commits++
+			stats.Additions += commit.Additions
+			stats.Deletions += commit.Deletions
+			stats.NetChange = stats.Additions - stats.Deletions
+		}
+	}
+
+	// 计算平均提交大小并转换为数组
+	var result []model.AuthorRankItem
+	for _, item := range authorMap {
+		if item.Commits > 0 {
+			item.AvgCommitSize = float64(item.Additions+item.Deletions) / float64(item.Commits)
+		}
+		result = append(result, *item)
+	}
+
+	// 按提交数排序
+	slices.SortFunc(result, func(a, b model.AuthorRankItem) int {
+		return cmp.Compare(b.Commits, a.Commits)
+	})
+
+	return result
+}
+
+// 活动热力图聚合
+func AggregateActivityHeatmap(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.ActivityHeatmapPoint {
+	heatmap := make(map[string]int) // "dayOfWeek-hour" -> count
+
+	for _, repo := range repos {
+		for _, commit := range repo.Commits {
+			// 邮箱过滤
+			if userEmail != "" && commit.Email != userEmail {
+				continue
+			}
+			// 时间过滤
+			if !startDate.IsZero() && commit.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && commit.Date.After(endDate) {
+				continue
+			}
+
+			key := fmt.Sprintf("%d-%d", commit.Date.Weekday(), commit.Date.Hour())
+			heatmap[key]++
+		}
+	}
+
+	// 转换为数组
+	var result []model.ActivityHeatmapPoint
+	for key, count := range heatmap {
+		parts := strings.Split(key, "-")
+		dayOfWeek, _ := strconv.Atoi(parts[0])
+		hour, _ := strconv.Atoi(parts[1])
+		result = append(result, model.ActivityHeatmapPoint{
+			DayOfWeek:   dayOfWeek,
+			Hour:        hour,
+			CommitCount: count,
+		})
+	}
+
+	// 排序
+	slices.SortFunc(result, func(a, b model.ActivityHeatmapPoint) int {
+		if a.DayOfWeek != b.DayOfWeek {
+			return cmp.Compare(a.DayOfWeek, b.DayOfWeek)
+		}
+		return cmp.Compare(a.Hour, b.Hour)
+	})
+
+	return result
+}
+
+// 仓库对比聚合
+func AggregateRepoComparison(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.RepoComparison {
+	var result []model.RepoComparison
+
+	for _, repo := range repos {
+		commitSet := make(map[string]bool) // 用于计算活跃天数
+		authorSet := make(map[string]bool)
+		var commits, additions, deletions int
+
+		for _, commit := range repo.Commits {
+			// 邮箱过滤
+			if userEmail != "" && commit.Email != userEmail {
+				continue
+			}
+			// 时间过滤
+			if !startDate.IsZero() && commit.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && commit.Date.After(endDate) {
+				continue
+			}
+
+			commits++
+			additions += commit.Additions
+			deletions += commit.Deletions
+			authorSet[commit.Email] = true
+			commitSet[commit.Date.Format("2006-01-02")] = true
+		}
+
+		if commits > 0 {
+			activeDays := len(commitSet)
+			avgCommitsPerDay := float64(commits) / float64(activeDays)
+			// 保留1位小数
+			avgCommitsPerDay = math.Round(avgCommitsPerDay*10) / 10
+
+			result = append(result, model.RepoComparison{
+				RepoName:         repo.Name,
+				RepoPath:         repo.Path,
+				Commits:          commits,
+				Authors:          len(authorSet),
+				Additions:        additions,
+				Deletions:        deletions,
+				LastCommitTime:   repo.LastCommitTime,
+				ActiveDays:       activeDays,
+				AvgCommitsPerDay: avgCommitsPerDay,
+			})
+		}
+	}
+
+	// 按提交数排序
+	slices.SortFunc(result, func(a, b model.RepoComparison) int {
+		return cmp.Compare(b.Commits, a.Commits)
+	})
 
 	return result
 }

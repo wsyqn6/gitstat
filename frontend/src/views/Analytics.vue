@@ -136,6 +136,18 @@
       </div>
     </div>
 
+    <!-- 洞察卡片 -->
+    <div v-if="insights.length > 0" class="insights-grid">
+      <div v-for="(insight, idx) in insights" :key="idx" class="insight-card">
+        <div class="insight-icon">{{ insight.icon }}</div>
+        <div class="insight-content">
+          <div class="insight-title">{{ insight.title }}</div>
+          <div class="insight-value">{{ insight.value }}</div>
+          <div class="insight-desc">{{ insight.description }}</div>
+        </div>
+      </div>
+    </div>
+
     <!-- 图表区域 -->
     <div class="charts-grid">
       <!-- 提交趋势图 -->
@@ -155,6 +167,33 @@
         :loading="loading"
         class="chart-card secondary"
       />
+
+      <!-- 开发者排行榜 -->
+      <ChartContainer 
+        title="开发者贡献榜" 
+        subtitle="Top 10 按提交数排序"
+        :option="authorRankOption" 
+        :loading="loading"
+        class="chart-card tertiary"
+      />
+
+      <!-- 活动热力图 -->
+      <ChartContainer 
+        title="提交时间热力图" 
+        subtitle="星期 × 小时维度"
+        :option="heatmapOption" 
+        :loading="loading"
+        class="chart-card quaternary"
+      />
+
+      <!-- 仓库对比雷达图 -->
+      <ChartContainer 
+        title="仓库活跃度对比" 
+        subtitle="多维度雷达分析"
+        :option="repoComparisonOption" 
+        :loading="loading"
+        class="chart-card quinary"
+      />
     </div>
   </div>
 </template>
@@ -164,7 +203,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import * as echarts from 'echarts'
 import ChartContainer from '../components/ChartContainer.vue'
-import { getDailyStats, getRepositories, getOverviewStats } from '../api'
+import { getDailyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -176,6 +215,9 @@ const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
 const showRepoDropdown = ref(false)
+const authorRank = ref([])
+const activityHeatmap = ref([])
+const repoComparison = ref([])
 
 // 时间选项配置
 const timeOptions = [
@@ -516,6 +558,293 @@ function adjustColor(color, amount) {
   return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`
 }
 
+// 开发者排行榜图配置
+const authorRankOption = computed(() => {
+  if (!authorRank.value || authorRank.value.length === 0) {
+    return {
+      title: { 
+        text: '暂无数据', 
+        left: 'center', 
+        top: 'center',
+        textStyle: { color: '#64748b', fontSize: 16 }
+      }
+    }
+  }
+
+  const topAuthors = authorRank.value.slice(0, 10)
+  const colors = ['#00f5ff', '#ff00ff', '#ffd700', '#00ff88', '#ff6b6b', '#a78bfa']
+
+  return {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      borderColor: '#00f5ff',
+      textStyle: { color: '#fff' },
+      axisPointer: { type: 'shadow' },
+      formatter: (params) => {
+        const item = params[0]
+        const author = topAuthors[item.dataIndex]
+        return `
+          <div style="font-weight:bold;margin-bottom:5px">${author.author}</div>
+          <div>提交数: ${author.commits}</div>
+          <div>新增: <span style="color:#00ff88">${author.additions}</span></div>
+          <div>删除: <span style="color:#ff6b6b">${author.deletions}</span></div>
+          <div>净变化: ${author.netChange > 0 ? '+' : ''}${author.netChange}</div>
+        `
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '8%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisLabel: { color: '#94a3b8' },
+      splitLine: { 
+        lineStyle: { 
+          color: '#1e293b',
+          type: 'dashed'
+        } 
+      }
+    },
+    yAxis: {
+      type: 'category',
+      data: topAuthors.map(a => a.author),
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisLabel: { color: '#94a3b8' },
+      inverse: true
+    },
+    series: [{
+      type: 'bar',
+      data: topAuthors.map((a, idx) => ({
+        value: a.commits,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+            { offset: 0, color: colors[idx % colors.length] },
+            { offset: 1, color: adjustColor(colors[idx % colors.length], -40) }
+          ]),
+          borderRadius: [0, 4, 4, 0]
+        }
+      })),
+      barWidth: '60%'
+    }]
+  }
+})
+
+// 活动热力图配置
+const heatmapOption = computed(() => {
+  if (!activityHeatmap.value || activityHeatmap.value.length === 0) {
+    return {
+      title: { 
+        text: '暂无数据', 
+        left: 'center', 
+        top: 'center',
+        textStyle: { color: '#64748b', fontSize: 16 }
+      }
+    }
+  }
+
+  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`)
+  const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  
+  // 构建热力图数据
+  const data = activityHeatmap.value.map(item => [
+    item.dayOfWeek,
+    item.hour,
+    item.commitCount
+  ])
+
+  const maxCount = Math.max(...data.map(d => d[2]))
+
+  return {
+    tooltip: {
+      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      borderColor: '#00f5ff',
+      textStyle: { color: '#fff' },
+      formatter: (params) => {
+        return `<div>${days[params.value[0]]} ${hours[params.value[1]]}</div><div>提交数: ${params.value[2]}</div>`
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '8%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: days,
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisLabel: { color: '#94a3b8' },
+      splitArea: { show: true, areaStyle: { color: 'rgba(30, 41, 59, 0.3)' } }
+    },
+    yAxis: {
+      type: 'category',
+      data: hours,
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisLabel: { color: '#94a3b8' },
+      splitArea: { show: true, areaStyle: { color: 'rgba(30, 41, 59, 0.3)' } }
+    },
+    visualMap: {
+      min: 0,
+      max: maxCount,
+      calculable: true,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: '0%',
+      inRange: {
+        color: [
+          'rgba(0, 245, 255, 0.1)',
+          'rgba(0, 245, 255, 0.4)',
+          'rgba(0, 245, 255, 0.7)',
+          '#00f5ff'
+        ]
+      },
+      textStyle: { color: '#94a3b8' }
+    },
+    series: [{
+      type: 'heatmap',
+      data: data,
+      label: { show: false },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: 'rgba(0, 245, 255, 0.5)'
+        }
+      }
+    }]
+  }
+})
+
+// 仓库对比雷达图配置
+const repoComparisonOption = computed(() => {
+  if (!repoComparison.value || repoComparison.value.length === 0) {
+    return {
+      title: { 
+        text: '暂无数据', 
+        left: 'center', 
+        top: 'center',
+        textStyle: { color: '#64748b', fontSize: 16 }
+      }
+    }
+  }
+
+  const repos = repoComparison.value.slice(0, 5)
+  const colors = ['#00f5ff', '#ff00ff', '#ffd700', '#00ff88', '#ff6b6b']
+
+  // 计算最大值用于归一化
+  const maxCommits = Math.max(...repos.map(r => r.commits))
+  const maxAdditions = Math.max(...repos.map(r => r.additions))
+  const maxAuthors = Math.max(...repos.map(r => r.authors))
+  const maxActiveDays = Math.max(...repos.map(r => r.activeDays))
+
+  return {
+    tooltip: {
+      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      borderColor: '#00f5ff',
+      textStyle: { color: '#fff' }
+    },
+    legend: {
+      data: repos.map(r => r.repoName),
+      textStyle: { color: '#94a3b8' },
+      top: 10
+    },
+    radar: {
+      indicator: [
+        { name: '提交数', max: 100 },
+        { name: '代码量', max: 100 },
+        { name: '作者数', max: 100 },
+        { name: '活跃天数', max: 100 },
+        { name: '日均提交', max: 100 }
+      ],
+      shape: 'polygon',
+      splitNumber: 4,
+      axisName: { color: '#94a3b8' },
+      splitLine: {
+        lineStyle: { color: 'rgba(0, 245, 255, 0.2)' }
+      },
+      splitArea: {
+        areaStyle: {
+          color: ['rgba(0, 245, 255, 0.05)', 'rgba(0, 245, 255, 0.1)']
+        }
+      }
+    },
+    series: [{
+      type: 'radar',
+      data: repos.map((repo, idx) => {
+        const avgCommitsPerDayNormalized = repo.avgCommitsPerDay > 10 ? 100 : (repo.avgCommitsPerDay / 10) * 100
+        return {
+          value: [
+            (repo.commits / maxCommits) * 100,
+            (repo.additions / maxAdditions) * 100,
+            (repo.authors / maxAuthors) * 100,
+            (repo.activeDays / maxActiveDays) * 100,
+            avgCommitsPerDayNormalized
+          ],
+          name: repo.repoName,
+          lineStyle: { color: colors[idx % colors.length], width: 2 },
+          itemStyle: { color: colors[idx % colors.length] },
+          areaStyle: { opacity: 0.2, color: colors[idx % colors.length] }
+        }
+      })
+    }]
+  }
+})
+
+// 洞察卡片数据
+const insights = computed(() => {
+  const result = []
+  
+  // 最活跃开发者
+  if (authorRank.value && authorRank.value.length > 0) {
+    const topAuthor = authorRank.value[0]
+    result.push({
+      icon: '👑',
+      title: '本周之星',
+      value: topAuthor.author,
+      description: `${topAuthor.commits} 次提交 · ${topAuthor.additions} 行新增`
+    })
+  }
+  
+  // 平均提交大小
+  if (overviewStats.value && overviewStats.value.totalCommits > 0) {
+    const avgSize = Math.round((overviewStats.value.totalAdditions + overviewStats.value.totalDeletions) / overviewStats.value.totalCommits)
+    result.push({
+      icon: '📊',
+      title: '平均提交规模',
+      value: `${avgSize} 行`,
+      description: '每次提交的平均代码变更量'
+    })
+  }
+  
+  // 代码净增长
+  if (overviewStats.value) {
+    const netChange = overviewStats.value.totalAdditions - overviewStats.value.totalDeletions
+    result.push({
+      icon: netChange >= 0 ? '📈' : '📉',
+      title: '代码净增长',
+      value: `${netChange > 0 ? '+' : ''}${netChange}`,
+      description: '新增与删除的差值'
+    })
+  }
+  
+  // 活跃仓库数
+  if (repoComparison.value && repoComparison.value.length > 0) {
+    const activeRepos = repoComparison.value.filter(r => r.commits > 0).length
+    result.push({
+      icon: '🗂️',
+      title: '活跃仓库',
+      value: `${activeRepos} 个`,
+      description: '本周期内有提交的仓库'
+    })
+  }
+  
+  return result
+})
+
 // 加载数据
 const loadData = async () => {
   // 验证必选条件
@@ -571,13 +900,19 @@ const loadData = async () => {
     // TODO: 在此处增加检查逻辑，如果缓存不足，先调用 performIncrementalScan
     
     // 并行请求 overview 和 daily
-    const [overview, stats] = await Promise.all([
+    const [overview, stats, authors, heatmap, comparison] = await Promise.all([
       getOverviewStats(startDate, endDate),
-      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null)
+      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null),
+      getAuthorRank(selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null),
+      getActivityHeatmap(selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null),
+      getRepoComparison(selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null)
     ])
     overviewStats.value = overview
     console.log('[loadData] daily API response:', stats)
     dailyStats.value = stats || []
+    authorRank.value = authors || []
+    activityHeatmap.value = heatmap || []
+    repoComparison.value = comparison || []
     console.log('[loadData] dailyStats assigned, length:', dailyStats.value.length)
     
     // 等待 computed 重新计算
@@ -657,6 +992,63 @@ onMounted(async () => {
   color: #a0aec0;
   font-size: 0.9rem;
   letter-spacing: 1px;
+}
+
+/* 洞察卡片 */
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.insight-card {
+  background: rgba(10, 14, 39, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s;
+}
+
+.insight-card:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+}
+
+.insight-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.insight-content {
+  flex: 1;
+}
+
+.insight-title {
+  font-size: 0.85rem;
+  color: #64748b;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
+}
+
+.insight-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00d4ff, #7800ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.25rem;
+}
+
+.insight-desc {
+  font-size: 0.8rem;
+  color: #94a3b8;
 }
 
 .title-row {
@@ -1175,13 +1567,13 @@ onMounted(async () => {
 /* 图表网格 */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
   gap: 1.5rem;
 }
 
 .chart-card {
-  min-height: 500px;
-  height: 500px;
+  min-height: 450px;
+  height: 450px;
 }
 
 @media (max-width: 1200px) {

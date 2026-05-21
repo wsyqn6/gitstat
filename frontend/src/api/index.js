@@ -28,10 +28,15 @@ export async function setScanPath(path) {
   return response.json()
 }
 
-export async function getOverviewStats(startDate = null, endDate = null) {
+export async function getOverviewStats(startDate = null, endDate = null, repos = []) {
   const params = new URLSearchParams()
   if (startDate) params.append('startDate', startDate)
   if (endDate) params.append('endDate', endDate)
+  
+  // repos为空或包含'all'时不传repo参数（后端返回所有仓库）
+  if (repos.length > 0 && !repos.includes('all')) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
   
   const url = `${API_BASE}/stats/overview?${params.toString()}`
   const response = await fetch(url)
@@ -69,7 +74,9 @@ export async function getDailyStats(email, timeRange = 'week', repos = [], start
   if (timeRange) params.append('range', timeRange)
   if (startDate) params.append('startDate', startDate)
   if (endDate) params.append('endDate', endDate)
-  if (repos.length > 0) {
+  
+  // repos为空或包含'all'时不传repo参数（后端返回所有仓库）
+  if (repos.length > 0 && !repos.includes('all')) {
     repos.forEach(repo => params.append('repo', repo))
   }
   
@@ -78,6 +85,63 @@ export async function getDailyStats(email, timeRange = 'week', repos = [], start
   
   if (!response.ok) {
     throw new Error('Failed to fetch daily stats')
+  }
+  
+  return response.json()
+}
+
+export async function getAuthorRank(repos = [], startDate = null, endDate = null) {
+  const params = new URLSearchParams()
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
+  
+  if (repos.length > 0 && !repos.includes('all')) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
+  
+  const url = `${API_BASE}/stats/authors?${params.toString()}`
+  const response = await fetch(url)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch author rank')
+  }
+  
+  return response.json()
+}
+
+export async function getActivityHeatmap(repos = [], startDate = null, endDate = null) {
+  const params = new URLSearchParams()
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
+  
+  if (repos.length > 0 && !repos.includes('all')) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
+  
+  const url = `${API_BASE}/stats/activity-heatmap?${params.toString()}`
+  const response = await fetch(url)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch activity heatmap')
+  }
+  
+  return response.json()
+}
+
+export async function getRepoComparison(repos = [], startDate = null, endDate = null) {
+  const params = new URLSearchParams()
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
+  
+  if (repos.length > 0 && !repos.includes('all')) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
+  
+  const url = `${API_BASE}/stats/repo-comparison?${params.toString()}`
+  const response = await fetch(url)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch repo comparison')
   }
   
   return response.json()

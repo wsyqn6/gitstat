@@ -1,6 +1,7 @@
 package store
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -60,13 +61,35 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 		return false
 	}
 
+	// 去重：构建已有提交的哈希集合
+	existingHashes := make(map[string]bool)
+	for _, c := range cache.Commits {
+		existingHashes[c.Hash] = true
+	}
+
+	// 过滤出未存在的提交
+	var uniqueCommits []model.Commit
+	for _, nc := range newCommits {
+		if !existingHashes[nc.Hash] {
+			uniqueCommits = append(uniqueCommits, nc)
+			existingHashes[nc.Hash] = true
+		}
+	}
+
+	if len(uniqueCommits) == 0 {
+		log.Printf("[MergeCommits] No new commits for %s (all %d duplicates)", path, len(newCommits))
+		return true
+	}
+
 	// 检查上限
-	if len(cache.Commits)+len(newCommits) > MaxCommitsPerRepo {
+	if len(cache.Commits)+len(uniqueCommits) > MaxCommitsPerRepo {
+		log.Printf("[MergeCommits] Reject: would exceed limit (%d + %d > %d)", len(cache.Commits), len(uniqueCommits), MaxCommitsPerRepo)
 		return false
 	}
 
-	cache.Commits = append(cache.Commits, newCommits...)
-	s.updateDateRange(cache, newCommits)
+	cache.Commits = append(cache.Commits, uniqueCommits...)
+	s.updateDateRange(cache, uniqueCommits)
+	log.Printf("[MergeCommits] Added %d unique commits to %s (total: %d)", len(uniqueCommits), path, len(cache.Commits))
 	return true
 }
 

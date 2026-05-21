@@ -160,3 +160,201 @@ func GetDailyStatsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(dailyStats)
 }
+
+func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
+	userEmail := r.URL.Query().Get("email")
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+	repoPaths := r.URL.Query()["repo"]
+
+	log.Printf("[AuthorRank] Request: email=%s, start=%s, end=%s, repos=%v", userEmail, startDateStr, endDateStr, repoPaths)
+
+	var startDate, endDate time.Time
+	if startDateStr != "" && endDateStr != "" {
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		endDate = endDate.Add(24*time.Hour - time.Second)
+	} else {
+		startDate, endDate = ParseTimeRange("week")
+	}
+
+	ensureDataLoaded(repoPaths, startDate)
+
+	var repos []model.Repository
+	for _, cache := range store.GlobalStore.Repos {
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        cache.Commits,
+		})
+	}
+
+	if len(repoPaths) > 0 {
+		repoMap := make(map[string]bool)
+		for _, path := range repoPaths {
+			repoMap[path] = true
+		}
+		filteredRepos := make([]model.Repository, 0)
+		for _, repo := range repos {
+			if repoMap[repo.Path] {
+				filteredRepos = append(filteredRepos, repo)
+			}
+		}
+		repos = filteredRepos
+	}
+
+	if userEmail == "" {
+		for _, repo := range repos {
+			if repo.UserEmail != "" {
+				userEmail = repo.UserEmail
+				break
+			}
+		}
+	}
+
+	rank := aggregator.AggregateAuthorRank(repos, userEmail, startDate, endDate)
+
+	if respJSON, err := json.MarshalIndent(rank, "", "  "); err == nil {
+		log.Printf("[AuthorRank] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[AuthorRank] Response error: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(rank)
+}
+
+func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
+	userEmail := r.URL.Query().Get("email")
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+	repoPaths := r.URL.Query()["repo"]
+
+	log.Printf("[Heatmap] Request: email=%s, start=%s, end=%s, repos=%v", userEmail, startDateStr, endDateStr, repoPaths)
+
+	var startDate, endDate time.Time
+	if startDateStr != "" && endDateStr != "" {
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		endDate = endDate.Add(24*time.Hour - time.Second)
+	} else {
+		startDate, endDate = ParseTimeRange("month")
+	}
+
+	ensureDataLoaded(repoPaths, startDate)
+
+	var repos []model.Repository
+	for _, cache := range store.GlobalStore.Repos {
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        cache.Commits,
+		})
+	}
+
+	if len(repoPaths) > 0 {
+		repoMap := make(map[string]bool)
+		for _, path := range repoPaths {
+			repoMap[path] = true
+		}
+		filteredRepos := make([]model.Repository, 0)
+		for _, repo := range repos {
+			if repoMap[repo.Path] {
+				filteredRepos = append(filteredRepos, repo)
+			}
+		}
+		repos = filteredRepos
+	}
+
+	if userEmail == "" {
+		for _, repo := range repos {
+			if repo.UserEmail != "" {
+				userEmail = repo.UserEmail
+				break
+			}
+		}
+	}
+
+	heatmap := aggregator.AggregateActivityHeatmap(repos, userEmail, startDate, endDate)
+
+	if respJSON, err := json.MarshalIndent(heatmap, "", "  "); err == nil {
+		log.Printf("[Heatmap] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[Heatmap] Response error: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(heatmap)
+}
+
+func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
+	userEmail := r.URL.Query().Get("email")
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+	repoPaths := r.URL.Query()["repo"]
+
+	log.Printf("[RepoComparison] Request: email=%s, start=%s, end=%s, repos=%v", userEmail, startDateStr, endDateStr, repoPaths)
+
+	var startDate, endDate time.Time
+	if startDateStr != "" && endDateStr != "" {
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		endDate = endDate.Add(24*time.Hour - time.Second)
+	} else {
+		startDate, endDate = ParseTimeRange("month")
+	}
+
+	ensureDataLoaded(repoPaths, startDate)
+
+	var repos []model.Repository
+	for _, cache := range store.GlobalStore.Repos {
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        cache.Commits,
+		})
+	}
+
+	if len(repoPaths) > 0 {
+		repoMap := make(map[string]bool)
+		for _, path := range repoPaths {
+			repoMap[path] = true
+		}
+		filteredRepos := make([]model.Repository, 0)
+		for _, repo := range repos {
+			if repoMap[repo.Path] {
+				filteredRepos = append(filteredRepos, repo)
+			}
+		}
+		repos = filteredRepos
+	}
+
+	if userEmail == "" {
+		for _, repo := range repos {
+			if repo.UserEmail != "" {
+				userEmail = repo.UserEmail
+				break
+			}
+		}
+	}
+
+	comparison := aggregator.AggregateRepoComparison(repos, userEmail, startDate, endDate)
+
+	if respJSON, err := json.MarshalIndent(comparison, "", "  "); err == nil {
+		log.Printf("[RepoComparison] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[RepoComparison] Response error: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(comparison)
+}

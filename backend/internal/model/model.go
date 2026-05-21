@@ -70,3 +70,35 @@ type ApiResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 	Message string      `json:"message,omitempty"`
 }
+
+// 开发者排行榜项
+type AuthorRankItem struct {
+	Author        string  `json:"author"`
+	Email         string  `json:"email"`
+	Commits       int     `json:"commits"`
+	Additions     int     `json:"additions"`
+	Deletions     int     `json:"deletions"`
+	NetChange     int     `json:"netChange"` // 新增-删除
+	IsMe          bool    `json:"isMe"`
+	AvgCommitSize float64 `json:"avgCommitSize"` // 平均提交大小
+}
+
+// 活动热力图数据点
+type ActivityHeatmapPoint struct {
+	DayOfWeek   int `json:"dayOfWeek"` // 0=周日, 1=周一...6=周六
+	Hour        int `json:"hour"`      // 0-23
+	CommitCount int `json:"commitCount"`
+}
+
+// 仓库对比数据
+type RepoComparison struct {
+	RepoName         string  `json:"repoName"`
+	RepoPath         string  `json:"repoPath"`
+	Commits          int     `json:"commits"`
+	Authors          int     `json:"authors"`
+	Additions        int     `json:"additions"`
+	Deletions        int     `json:"deletions"`
+	LastCommitTime   string  `json:"lastCommitTime"`
+	ActiveDays       int     `json:"activeDays"`       // 活跃天数
+	AvgCommitsPerDay float64 `json:"avgCommitsPerDay"` // 日均提交数
+}

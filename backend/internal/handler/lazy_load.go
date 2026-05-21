@@ -64,16 +64,22 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 		}
 
 		// 情况2：已初始化但缓存不足 → 增量扫描
-		if cache.EarliestDate.After(startDate) || len(cache.Commits) == 0 {
+		// 只有当缓存的最早日期晚于请求起始日期时，才需要加载更早的数据
+		if !cache.EarliestDate.IsZero() && cache.EarliestDate.After(startDate) {
 			mu := getScanMutex(cache.Path)
 			mu.Lock()
 			// 双重检查
 			cache = store.GlobalStore.GetRepoCache(cache.Path)
-			if cache != nil && (cache.EarliestDate.After(startDate) || len(cache.Commits) == 0) {
+			if cache != nil && !cache.EarliestDate.IsZero() && cache.EarliestDate.After(startDate) {
+				log.Printf("[LazyLoad] Scanning incremental: %s from %s to %s", cache.Path, startDate.Format("2006-01-02"), cache.EarliestDate.Format("2006-01-02"))
 				newCommits, err := scanner.ScanIncremental(cache.Path, startDate, cache.EarliestDate)
-				if err == nil && len(newCommits) > 0 {
+				if err != nil {
+					log.Printf("[LazyLoad] Scan failed for %s: %v", cache.Path, err)
+				} else if len(newCommits) > 0 {
 					log.Printf("[LazyLoad] Merged %d commits for %s", len(newCommits), cache.Path)
 					store.GlobalStore.MergeCommits(cache.Path, newCommits)
+				} else {
+					log.Printf("[LazyLoad] No new commits found for %s", cache.Path)
 				}
 			}
 			mu.Unlock()

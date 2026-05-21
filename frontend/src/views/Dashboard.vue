@@ -58,7 +58,7 @@
             >
               <div class="col-author">
                 <span class="author-name">{{ author.author }}</span>
-                <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">ME</span>
+                <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">{{ t('dashboard.me') }}</span>
               </div>
               <div class="col-commits">{{ author.commits }}</div>
               <div class="col-changes">

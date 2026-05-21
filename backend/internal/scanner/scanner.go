@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -273,6 +274,8 @@ func ScanCommitsByRange(repoPath string, startDate, endDate time.Time) ([]model.
 // startDate: 扫描起始时间（更早的时间）
 // endDate: 扫描结束时间（更晚的时间，通常是缓存的 EarliestDate）
 func ScanIncremental(path string, startDate time.Time, endDate time.Time) ([]model.Commit, error) {
+	log.Printf("[Scanner] Scanning %s from %s to %s", path, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		return nil, err
@@ -284,8 +287,10 @@ func ScanIncremental(path string, startDate time.Time, endDate time.Time) ([]mod
 	}
 
 	var commits []model.Commit
+	totalCount := 0
 
 	err = iter.ForEach(func(c *object.Commit) error {
+		totalCount++
 		commitTime := c.Committer.When
 
 		// 如果提交时间晚于 endDate，跳过（还未到达扫描范围）
@@ -319,5 +324,6 @@ func ScanIncremental(path string, startDate time.Time, endDate time.Time) ([]mod
 		return nil
 	})
 
+	log.Printf("[Scanner] Scanned %d total commits, found %d in range for %s", totalCount, len(commits), path)
 	return commits, nil
 }

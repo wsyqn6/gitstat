@@ -18,7 +18,7 @@ const messages = {
       author: '作者',
       commits: '提交数',
       changes: '变更',
-      me: 'ME'
+      me: '我'
     },
     scan: {
       title: '扫描Git仓库',

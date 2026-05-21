@@ -20,6 +20,9 @@ func NewServer() *chi.Mux {
 	r.Get("/api/repositories", handler.GetRepositoriesHandler)
 	r.Get("/api/stats/overview", handler.GetOverviewStatsHandler)
 	r.Get("/api/stats/daily", handler.GetDailyStatsHandler)
+	r.Get("/api/stats/authors", handler.GetAuthorRankHandler)
+	r.Get("/api/stats/activity-heatmap", handler.GetActivityHeatmapHandler)
+	r.Get("/api/stats/repo-comparison", handler.GetRepoComparisonHandler)
 	r.Post("/api/export/json", handler.ExportDataHandler)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {

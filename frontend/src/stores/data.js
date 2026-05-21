@@ -26,12 +26,11 @@ export async function performScan(path, timeRange) {
 }
 
 export async function refreshStats() {
-  const today = new Date().toISOString().split('T')[0]
   try {
-    // 并行请求 overview 和 daily，触发后端懒加载
+    // 并行请求 overview 和 daily，触发后端懒加载（所有仓库）
     const [overview, daily] = await Promise.all([
-      api.getOverviewStats(today, today),
-      api.getDailyStats('', null, [], today, today)
+      api.getOverviewStats(null, null, ['all']),
+      api.getDailyStats('', 'today', ['all'])
     ])
     state.overviewStats = overview
     state.dailyStats = daily
@@ -41,9 +40,8 @@ export async function refreshStats() {
 }
 
 export async function refreshDailyStats() {
-  const today = new Date().toISOString().split('T')[0]
   try {
-    state.dailyStats = await api.getDailyStats('', null, [], today, today)
+    state.dailyStats = await api.getDailyStats('', 'today', ['all'])
   } catch (err) {
     console.error('Failed to refresh daily stats:', err)
   }
