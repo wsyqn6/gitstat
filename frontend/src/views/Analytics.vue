@@ -234,7 +234,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
-import * as echarts from 'echarts'
+import echarts from '../utils/echarts'
 import ChartContainer from '../components/ChartContainer.vue'
 import { getDailyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
 

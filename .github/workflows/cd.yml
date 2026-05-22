@@ -17,7 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: cd frontend && pnpm install && pnpm build
-      - run: cd backend && go build .
+      - run: |
+          cd frontend && cp -r dist/* ../backend/web/dist/
+          cd backend && go build -ldflags="-s -w" .
 
   release:
     runs-on: ubuntu-latest
@@ -41,9 +43,9 @@ jobs:
           cp -r dist/* ../backend/web/dist/
       - run: |
           cd backend
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} \
-            go build -ldflags "-X main.Version=${{ github.ref_name }}" \
-            -o gitstat${{ matrix.ext }} .
+           GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} \
+             go build -ldflags "-s -w -X main.Version=${{ github.ref_name }}" \
+             -o gitstat${{ matrix.ext }} .
       - uses: softprops/action-gh-release@v2
         with:
           files: backend/gitstat${{ matrix.ext }}
