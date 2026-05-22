@@ -12,12 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-        with: { go-version-file: backend/go.mod }
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'pnpm'
-      - run: cd frontend && pnpm install && pnpm build
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: cd frontend && pnpm install --frozen-lockfile && pnpm build
       - run: |
           cd frontend && cp -r dist/* ../backend/web/dist/
           cd backend && go build -ldflags="-s -w" .
@@ -35,13 +40,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-        with: { go-version-file: backend/go.mod }
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
       - run: |
-          cd frontend && pnpm install && pnpm build
+          cd frontend && pnpm install --frozen-lockfile && pnpm build
           cp -r dist/* ../backend/web/dist/
       - run: |
           cd backend
