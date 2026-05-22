@@ -24,7 +24,8 @@ jobs:
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: cd frontend && pnpm install --frozen-lockfile && pnpm build
       - run: |
-          cd frontend && cp -r dist/* ../backend/web/dist/
+          mkdir -p backend/web/dist
+          cp -r frontend/dist/* backend/web/dist/
           cd backend && go build -ldflags="-s -w" .
 
   release:
@@ -52,6 +53,7 @@ jobs:
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: |
           cd frontend && pnpm install --frozen-lockfile && pnpm build
+          mkdir -p ../backend/web/dist
           cp -r dist/* ../backend/web/dist/
       - run: |
           cd backend
