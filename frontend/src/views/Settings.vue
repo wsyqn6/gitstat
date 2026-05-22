@@ -78,13 +78,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../i18n'
-import { performScan } from '../stores/data'
+import { performScan, state, loadScanPath } from '../stores/data'
 import * as api from '../api'
 
 const { t } = useI18n()
-const scanPath = ref('D:/work')
+const scanPath = computed({
+  get: () => state.scanPath,
+  set: (v) => { state.scanPath = v }
+})
 const scanning = ref(false)
 const scanError = ref('')
 const scanSuccess = ref('')
@@ -96,6 +99,7 @@ onMounted(async () => {
   } catch (err) {
     console.error('Failed to fetch version:', err)
   }
+  await loadScanPath()
 })
 
 async function handleScan() {

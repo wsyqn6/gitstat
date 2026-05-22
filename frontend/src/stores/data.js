@@ -5,6 +5,7 @@ export const state = reactive({
   repositories: [],
   overviewStats: null,
   dailyStats: [],
+  scanPath: '',
   loading: false,
   error: null
 })
@@ -44,5 +45,13 @@ export async function refreshDailyStats() {
     state.dailyStats = await api.getDailyStats('', 'today', ['all'])
   } catch (err) {
     console.error('Failed to refresh daily stats:', err)
+  }
+}
+
+export async function loadScanPath() {
+  try {
+    state.scanPath = await api.getScanPath()
+  } catch (err) {
+    console.error('Failed to load scan path:', err)
   }
 }

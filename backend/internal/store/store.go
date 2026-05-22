@@ -25,8 +25,9 @@ type RepoCache struct {
 }
 
 type Store struct {
-	mu    sync.RWMutex
-	Repos map[string]*RepoCache // path -> cache
+	mu        sync.RWMutex
+	ScanPath  string
+	Repos     map[string]*RepoCache // path -> cache
 }
 
 var GlobalStore = &Store{
@@ -153,6 +154,7 @@ func (s *Store) updateDateRange(cache *RepoCache, commits []model.Commit) {
 func (s *Store) ClearAll() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.ScanPath = ""
 	s.Repos = make(map[string]*RepoCache)
 }
 
@@ -190,4 +192,18 @@ func (s *Store) InitRepoCache(path string, meta model.Repository, commits []mode
 	if len(commits) > 0 {
 		s.updateDateRange(cache, commits)
 	}
+}
+
+// SetScanPath 设置扫描目录
+func (s *Store) SetScanPath(path string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.ScanPath = path
+}
+
+// GetScanPath 获取当前扫描目录
+func (s *Store) GetScanPath() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.ScanPath
 }

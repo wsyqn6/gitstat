@@ -159,12 +159,22 @@ func calculateCutoffTime(timeRange string) time.Time {
 
 // DiscoverRepos 发现目录下的所有 Git 仓库（仅元数据，不扫描提交）
 func DiscoverRepos(rootPath string) ([]model.Repository, error) {
+	var repos []model.Repository
+
+	// check if rootPath itself is a git repo
+	gitPath := filepath.Join(rootPath, ".git")
+	if _, err := os.Stat(gitPath); err == nil {
+		meta, err := ScanMetadata(rootPath)
+		if err == nil {
+			repos = append(repos, meta)
+		}
+	}
+
 	entries, err := os.ReadDir(rootPath)
 	if err != nil {
 		return nil, err
 	}
 
-	var repos []model.Repository
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue

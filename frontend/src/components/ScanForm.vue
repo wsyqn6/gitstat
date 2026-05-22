@@ -10,7 +10,7 @@
     </div>
     <div class="form-group">
       <label>{{ t('scan.directoryPath') }}:</label>
-      <input v-model="path" placeholder="/path/to/repos" />
+      <input v-model="scanPath" placeholder="/path/to/repos" />
       <div class="input-glow"></div>
     </div>
     <button @click="handleScan" :disabled="loading" class="btn scan-btn">
@@ -25,12 +25,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
-import { performScan, state } from '../stores/data'
+import { performScan, state, loadScanPath } from '../stores/data'
 
 const { t } = useI18n()
-const path = ref('D:/work')
+const scanPath = computed({
+  get: () => state.scanPath,
+  set: (v) => { state.scanPath = v }
+})
 const loading = ref(false)
 const error = ref('')
 
@@ -41,7 +44,7 @@ async function handleScan() {
   error.value = ''
   
   try {
-    await performScan(path.value, '1d')
+    await performScan(state.scanPath, '1d')
     emit('scan-complete')
   } catch (err) {
     error.value = err.message

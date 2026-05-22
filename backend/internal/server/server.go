@@ -3,7 +3,7 @@ package server
 import (
 	"io/fs"
 	"net/http"
-	"path"
+	"strings"
 
 	"gitstat/internal/handler"
 
@@ -17,6 +17,7 @@ func NewServer() *chi.Mux {
 
 	r.Post("/api/scan", handler.ScanHandler)
 	r.Post("/api/scan/path", handler.SetScanPathHandler)
+	r.Get("/api/scan/path", handler.GetScanPathHandler)
 	r.Get("/api/repositories", handler.GetRepositoriesHandler)
 	r.Get("/api/stats/overview", handler.GetOverviewStatsHandler)
 	r.Get("/api/stats/daily", handler.GetDailyStatsHandler)
@@ -39,19 +40,37 @@ func NewServerWithStatic(staticFS fs.FS) *chi.Mux {
 		return r
 	}
 
-	staticHandler := http.FileServer(http.FS(staticFS))
+	r.Handle("/*", spaHandler(staticFS))
 
-	r.Handle("/*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		f, err := staticFS.Open(path.Clean(r.URL.Path))
+	return r
+}
+
+func spaHandler(staticFS fs.FS) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/")
+		if path == "" {
+			path = "index.html"
+		}
+
+		// try to serve the requested static file
+		f, err := staticFS.Open(path)
 		if err == nil {
-			f.Close()
-			staticHandler.ServeHTTP(w, r)
+			defer f.Close()
+			info, err := f.Stat()
+			if err == nil && !info.IsDir() {
+				http.ServeFileFS(w, r, staticFS, path)
+				return
+			}
+		}
+
+		// fallback to index.html for SPA routing
+		_, err = staticFS.Open("index.html")
+		if err != nil {
+			http.NotFound(w, r)
 			return
 		}
 		http.ServeFileFS(w, r, staticFS, "index.html")
-	}))
-
-	return r
+	}
 }
 
 func corsMiddleware(next http.Handler) http.Handler {

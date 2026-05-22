@@ -28,6 +28,17 @@ export async function setScanPath(path) {
   return response.json()
 }
 
+export async function getScanPath() {
+  const response = await fetch(`${API_BASE}/scan/path`)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch scan path')
+  }
+  
+  const data = await response.json()
+  return data.data?.path || ''
+}
+
 export async function getOverviewStats(startDate = null, endDate = null, repos = []) {
   const params = new URLSearchParams()
   if (startDate) params.append('startDate', startDate)

@@ -56,6 +56,9 @@ func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 	// 清空旧缓存
 	store.GlobalStore.ClearAll()
 
+	// 保存扫描路径
+	store.GlobalStore.SetScanPath(req.Path)
+
 	// 扫描新路径下的仓库元数据（不获取提交）
 	repos, err := scanner.DiscoverRepos(req.Path)
 	if err != nil {
@@ -81,4 +84,16 @@ func GetRepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(repos)
+}
+
+// GetScanPathHandler 获取当前扫描路径
+func GetScanPathHandler(w http.ResponseWriter, r *http.Request) {
+	path := store.GlobalStore.GetScanPath()
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(model.ApiResponse{
+		Code: 200,
+		Data: map[string]string{
+			"path": path,
+		},
+	})
 }
