@@ -1,7 +1,9 @@
 package server
 
 import (
+	"io/fs"
 	"net/http"
+	"path"
 
 	"gitstat/internal/handler"
 
@@ -11,10 +13,8 @@ import (
 func NewServer() *chi.Mux {
 	r := chi.NewRouter()
 
-	// CORS中间件
 	r.Use(corsMiddleware)
 
-	// 路由注册
 	r.Post("/api/scan", handler.ScanHandler)
 	r.Post("/api/scan/path", handler.SetScanPathHandler)
 	r.Get("/api/repositories", handler.GetRepositoriesHandler)
@@ -28,6 +28,28 @@ func NewServer() *chi.Mux {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
+
+	return r
+}
+
+func NewServerWithStatic(staticFS fs.FS) *chi.Mux {
+	r := NewServer()
+
+	if staticFS == nil {
+		return r
+	}
+
+	staticHandler := http.FileServer(http.FS(staticFS))
+
+	r.Handle("/*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f, err := staticFS.Open(path.Clean(r.URL.Path))
+		if err == nil {
+			f.Close()
+			staticHandler.ServeHTTP(w, r)
+			return
+		}
+		http.ServeFileFS(w, r, staticFS, "index.html")
+	}))
 
 	return r
 }

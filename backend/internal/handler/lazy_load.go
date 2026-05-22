@@ -58,6 +58,11 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 			cache = store.GlobalStore.GetRepoCache(cache.Path)
 			if cache != nil && !cache.Initialized {
 				initRepoCache(cache.Path, startDate, now)
+				// 无提交时设置 EarliestDate = now，允许后续增量扫描
+				c := store.GlobalStore.GetRepoCache(cache.Path)
+				if c != nil && c.Initialized && c.EarliestDate.IsZero() {
+					c.EarliestDate = now
+				}
 			}
 			mu.Unlock()
 			continue

@@ -119,27 +119,60 @@
     <!-- 概览统计卡片 -->
     <div v-if="overviewStats" class="overview-cards">
       <div class="stat-card">
-        <div class="stat-value">{{ overviewStats.totalCommits }}</div>
-        <div class="stat-label">{{ t('analytics.totalCommits') }}</div>
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">{{ t('analytics.totalCommits') }}</div>
+          <div class="stat-value">{{ overviewStats.totalCommits }}</div>
+        </div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ overviewStats.totalAdditions }}</div>
-        <div class="stat-label">{{ t('analytics.totalAdditions') }}</div>
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">{{ t('analytics.totalAdditions') }}</div>
+          <div class="stat-value">{{ overviewStats.totalAdditions }}</div>
+        </div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
-        <div class="stat-label">{{ t('analytics.totalDeletions') }}</div>
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">{{ t('analytics.totalDeletions') }}</div>
+          <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
+        </div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ overviewStats.activeAuthors }}</div>
-        <div class="stat-label">{{ t('analytics.activeAuthors') }}</div>
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">{{ t('analytics.activeAuthors') }}</div>
+          <div class="stat-value">{{ overviewStats.activeAuthors }}</div>
+        </div>
       </div>
     </div>
 
     <!-- 洞察卡片 -->
     <div v-if="insights.length > 0" class="insights-grid">
       <div v-for="(insight, idx) in insights" :key="idx" class="insight-card">
-        <div class="insight-icon">{{ insight.icon }}</div>
+        <div class="insight-icon" v-html="insight.iconSvg"></div>
         <div class="insight-content">
           <div class="insight-title">{{ insight.title }}</div>
           <div class="insight-value">{{ insight.value }}</div>
@@ -802,7 +835,7 @@ const insights = computed(() => {
   if (authorRank.value && authorRank.value.length > 0) {
     const topAuthor = authorRank.value[0]
     result.push({
-      icon: '👑',
+      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
       title: '本周之星',
       value: topAuthor.author,
       description: `${topAuthor.commits} 次提交 · ${topAuthor.additions} 行新增`
@@ -813,7 +846,7 @@ const insights = computed(() => {
   if (overviewStats.value && overviewStats.value.totalCommits > 0) {
     const avgSize = Math.round((overviewStats.value.totalAdditions + overviewStats.value.totalDeletions) / overviewStats.value.totalCommits)
     result.push({
-      icon: '📊',
+      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
       title: '平均提交规模',
       value: `${avgSize} 行`,
       description: '每次提交的平均代码变更量'
@@ -824,7 +857,7 @@ const insights = computed(() => {
   if (overviewStats.value) {
     const netChange = overviewStats.value.totalAdditions - overviewStats.value.totalDeletions
     result.push({
-      icon: netChange >= 0 ? '📈' : '📉',
+      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
       title: '代码净增长',
       value: `${netChange > 0 ? '+' : ''}${netChange}`,
       description: '新增与删除的差值'
@@ -835,7 +868,7 @@ const insights = computed(() => {
   if (repoComparison.value && repoComparison.value.length > 0) {
     const activeRepos = repoComparison.value.filter(r => r.commits > 0).length
     result.push({
-      icon: '🗂️',
+      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
       title: '活跃仓库',
       value: `${activeRepos} 个`,
       description: '本周期内有提交的仓库'
@@ -902,10 +935,10 @@ const loadData = async () => {
     // 并行请求 overview 和 daily
     const [overview, stats, authors, heatmap, comparison] = await Promise.all([
       getOverviewStats(startDate, endDate),
-      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null),
-      getAuthorRank(selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null),
-      getActivityHeatmap(selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null),
-      getRepoComparison(selectedRepos.value, selectedTimeRange.value === 'custom' ? startDate : null, selectedTimeRange.value === 'custom' ? endDate : null)
+      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, startDate, endDate),
+      getAuthorRank(selectedRepos.value, startDate, endDate),
+      getActivityHeatmap(selectedRepos.value, startDate, endDate),
+      getRepoComparison(selectedRepos.value, startDate, endDate)
     ])
     overviewStats.value = overview
     console.log('[loadData] daily API response:', stats)
@@ -957,7 +990,7 @@ onMounted(async () => {
 /* 概览统计卡片 */
 .overview-cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -968,8 +1001,11 @@ onMounted(async () => {
   border: 1px solid rgba(0, 212, 255, 0.2);
   border-radius: 12px;
   padding: 1.5rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   transition: all 0.3s;
+  min-height: 120px;
 }
 
 .stat-card:hover {
@@ -978,26 +1014,46 @@ onMounted(async () => {
   box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
 }
 
+.stat-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00f5ff;
+  filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.4));
+}
+
+.stat-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.stat-content {
+  flex: 1;
+}
+
 .stat-value {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, #00d4ff, #7800ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 0.5rem;
 }
 
 .stat-label {
-  color: #a0aec0;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.85rem;
   letter-spacing: 1px;
+  margin-bottom: 0.25rem;
 }
 
 /* 洞察卡片 */
 .insights-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -1012,6 +1068,7 @@ onMounted(async () => {
   align-items: center;
   gap: 1rem;
   transition: all 0.3s;
+  min-height: 100px;
 }
 
 .insight-card:hover {
@@ -1021,8 +1078,19 @@ onMounted(async () => {
 }
 
 .insight-icon {
-  font-size: 2.5rem;
   flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00f5ff;
+  filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.4));
+}
+
+.insight-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .insight-content {
