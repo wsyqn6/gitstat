@@ -78,7 +78,7 @@
 
 ### 下载预编译二进制
 
-从 [Releases](https://github.com/anomalyco/gitstat/releases) 页面下载对应平台的最新版本，解压后即可使用。
+从 [Releases](https://github.com/wsyqn6/gitstat/releases) 页面下载对应平台的最新版本，解压后即可使用。
 
 ### 启动 Web UI
 
@@ -236,7 +236,7 @@ The entire project is packaged as a single standalone executable, with frontend 
 
 ### Download Pre-built Binary
 
-Download the latest release for your platform from the [Releases](https://github.com/anomalyco/gitstat/releases) page, extract and run.
+Download the latest release for your platform from the [Releases](https://github.com/wsyqn6/gitstat/releases) page, extract and run.
 
 ### Start Web UI
 
