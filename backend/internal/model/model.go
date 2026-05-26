@@ -65,6 +65,32 @@ type RepositoryDailyStats struct {
 	Authors        []AuthorDailyStats `json:"authors"`
 }
 
+// 周期聚合数据结构 (周/月/年)
+type PeriodCommitData struct {
+	Period    string `json:"date"`
+	Commits   int    `json:"commits"`
+	Additions int    `json:"additions"`
+	Deletions int    `json:"deletions"`
+}
+
+type AuthorPeriodStats struct {
+	Author     string            `json:"author"`
+	Email      string            `json:"email"`
+	Commits    int               `json:"commits"`
+	Additions  int               `json:"additions"`
+	Deletions  int               `json:"deletions"`
+	IsMe       bool              `json:"isMe"`
+	PeriodData []PeriodCommitData `json:"dailyData,omitempty"`
+}
+
+type RepositoryPeriodStats struct {
+	RepoName       string             `json:"repoName"`
+	RepoPath       string             `json:"repoPath"`
+	CurrentBranch  string             `json:"currentBranch"`
+	LastCommitTime string             `json:"lastCommitTime"`
+	Authors        []AuthorPeriodStats `json:"authors"`
+}
+
 type ApiResponse struct {
 	Code    int         `json:"code"`
 	Data    interface{} `json:"data,omitempty"`

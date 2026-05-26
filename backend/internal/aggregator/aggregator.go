@@ -179,6 +179,115 @@ func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, st
 	return result
 }
 
+func getWeekKey(t time.Time) string {
+	year, week := t.ISOWeek()
+	return fmt.Sprintf("%d-W%02d", year, week)
+}
+
+func getMonthKey(t time.Time) string {
+	return t.Format("2006-01")
+}
+
+func getYearKey(t time.Time) string {
+	return t.Format("2006")
+}
+
+func aggregatePeriodStats(repos []model.Repository, userEmail string, startDate, endDate time.Time, periodKeyFn func(time.Time) string) []model.RepositoryPeriodStats {
+	var result []model.RepositoryPeriodStats
+
+	if userEmail == "" {
+		for _, repo := range repos {
+			if repo.UserEmail != "" {
+				userEmail = repo.UserEmail
+				break
+			}
+		}
+	}
+
+	for _, repo := range repos {
+		authorMap := make(map[string]*model.AuthorPeriodStats)
+		periodDataMap := make(map[string]map[string]*model.PeriodCommitData)
+
+		for _, commit := range repo.Commits {
+			if !startDate.IsZero() && commit.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && commit.Date.After(endDate) {
+				continue
+			}
+
+			key := commit.Email
+			if _, exists := authorMap[key]; !exists {
+				authorMap[key] = &model.AuthorPeriodStats{
+					Author: commit.Author,
+					Email:  commit.Email,
+					IsMe:   commit.Email == userEmail,
+				}
+				if periodDataMap[key] == nil {
+					periodDataMap[key] = make(map[string]*model.PeriodCommitData)
+				}
+			}
+
+			stats := authorMap[key]
+			stats.Commits++
+			stats.Additions += commit.Additions
+			stats.Deletions += commit.Deletions
+
+			periodKey := periodKeyFn(commit.Date)
+			if _, exists := periodDataMap[key][periodKey]; !exists {
+				periodDataMap[key][periodKey] = &model.PeriodCommitData{
+					Period: periodKey,
+				}
+			}
+			pd := periodDataMap[key][periodKey]
+			pd.Commits++
+			pd.Additions += commit.Additions
+			pd.Deletions += commit.Deletions
+		}
+
+		if len(authorMap) > 0 {
+			var authors []model.AuthorPeriodStats
+			for email, stats := range authorMap {
+				var periodData []model.PeriodCommitData
+				for _, pd := range periodDataMap[email] {
+					periodData = append(periodData, *pd)
+				}
+				slices.SortFunc(periodData, func(a, b model.PeriodCommitData) int {
+					return cmp.Compare(a.Period, b.Period)
+				})
+				stats.PeriodData = periodData
+				authors = append(authors, *stats)
+			}
+
+			slices.SortFunc(authors, func(a, b model.AuthorPeriodStats) int {
+				return cmp.Compare(b.Commits, a.Commits)
+			})
+
+			result = append(result, model.RepositoryPeriodStats{
+				RepoName:       repo.Name,
+				RepoPath:       repo.Path,
+				CurrentBranch:  repo.CurrentBranch,
+				LastCommitTime: repo.LastCommitTime,
+				Authors:        authors,
+			})
+		}
+	}
+
+	return result
+}
+
+func AggregateWeeklyStatsWithRange(repos []model.Repository, userEmail string, startDate, endDate time.Time) []model.RepositoryPeriodStats {
+	return aggregatePeriodStats(repos, userEmail, startDate, endDate, getWeekKey)
+}
+
+func AggregateMonthlyStatsWithRange(repos []model.Repository, userEmail string, startDate, endDate time.Time) []model.RepositoryPeriodStats {
+	return aggregatePeriodStats(repos, userEmail, startDate, endDate, getMonthKey)
+}
+
+func AggregateYearlyStatsWithRange(repos []model.Repository, userEmail string, startDate, endDate time.Time) []model.RepositoryPeriodStats {
+	return aggregatePeriodStats(repos, userEmail, startDate, endDate, getYearKey)
+}
+
 // 开发者排行榜聚合
 func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.AuthorRankItem {
 	authorMap := make(map[string]*model.AuthorRankItem)

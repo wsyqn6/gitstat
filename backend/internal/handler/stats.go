@@ -161,6 +161,183 @@ func GetDailyStatsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(dailyStats)
 }
 
+func GetWeeklyStatsHandler(w http.ResponseWriter, r *http.Request) {
+	userEmail := r.URL.Query().Get("email")
+	timeRange := r.URL.Query().Get("range")
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+	repoPaths := r.URL.Query()["repo"]
+
+	log.Printf("[Weekly] Request: email=%s, range=%s, start=%s, end=%s, repos=%v",
+		userEmail, timeRange, startDateStr, endDateStr, repoPaths)
+
+	var startDate, endDate time.Time
+	if startDateStr != "" && endDateStr != "" {
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		endDate = endDate.Add(24*time.Hour - time.Second)
+	} else {
+		startDate, endDate = ParseTimeRange(timeRange)
+	}
+
+	ensureDataLoaded(repoPaths, startDate)
+
+	var repos []model.Repository
+	for _, cache := range store.GlobalStore.Repos {
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        cache.Commits,
+		})
+	}
+
+	if len(repoPaths) > 0 {
+		repoMap := make(map[string]bool)
+		for _, path := range repoPaths {
+			repoMap[path] = true
+		}
+		filteredRepos := make([]model.Repository, 0)
+		for _, repo := range repos {
+			if repoMap[repo.Path] {
+				filteredRepos = append(filteredRepos, repo)
+			}
+		}
+		repos = filteredRepos
+	}
+
+	stats := aggregator.AggregateWeeklyStatsWithRange(repos, userEmail, startDate, endDate)
+
+	if respJSON, err := json.MarshalIndent(stats, "", "  "); err == nil {
+		log.Printf("[Weekly] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[Weekly] Response: repos=%d (marshal error: %v)", len(stats), err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+func GetMonthlyStatsHandler(w http.ResponseWriter, r *http.Request) {
+	userEmail := r.URL.Query().Get("email")
+	timeRange := r.URL.Query().Get("range")
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+	repoPaths := r.URL.Query()["repo"]
+
+	log.Printf("[Monthly] Request: email=%s, range=%s, start=%s, end=%s, repos=%v",
+		userEmail, timeRange, startDateStr, endDateStr, repoPaths)
+
+	var startDate, endDate time.Time
+	if startDateStr != "" && endDateStr != "" {
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		endDate = endDate.Add(24*time.Hour - time.Second)
+	} else {
+		startDate, endDate = ParseTimeRange(timeRange)
+	}
+
+	ensureDataLoaded(repoPaths, startDate)
+
+	var repos []model.Repository
+	for _, cache := range store.GlobalStore.Repos {
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        cache.Commits,
+		})
+	}
+
+	if len(repoPaths) > 0 {
+		repoMap := make(map[string]bool)
+		for _, path := range repoPaths {
+			repoMap[path] = true
+		}
+		filteredRepos := make([]model.Repository, 0)
+		for _, repo := range repos {
+			if repoMap[repo.Path] {
+				filteredRepos = append(filteredRepos, repo)
+			}
+		}
+		repos = filteredRepos
+	}
+
+	stats := aggregator.AggregateMonthlyStatsWithRange(repos, userEmail, startDate, endDate)
+
+	if respJSON, err := json.MarshalIndent(stats, "", "  "); err == nil {
+		log.Printf("[Monthly] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[Monthly] Response: repos=%d (marshal error: %v)", len(stats), err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+func GetYearlyStatsHandler(w http.ResponseWriter, r *http.Request) {
+	userEmail := r.URL.Query().Get("email")
+	timeRange := r.URL.Query().Get("range")
+	startDateStr := r.URL.Query().Get("startDate")
+	endDateStr := r.URL.Query().Get("endDate")
+	repoPaths := r.URL.Query()["repo"]
+
+	log.Printf("[Yearly] Request: email=%s, range=%s, start=%s, end=%s, repos=%v",
+		userEmail, timeRange, startDateStr, endDateStr, repoPaths)
+
+	var startDate, endDate time.Time
+	if startDateStr != "" && endDateStr != "" {
+		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		endDate = endDate.Add(24*time.Hour - time.Second)
+	} else {
+		startDate, endDate = ParseTimeRange(timeRange)
+	}
+
+	ensureDataLoaded(repoPaths, startDate)
+
+	var repos []model.Repository
+	for _, cache := range store.GlobalStore.Repos {
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        cache.Commits,
+		})
+	}
+
+	if len(repoPaths) > 0 {
+		repoMap := make(map[string]bool)
+		for _, path := range repoPaths {
+			repoMap[path] = true
+		}
+		filteredRepos := make([]model.Repository, 0)
+		for _, repo := range repos {
+			if repoMap[repo.Path] {
+				filteredRepos = append(filteredRepos, repo)
+			}
+		}
+		repos = filteredRepos
+	}
+
+	stats := aggregator.AggregateYearlyStatsWithRange(repos, userEmail, startDate, endDate)
+
+	if respJSON, err := json.MarshalIndent(stats, "", "  "); err == nil {
+		log.Printf("[Yearly] Response JSON:\n%s", string(respJSON))
+	} else {
+		log.Printf("[Yearly] Response: repos=%d (marshal error: %v)", len(stats), err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
 func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := r.URL.Query().Get("email")
 	startDateStr := r.URL.Query().Get("startDate")
