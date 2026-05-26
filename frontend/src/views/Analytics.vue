@@ -185,7 +185,7 @@
     <div class="charts-grid">
       <!-- 提交趋势图 -->
       <ChartContainer 
-        :title="t('analytics.commitTrend')" 
+        :title="commitTrendTitle" 
         :subtitle="t('analytics.commitTrendSub')"
         :option="commitTrendOption" 
         :loading="loading"
@@ -194,7 +194,7 @@
       
       <!-- 代码变更图 -->
       <ChartContainer 
-        :title="t('analytics.codeChange')" 
+        :title="codeChangeTitle" 
         :subtitle="t('analytics.codeChangeSub')"
         :option="codeChangeOption" 
         :loading="loading"
@@ -236,7 +236,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from '../components/ChartContainer.vue'
-import { getDailyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
+import { getDailyStats, getWeeklyStats, getMonthlyStats, getYearlyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -247,6 +247,8 @@ const customEndDate = ref('')
 const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
+const periodStats = ref([])
+const currentGranularity = ref('day')
 const showRepoDropdown = ref(false)
 const authorRank = ref([])
 const activityHeatmap = ref([])
@@ -299,22 +301,44 @@ const toggleAllRepos = () => {
   }
 }
 
+// 周期标签格式化
+const formatPeriodLabel = (period, granularity) => {
+  if (granularity === 'week') {
+    const match = period.match(/-W(\d+)/)
+    return match ? `第${match[1]}周` : period
+  }
+  if (granularity === 'month') {
+    return period.slice(5) + '月'
+  }
+  if (granularity === 'year') {
+    return period + '年'
+  }
+  return period
+}
+
+// 根据当前粒度选择数据源
+const activeStats = computed(() => {
+  return currentGranularity.value === 'day' ? dailyStats.value : periodStats.value
+})
+
 // 获取过滤后的统计数据
 const filteredStats = computed(() => {
+  const source = activeStats.value
   const result = selectedRepos.value.length === 0
-    ? dailyStats.value
-    : dailyStats.value.filter(stat => selectedRepos.value.includes(stat.repoPath))
+    ? source
+    : source.filter(stat => selectedRepos.value.includes(stat.repoPath))
   
   console.log('[filteredStats]', {
     selectedRepos: selectedRepos.value,
-    dailyStatsCount: dailyStats.value.length,
-    filteredCount: result.length
+    statsCount: source.length,
+    filteredCount: result.length,
+    granularity: currentGranularity.value
   })
   
   return result
 })
 
-// 提取所有日期
+// 提取所有日期 (原始key)
 const allDates = computed(() => {
   const dateSet = new Set()
   filteredStats.value.forEach(repo => {
@@ -345,6 +369,19 @@ const allAuthors = computed(() => {
   console.log('[allAuthors]', result.map(a => a.name))
   return result
 })
+
+// 动态图表标题
+const granularityPrefix = computed(() => {
+  switch (currentGranularity.value) {
+    case 'week': return t('analytics.weekly')
+    case 'month': return t('analytics.monthly')
+    case 'year': return t('analytics.yearly')
+    default: return t('analytics.daily')
+  }
+})
+
+const commitTrendTitle = computed(() => granularityPrefix.value + t('analytics.commitTrend'))
+const codeChangeTitle = computed(() => granularityPrefix.value + t('analytics.codeChange'))
 
 // 提交趋势图配置
 const commitTrendOption = computed(() => {
@@ -433,7 +470,10 @@ const commitTrendOption = computed(() => {
       boundaryGap: false,
       data: dates,
       axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8' },
+      axisLabel: { 
+        color: '#94a3b8',
+        formatter: (value) => formatPeriodLabel(value, currentGranularity.value)
+      },
       splitLine: { show: false }
     },
     yAxis: {
@@ -561,7 +601,10 @@ const codeChangeOption = computed(() => {
       type: 'category',
       data: dates,
       axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8' },
+      axisLabel: { 
+        color: '#94a3b8',
+        formatter: (value) => formatPeriodLabel(value, currentGranularity.value)
+      },
       splitLine: { show: false }
     },
     yAxis: {
@@ -932,26 +975,64 @@ const loadData = async () => {
     
     // TODO: 在此处增加检查逻辑，如果缓存不足，先调用 performIncrementalScan
     
-    // 并行请求 overview 和 daily
+    // 根据时间范围选择聚合粒度
+    let granularity = 'day'
+    let statsPromise
+    const tr = selectedTimeRange.value
+
+    if (tr === 'today' || tr === 'week' || tr === 'lastWeek') {
+      granularity = 'day'
+      statsPromise = getDailyStats(null, tr === 'custom' ? '' : tr, selectedRepos.value, startDate, endDate)
+    } else if (tr === 'month') {
+      granularity = 'week'
+      statsPromise = getWeeklyStats(null, tr, selectedRepos.value, startDate, endDate)
+    } else if (tr === 'year') {
+      granularity = 'month'
+      statsPromise = getMonthlyStats(null, tr, selectedRepos.value, startDate, endDate)
+    } else {
+      // custom: 根据天数选择粒度
+      const days = Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))
+      if (days <= 31) {
+        granularity = 'day'
+        statsPromise = getDailyStats(null, '', selectedRepos.value, startDate, endDate)
+      } else if (days <= 180) {
+        granularity = 'week'
+        statsPromise = getWeeklyStats(null, '', selectedRepos.value, startDate, endDate)
+      } else {
+        granularity = 'month'
+        statsPromise = getMonthlyStats(null, '', selectedRepos.value, startDate, endDate)
+      }
+    }
+    currentGranularity.value = granularity
+
+    // 并行请求 overview 和 stats
     const [overview, stats, authors, heatmap, comparison] = await Promise.all([
       getOverviewStats(startDate, endDate),
-      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, startDate, endDate),
+      statsPromise,
       getAuthorRank(selectedRepos.value, startDate, endDate),
       getActivityHeatmap(selectedRepos.value, startDate, endDate),
       getRepoComparison(selectedRepos.value, startDate, endDate)
     ])
     overviewStats.value = overview
-    console.log('[loadData] daily API response:', stats)
-    dailyStats.value = stats || []
+    console.log(`[loadData] ${granularity} API response:`, stats)
+
+    if (granularity === 'day') {
+      dailyStats.value = stats || []
+      periodStats.value = []
+    } else {
+      periodStats.value = stats || []
+      dailyStats.value = []
+    }
     authorRank.value = authors || []
     activityHeatmap.value = heatmap || []
     repoComparison.value = comparison || []
-    console.log('[loadData] dailyStats assigned, length:', dailyStats.value.length)
+    console.log(`[loadData] ${granularity}Stats assigned, length:`, stats?.length || 0)
     
     // 等待 computed 重新计算
     await new Promise(resolve => setTimeout(resolve, 50))
     
     console.log('[loadData] After assignment:')
+    console.log('  - granularity:', currentGranularity.value)
     console.log('  - filteredStats.length:', filteredStats.value.length)
     console.log('  - allDates:', allDates.value)
     console.log('  - allAuthors:', allAuthors.value.map(a => a.name))

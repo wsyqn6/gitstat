@@ -120,6 +120,69 @@ export async function getAuthorRank(repos = [], startDate = null, endDate = null
   return response.json()
 }
 
+export async function getWeeklyStats(email, timeRange = 'week', repos = [], startDate = null, endDate = null) {
+  const params = new URLSearchParams()
+  if (email) params.append('email', email)
+  if (timeRange) params.append('range', timeRange)
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
+
+  if (repos.length > 0 && !repos.includes('all')) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
+
+  const url = `${API_BASE}/stats/weekly?${params.toString()}`
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch weekly stats')
+  }
+
+  return response.json()
+}
+
+export async function getMonthlyStats(email, timeRange = 'month', repos = [], startDate = null, endDate = null) {
+  const params = new URLSearchParams()
+  if (email) params.append('email', email)
+  if (timeRange) params.append('range', timeRange)
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
+
+  if (repos.length > 0 && !repos.includes('all')) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
+
+  const url = `${API_BASE}/stats/monthly?${params.toString()}`
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch monthly stats')
+  }
+
+  return response.json()
+}
+
+export async function getYearlyStats(email, timeRange = 'year', repos = [], startDate = null, endDate = null) {
+  const params = new URLSearchParams()
+  if (email) params.append('email', email)
+  if (timeRange) params.append('range', timeRange)
+  if (startDate) params.append('startDate', startDate)
+  if (endDate) params.append('endDate', endDate)
+
+  if (repos.length > 0 && !repos.includes('all')) {
+    repos.forEach(repo => params.append('repo', repo))
+  }
+
+  const url = `${API_BASE}/stats/yearly?${params.toString()}`
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch yearly stats')
+  }
+
+  return response.json()
+}
+
 export async function getActivityHeatmap(repos = [], startDate = null, endDate = null) {
   const params = new URLSearchParams()
   if (startDate) params.append('startDate', startDate)
