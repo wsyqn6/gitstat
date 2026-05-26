@@ -8,7 +8,7 @@ import (
 )
 
 func TestStoreOperations(t *testing.T) {
-	s := &Store{}
+	s := &Store{Repos: make(map[string]*RepoCache)}
 
 	repos := []model.Repository{
 		{
@@ -45,7 +45,7 @@ func TestStoreOperations(t *testing.T) {
 }
 
 func TestStoreEmpty(t *testing.T) {
-	s := &Store{}
+	s := &Store{Repos: make(map[string]*RepoCache)}
 
 	if len(s.GetRepositories()) != 0 {
 		t.Errorf("Expected 0 repositories, got %d", len(s.GetRepositories()))

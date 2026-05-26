@@ -194,6 +194,21 @@ func (s *Store) InitRepoCache(path string, meta model.Repository, commits []mode
 	}
 }
 
+// SetRepoCommits 设置仓库提交数据（保留元数据，仅更新 commits + Initialized）
+func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	cache, ok := s.Repos[path]
+	if !ok {
+		return
+	}
+	cache.Commits = commits
+	cache.Initialized = true
+	if len(commits) > 0 {
+		s.updateDateRange(cache, commits)
+	}
+}
+
 // SetScanPath 设置扫描目录
 func (s *Store) SetScanPath(path string) {
 	s.mu.Lock()

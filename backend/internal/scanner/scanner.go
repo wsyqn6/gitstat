@@ -85,7 +85,14 @@ func scanSingleRepo(path string, startDate time.Time, endDate time.Time) (model.
 		userEmail = config.User.Email
 	}
 
-	iter, err := repo.Log(&git.LogOptions{})
+	opts := &git.LogOptions{}
+	if !startDate.IsZero() {
+		opts.Since = &startDate
+	}
+	if !endDate.IsZero() {
+		opts.Until = &endDate
+	}
+	iter, err := repo.Log(opts)
 	if err != nil {
 		return model.Repository{}, err
 	}
@@ -95,16 +102,6 @@ func scanSingleRepo(path string, startDate time.Time, endDate time.Time) (model.
 
 	err = iter.ForEach(func(c *object.Commit) error {
 		commitTime := c.Committer.When
-
-		// 如果提交时间晚于 endDate，跳过
-		if !endDate.IsZero() && commitTime.After(endDate) {
-			return nil
-		}
-
-		// 如果提交时间早于 startDate，停止扫描
-		if !startDate.IsZero() && commitTime.Before(startDate) {
-			return nil
-		}
 
 		// 记录最后提交时间
 		if lastCommitTime.IsZero() || commitTime.After(lastCommitTime) {
@@ -241,7 +238,14 @@ func ScanCommitsByRange(repoPath string, startDate, endDate time.Time) ([]model.
 		return nil, err
 	}
 
-	iter, err := repo.Log(&git.LogOptions{})
+	opts := &git.LogOptions{}
+	if !startDate.IsZero() {
+		opts.Since = &startDate
+	}
+	if !endDate.IsZero() {
+		opts.Until = &endDate
+	}
+	iter, err := repo.Log(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -249,14 +253,6 @@ func ScanCommitsByRange(repoPath string, startDate, endDate time.Time) ([]model.
 	var commits []model.Commit
 	err = iter.ForEach(func(c *object.Commit) error {
 		commitTime := c.Committer.When
-
-		if !endDate.IsZero() && commitTime.After(endDate) {
-			return nil
-		}
-
-		if !startDate.IsZero() && commitTime.Before(startDate) {
-			return nil
-		}
 
 		stats, _ := c.Stats()
 		var additions, deletions int
@@ -291,27 +287,22 @@ func ScanIncremental(path string, startDate time.Time, endDate time.Time) ([]mod
 		return nil, err
 	}
 
-	iter, err := repo.Log(&git.LogOptions{})
+	opts := &git.LogOptions{}
+	if !startDate.IsZero() {
+		opts.Since = &startDate
+	}
+	if !endDate.IsZero() {
+		opts.Until = &endDate
+	}
+	iter, err := repo.Log(opts)
 	if err != nil {
 		return nil, err
 	}
 
 	var commits []model.Commit
-	totalCount := 0
 
 	err = iter.ForEach(func(c *object.Commit) error {
-		totalCount++
 		commitTime := c.Committer.When
-
-		// 如果提交时间晚于 endDate，跳过（还未到达扫描范围）
-		if !endDate.IsZero() && commitTime.After(endDate) {
-			return nil
-		}
-
-		// 如果提交时间早于 startDate，停止扫描（已超出范围）
-		if !startDate.IsZero() && commitTime.Before(startDate) {
-			return nil
-		}
 
 		stats, _ := c.Stats()
 		var additions, deletions int
@@ -333,7 +324,5 @@ func ScanIncremental(path string, startDate time.Time, endDate time.Time) ([]mod
 		commits = append(commits, commit)
 		return nil
 	})
-
-	log.Printf("[Scanner] Scanned %d total commits, found %d in range for %s", totalCount, len(commits), path)
 	return commits, nil
 }
