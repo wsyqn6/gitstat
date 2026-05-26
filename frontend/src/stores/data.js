@@ -5,6 +5,9 @@ export const state = reactive({
   repositories: [],
   overviewStats: null,
   dailyStats: [],
+  repoDailyTrend: [],
+  repoComparison: [],
+  authorRank: [],
   scanPath: '',
   loading: false,
   error: null
@@ -45,6 +48,47 @@ export async function refreshDailyStats() {
     state.dailyStats = await api.getDailyStats('', 'today', ['all'])
   } catch (err) {
     console.error('Failed to refresh daily stats:', err)
+  }
+}
+
+export async function fetchRepoDailyTrend() {
+  try {
+    const daily = await api.getDailyStats('', 'week', ['all'])
+    const result = []
+    for (const repo of daily) {
+      const dateMap = {}
+      for (const author of repo.authors) {
+        for (const day of (author.dailyData || [])) {
+          if (!dateMap[day.date]) dateMap[day.date] = 0
+          dateMap[day.date] += day.commits
+        }
+      }
+      const sorted = Object.entries(dateMap)
+        .map(([date, commits]) => ({ date, commits }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+      if (sorted.length > 0) {
+        result.push({ repoName: repo.repoName, data: sorted, authors: repo.authors })
+      }
+    }
+    state.repoDailyTrend = result
+  } catch (err) {
+    console.error('Failed to fetch repo daily trend:', err)
+  }
+}
+
+export async function fetchRepoComparison() {
+  try {
+    state.repoComparison = await api.getRepoComparison(['all'], null, null, 'week')
+  } catch (err) {
+    console.error('Failed to fetch repo comparison:', err)
+  }
+}
+
+export async function fetchAuthorRank() {
+  try {
+    state.authorRank = await api.getAuthorRank()
+  } catch (err) {
+    console.error('Failed to fetch author rank:', err)
   }
 }
 

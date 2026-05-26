@@ -26,8 +26,91 @@
           icon="◉"
           color="#ffd700"
         />
+        <StatCard 
+          :value="state.overviewStats.repositoryCount" 
+          :label="t('dashboard.repositoryCount')"
+          icon="▦"
+          color="#a78bfa"
+        />
+        <StatCard 
+          :value="weeklyTotal" 
+          :label="t('dashboard.weeklyTotal')"
+          icon="⟡"
+          color="#f472b6"
+        />
       </div>
       
+      <!-- 本周趋势 + 作者排行榜 -->
+      <div class="insight-grid">
+        <div class="insight-card card">
+          <div class="insight-header">
+            <h3>{{ t('dashboard.weeklyTrend') }}</h3>
+          </div>
+          <div ref="trendChartRef" class="trend-chart"></div>
+          <div v-if="state.repoDailyTrend.length === 0" class="insight-empty">{{ t('analytics.noData') }}</div>
+          <div v-if="state.repoDailyTrend.length > 1" class="chart-legend">
+            <span v-for="(repo, i) in state.repoDailyTrend" :key="repo.repoName" class="legend-item">
+              <span class="legend-dot" :style="{ background: repoColors[i] }"></span>
+              {{ repo.repoName }}
+            </span>
+          </div>
+        </div>
+        <div class="insight-card card">
+          <div class="insight-header">
+            <h3>{{ t('dashboard.authorRank') }}</h3>
+          </div>
+          <div v-if="authorRankWithRepos.length > 0" class="rank-list">
+            <div
+              v-for="(author, index) in authorRankWithRepos.slice(0, 5)"
+              :key="author.email"
+              class="rank-row rank-row-compact"
+            >
+              <div class="rank-num" :class="{ gold: index === 0, silver: index === 1, bronze: index === 2 }">
+                {{ index + 1 }}
+              </div>
+              <div class="rank-info">
+                <span class="rank-name">{{ author.author }}</span>
+                <span v-if="author.isMe" class="me-badge-small">{{ t('dashboard.me') }}</span>
+              </div>
+              <div class="rank-stats">
+                <span class="rank-commits">{{ author.commits }}</span>
+              </div>
+            </div>
+            <div class="rank-repo-dist" v-for="author in authorRankWithRepos.slice(0, 5)" :key="'dist-'+author.email">
+              <span v-for="r in author.repos" :key="r.name" class="repo-tag" :style="{ borderColor: r.color, color: r.color }">
+                {{ r.name }} {{ r.commits }}
+              </span>
+            </div>
+          </div>
+          <div v-else class="insight-empty">{{ t('analytics.noData') }}</div>
+        </div>
+      </div>
+
+      <!-- 仓库活跃度对比 -->
+      <div v-if="state.repoComparison.length > 0" class="comparison-section">
+        <div class="section-header">
+          <h3>{{ t('dashboard.repoComparison') }}</h3>
+        </div>
+        <div class="comparison-table card">
+          <div class="cmp-header">
+            <div class="cmp-col-name">{{ t('dashboard.repo') }}</div>
+            <div class="cmp-col-num">{{ t('dashboard.commits') }}</div>
+            <div class="cmp-col-num">{{ t('analytics.additions') }}</div>
+            <div class="cmp-col-num">{{ t('analytics.deletions') }}</div>
+            <div class="cmp-col-num">{{ t('dashboard.activeDays') }}</div>
+            <div class="cmp-col-num">{{ t('dashboard.dailyAvg') }}</div>
+          </div>
+          <div v-for="repo in state.repoComparison" :key="repo.repoPath" class="cmp-row">
+            <div class="cmp-col-name">{{ repo.repoName }}</div>
+            <div class="cmp-col-num">{{ repo.commits }}</div>
+            <div class="cmp-col-num additions">+{{ repo.additions }}</div>
+            <div class="cmp-col-num deletions">-{{ repo.deletions }}</div>
+            <div class="cmp-col-num">{{ repo.activeDays }}</div>
+            <div class="cmp-col-num">{{ repo.avgCommitsPerDay }}</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 分仓库分人统计 -->
       <div v-if="state.dailyStats && state.dailyStats.length > 0" class="daily-stats-section">
         <div class="section-header">
@@ -73,33 +156,120 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from '../i18n'
-import { state, refreshDailyStats, refreshStats } from '../stores/data'
+import { state, refreshStats, fetchRepoDailyTrend, fetchAuthorRank, fetchRepoComparison } from '../stores/data'
 import StatCard from '../components/StatCard.vue'
+import echarts from '../utils/echarts'
 
 const { t } = useI18n()
 
-const today = new Date().toISOString().split('T')[0]
+const trendChartRef = ref(null)
+let trendChart = null
 
-const todayCommits = computed(() => {
-  if (!state.overviewStats) return 0
-  return state.overviewStats.totalCommits
+const COLORS = ['#00d4ff', '#ff6b9d', '#00ff88', '#ffd700', '#a78bfa', '#f472b6', '#34d399', '#fb923c']
+
+const todayCommits = computed(() => state.overviewStats?.totalCommits ?? 0)
+const todayAdditions = computed(() => state.overviewStats?.totalAdditions ?? 0)
+const todayDeletions = computed(() => state.overviewStats?.totalDeletions ?? 0)
+
+const weeklyTotal = computed(() =>
+  state.repoDailyTrend.reduce((sum, repo) =>
+    sum + repo.data.reduce((s, d) => s + d.commits, 0), 0)
+)
+
+const repoColors = computed(() =>
+  state.repoDailyTrend.map((_, i) => COLORS[i % COLORS.length])
+)
+
+const authorRankWithRepos = computed(() => {
+  if (state.authorRank.length === 0) return []
+  const repoOf = {}
+  for (const repo of state.repoDailyTrend) {
+    for (const author of repo.authors || []) {
+      if (!repoOf[author.email]) repoOf[author.email] = []
+      const total = author.dailyData ? author.dailyData.reduce((s, d) => s + d.commits, 0) : 0
+      repoOf[author.email].push({ name: repo.repoName, commits: total, color: COLORS[state.repoDailyTrend.indexOf(repo) % COLORS.length] })
+    }
+  }
+  return state.authorRank.map(a => ({
+    ...a,
+    repos: (repoOf[a.email] || []).filter(r => r.commits > 0)
+  }))
 })
 
-const todayAdditions = computed(() => {
-  if (!state.overviewStats) return 0
-  return state.overviewStats.totalAdditions
-})
+function renderTrendChart() {
+  if (!trendChartRef.value || state.repoDailyTrend.length === 0) return
 
-const todayDeletions = computed(() => {
-  if (!state.overviewStats) return 0
-  return state.overviewStats.totalDeletions
-})
+  if (!trendChart) {
+    trendChart = echarts.init(trendChartRef.value)
+  }
 
-// 首次加载直接请求数据，触发后端懒加载
+  const allDates = [...new Set(state.repoDailyTrend.flatMap(r => r.data.map(d => d.date)))].sort()
+  const labels = allDates.map(d => d.slice(5))
+
+  const series = state.repoDailyTrend.map((repo, i) => {
+    const dateMap = Object.fromEntries(repo.data.map(d => [d.date, d.commits]))
+    return {
+      name: repo.repoName,
+      type: 'line',
+      stack: 'total',
+      smooth: true,
+      symbol: 'none',
+      lineStyle: { width: 1.5, color: COLORS[i % COLORS.length] },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: COLORS[i % COLORS.length] + '60' },
+          { offset: 1, color: COLORS[i % COLORS.length] + '05' }
+        ])
+      },
+      itemStyle: { color: COLORS[i % COLORS.length] },
+      data: allDates.map(d => dateMap[d] || 0)
+    }
+  })
+
+  trendChart.setOption({
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(10, 14, 39, 0.9)',
+      borderColor: 'rgba(0, 212, 255, 0.3)',
+      textStyle: { color: '#e0e6ff', fontSize: 12 }
+    },
+    legend: { show: false },
+    grid: { left: 40, right: 16, top: 16, bottom: 24 },
+    xAxis: {
+      type: 'category',
+      data: labels,
+      axisLine: { lineStyle: { color: 'rgba(0, 212, 255, 0.2)' } },
+      axisLabel: { color: '#a0aec0', fontSize: 11 }
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      splitLine: { lineStyle: { color: 'rgba(0, 212, 255, 0.08)', type: 'dashed' } },
+      axisLabel: { color: '#a0aec0', fontSize: 11 }
+    },
+    series
+  })
+}
+
+watch(() => state.repoDailyTrend, () => {
+  nextTick(() => renderTrendChart())
+}, { deep: true })
+
+function handleResize() {
+  if (trendChart) trendChart.resize()
+}
+
 onMounted(async () => {
-  await refreshStats()
+  await Promise.all([
+    refreshStats(),
+    fetchRepoDailyTrend(),
+    fetchAuthorRank(),
+    fetchRepoComparison()
+  ])
+  nextTick(() => renderTrendChart())
+  window.addEventListener('resize', handleResize)
 })
 </script>
 
@@ -145,7 +315,7 @@ onMounted(async () => {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   margin-bottom: 3rem;
 }
@@ -295,5 +465,258 @@ onMounted(async () => {
 .deletions {
   color: #ff6b9d;
   font-weight: 600;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.insight-card {
+  padding: 1.5rem;
+}
+
+.insight-header h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  color: #00d4ff;
+  letter-spacing: 2px;
+  margin: 0 0 1rem 0;
+}
+
+.trend-chart {
+  height: 220px;
+  width: 100%;
+}
+
+.insight-empty {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.08);
+}
+
+.rank-row:last-child {
+  border-bottom: none;
+}
+
+.rank-row:hover {
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.rank-num {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(0, 212, 255, 0.1);
+  color: #a0aec0;
+  flex-shrink: 0;
+}
+
+.rank-num.gold {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+}
+
+.rank-num.silver {
+  background: rgba(192, 192, 192, 0.15);
+  color: #c0c0c0;
+}
+
+.rank-num.bronze {
+  background: rgba(205, 127, 50, 0.15);
+  color: #cd7f32;
+}
+
+.rank-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.rank-name {
+  font-weight: 600;
+  color: #e0e6ff;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.me-badge-small {
+  background: rgba(0, 212, 255, 0.15);
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #00d4ff;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.rank-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.rank-commits {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #00d4ff;
+}
+
+.rank-changes {
+  font-family: 'Rajdhani', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.rank-changes.positive {
+  color: #00ff88;
+}
+
+.rank-changes.negative {
+  color: #ff6b9d;
+}
+
+.rank-row-compact {
+  padding-bottom: 0.25rem;
+}
+
+.rank-repo-dist {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 0 1rem 0.6rem 3rem;
+  margin-top: -0.25rem;
+}
+
+.repo-tag {
+  font-size: 0.7rem;
+  font-family: 'Rajdhani', monospace;
+  padding: 0.1rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0 0 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #a0aec0;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.comparison-section {
+  margin-bottom: 3rem;
+}
+
+.comparison-table {
+  overflow: hidden;
+}
+
+.cmp-header,
+.cmp-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  padding: 1rem 2rem;
+  align-items: center;
+}
+
+.cmp-header {
+  background: rgba(0, 212, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  color: #a0aec0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.cmp-row {
+  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+  transition: all 0.3s;
+}
+
+.cmp-row:last-child {
+  border-bottom: none;
+}
+
+.cmp-row:hover {
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.cmp-col-name {
+  font-weight: 600;
+  color: #e0e6ff;
+}
+
+.cmp-col-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #00d4ff;
+  text-align: center;
+}
+
+.cmp-col-num.additions {
+  color: #00ff88;
+}
+
+.cmp-col-num.deletions {
+  color: #ff6b9d;
 }
 </style>

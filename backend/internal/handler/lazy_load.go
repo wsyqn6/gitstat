@@ -63,20 +63,19 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 				if c != nil && c.Initialized && c.EarliestDate.IsZero() {
 					c.EarliestDate = now
 				}
+				mu.Unlock()
+				continue
 			}
 			mu.Unlock()
-			continue
 		}
 
-		// 情况2：已初始化但缓存不足 → 增量扫描
-		// 只有当缓存的最早日期晚于请求起始日期时，才需要加载更早的数据
+		// 情况2：已初始化但缓存不足 → 向后扫描（加载更早的历史）
 		if !cache.EarliestDate.IsZero() && cache.EarliestDate.After(startDate) {
 			mu := getScanMutex(cache.Path)
 			mu.Lock()
-			// 双重检查
 			cache = store.GlobalStore.GetRepoCache(cache.Path)
 			if cache != nil && !cache.EarliestDate.IsZero() && cache.EarliestDate.After(startDate) {
-				log.Printf("[LazyLoad] Scanning incremental: %s from %s to %s", cache.Path, startDate.Format("2006-01-02"), cache.EarliestDate.Format("2006-01-02"))
+				log.Printf("[LazyLoad] Scanning backward: %s from %s to %s", cache.Path, startDate.Format("2006-01-02"), cache.EarliestDate.Format("2006-01-02"))
 				newCommits, err := scanner.ScanIncremental(cache.Path, startDate, cache.EarliestDate)
 				if err != nil {
 					log.Printf("[LazyLoad] Scan failed for %s: %v", cache.Path, err)
@@ -85,6 +84,24 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 					store.GlobalStore.MergeCommits(cache.Path, newCommits)
 				} else {
 					log.Printf("[LazyLoad] No new commits found for %s", cache.Path)
+				}
+			}
+			mu.Unlock()
+		}
+
+		// 情况3：已初始化且可能有新数据 → 向前扫描（检查新提交）
+		if !cache.LatestDate.IsZero() && now.After(cache.LatestDate) {
+			mu := getScanMutex(cache.Path)
+			mu.Lock()
+			cache = store.GlobalStore.GetRepoCache(cache.Path)
+			if cache != nil && !cache.LatestDate.IsZero() && now.After(cache.LatestDate) {
+				log.Printf("[LazyLoad] Forward scanning: %s from %s to %s", cache.Path, cache.LatestDate.Format("2006-01-02"), now.Format("2006-01-02"))
+				newCommits, err := scanner.ScanIncremental(cache.Path, cache.LatestDate, now)
+				if err != nil {
+					log.Printf("[LazyLoad] Forward scan failed for %s: %v", cache.Path, err)
+				} else if len(newCommits) > 0 {
+					log.Printf("[LazyLoad] Forward scan found %d new commits for %s", len(newCommits), cache.Path)
+					store.GlobalStore.MergeCommits(cache.Path, newCommits)
 				}
 			}
 			mu.Unlock()
