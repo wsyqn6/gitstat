@@ -32,3 +32,5 @@ docs/superpowers/
 
 # Local build scripts
 build.ps1
+.opencode
+.superpowers
