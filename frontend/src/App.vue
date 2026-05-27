@@ -14,6 +14,10 @@
           <span class="nav-icon">◉</span>
           {{ t('nav.analytics') }}
         </a>
+        <a @click="currentView = 'repos'" :class="{ active: currentView === 'repos' }">
+          <span class="nav-icon">▤</span>
+          {{ t('nav.repos') }}
+        </a>
         <a @click="currentView = 'settings'" :class="{ active: currentView === 'settings' }">
           <span class="nav-icon">⚙</span>
           {{ t('nav.settings') }}
@@ -26,6 +30,7 @@
     <main class="main-content">
       <Dashboard v-show="currentView === 'dashboard'" />
       <Analytics v-show="currentView === 'analytics'" />
+      <RepoSection v-show="currentView === 'repos'" />
       <Settings v-show="currentView === 'settings'" />
     </main>
   </div>
@@ -36,6 +41,7 @@ import { ref } from 'vue'
 import { useI18n } from './i18n'
 import Dashboard from './views/Dashboard.vue'
 import Analytics from './views/Analytics.vue'
+import RepoSection from './views/RepoSection.vue'
 import Settings from './views/Settings.vue'
 
 const { t, locale, setLocale } = useI18n()
