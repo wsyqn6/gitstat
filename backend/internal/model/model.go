@@ -116,6 +116,68 @@ type ActivityHeatmapPoint struct {
 	CommitCount int `json:"commitCount"`
 }
 
+// 仓库列表项（快数据）
+type RepoInfo struct {
+	Path           string `json:"path"`
+	Name           string `json:"name"`
+	CurrentBranch  string `json:"currentBranch"`
+	BranchCount    int    `json:"branchCount"`
+	FileCount      int    `json:"fileCount"`
+	LastCommitTime string `json:"lastCommitTime"`
+	RemoteUrl      string `json:"remoteUrl"`
+}
+
+// 语言统计
+type LanguageStat struct {
+	Name       string  `json:"name"`
+	FileCount  int     `json:"fileCount"`
+	Lines      int     `json:"lines"`
+	Percentage float64 `json:"percentage"`
+}
+
+// 深度分析结果
+type AnalyzeResult struct {
+	Name          string        `json:"name"`
+	Path          string        `json:"path"`
+	BranchCount   int           `json:"branchCount"`
+	Branches      []string      `json:"branches"`
+	FileCount     int           `json:"fileCount"`
+	TotalLines    int           `json:"totalLines"`
+	Languages     []LanguageStat `json:"languages"`
+}
+
+// 深度分析请求
+type AnalyzeRequest struct {
+	Path string `json:"path"`
+}
+
+// 贡献者统计
+type ContributorStat struct {
+	Author         string `json:"author"`
+	Email          string `json:"email"`
+	CommitCount    int    `json:"commitCount"`
+	Additions      int    `json:"additions"`
+	Deletions      int    `json:"deletions"`
+	LastCommitDate string `json:"lastCommitDate"`
+}
+
+// 仓库详情（聚合数据）
+type RepoDetail struct {
+	Path                 string            `json:"path"`
+	Name                 string            `json:"name"`
+	CurrentBranch        string            `json:"currentBranch"`
+	LastCommitTime       string            `json:"lastCommitTime"`
+	RemoteUrl            string            `json:"remoteUrl"`
+	EarliestDate         string            `json:"earliestDate"`
+	EarliestCommitAuthor string            `json:"earliestCommitAuthor"`
+	BranchCount          int               `json:"branchCount"`
+	FileCount            int               `json:"fileCount"`
+	RepoSize             int64             `json:"repoSize"`
+	RecentCommits        []Commit          `json:"recentCommits"`
+	Contributors         []ContributorStat `json:"contributors"`
+	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
+}
+
 // 仓库对比数据
 type RepoComparison struct {
 	RepoName         string  `json:"repoName"`

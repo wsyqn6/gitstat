@@ -2,6 +2,7 @@ package store
 
 import (
 	"log"
+	"sort"
 	"sync"
 	"time"
 
@@ -18,10 +19,17 @@ type RepoCache struct {
 	UserEmail      string
 	CurrentBranch  string
 	LastCommitTime string
+	RemoteUrl      string
+	BranchCount    int
+	FileCount      int
 	EarliestDate   time.Time
 	LatestDate     time.Time
 	Commits        []model.Commit
-	Initialized    bool // 是否已完成首次扫描
+	Initialized    bool
+	Analyzed       bool
+	Branches       []string
+	TotalLines     int
+	Languages      []model.LanguageStat
 }
 
 type Store struct {
@@ -207,6 +215,153 @@ func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 	if len(commits) > 0 {
 		s.updateDateRange(cache, commits)
 	}
+}
+
+// UpdateRepoMeta 更新仓库快数据（分支数、文件数）
+func (s *Store) UpdateRepoMeta(path string, branchCount, fileCount int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	cache, ok := s.Repos[path]
+	if !ok {
+		return
+	}
+	cache.BranchCount = branchCount
+	cache.FileCount = fileCount
+}
+
+// GetAnalyzeCache 获取缓存的深度分析结果
+func (s *Store) GetAnalyzeCache(path string) (model.AnalyzeResult, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	cache, ok := s.Repos[path]
+	if !ok || !cache.Analyzed {
+		return model.AnalyzeResult{}, false
+	}
+	return model.AnalyzeResult{
+		Name:        cache.Name,
+		Path:        cache.Path,
+		BranchCount: cache.BranchCount,
+		Branches:    cache.Branches,
+		FileCount:   cache.FileCount,
+		TotalLines:  cache.TotalLines,
+		Languages:   cache.Languages,
+	}, true
+}
+
+// SetAnalyzeCache 写入深度分析结果到缓存
+func (s *Store) SetAnalyzeCache(path string, result model.AnalyzeResult) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	cache, ok := s.Repos[path]
+	if !ok {
+		return
+	}
+	cache.BranchCount = result.BranchCount
+	cache.Branches = result.Branches
+	cache.FileCount = result.FileCount
+	cache.TotalLines = result.TotalLines
+	cache.Languages = result.Languages
+	cache.Analyzed = true
+}
+
+// GetRepoDetail 获取仓库详情（聚合数据）
+func (s *Store) GetRepoDetail(path string) (model.RepoDetail, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	cache, ok := s.Repos[path]
+	if !ok {
+		return model.RepoDetail{}, false
+	}
+
+	// 聚合贡献者
+	authorMap := make(map[string]*model.ContributorStat)
+	for _, c := range cache.Commits {
+		key := c.Email
+		if _, ok := authorMap[key]; !ok {
+			authorMap[key] = &model.ContributorStat{
+				Author: c.Author,
+				Email:  c.Email,
+			}
+		}
+		authorMap[key].CommitCount++
+		authorMap[key].Additions += c.Additions
+		authorMap[key].Deletions += c.Deletions
+		if c.Date.After(parseTime(authorMap[key].LastCommitDate)) {
+			authorMap[key].LastCommitDate = c.Date.Format("2006-01-02 15:04:05")
+		}
+	}
+
+	var contributors []model.ContributorStat
+	for _, cs := range authorMap {
+		contributors = append(contributors, *cs)
+	}
+	sort.Slice(contributors, func(i, j int) bool {
+		return contributors[i].CommitCount > contributors[j].CommitCount
+	})
+
+	// 最近 20 条提交
+	recentCommits := cache.Commits
+	if len(recentCommits) > 20 {
+		recentCommits = recentCommits[len(recentCommits)-20:]
+	}
+	// 反转为时间降序
+	for i, j := 0, len(recentCommits)-1; i < j; i, j = i+1, j-1 {
+		recentCommits[i], recentCommits[j] = recentCommits[j], recentCommits[i]
+	}
+
+	// 最早日期
+	var earliestDate string
+	var earliestAuthor string
+	if !cache.EarliestDate.IsZero() {
+		earliestDate = cache.EarliestDate.Format("2006-01-02 15:04:05")
+	}
+	if len(cache.Commits) > 0 {
+		earliest := cache.Commits[0]
+		for _, c := range cache.Commits {
+			if c.Date.Before(earliest.Date) {
+				earliest = c
+			}
+		}
+		earliestAuthor = earliest.Author
+	}
+
+	detail := model.RepoDetail{
+		Path:                 cache.Path,
+		Name:                 cache.Name,
+		CurrentBranch:        cache.CurrentBranch,
+		LastCommitTime:       cache.LastCommitTime,
+		RemoteUrl:            cache.RemoteUrl,
+		EarliestDate:         earliestDate,
+		EarliestCommitAuthor: earliestAuthor,
+		BranchCount:          cache.BranchCount,
+		FileCount:            cache.FileCount,
+		RecentCommits:        recentCommits,
+		Contributors:         contributors,
+	}
+
+	// 检查分析缓存
+	if cache.Analyzed {
+		detail.Analysis = &model.AnalyzeResult{
+			Name:        cache.Name,
+			Path:        cache.Path,
+			BranchCount: cache.BranchCount,
+			Branches:    cache.Branches,
+			FileCount:   cache.FileCount,
+			TotalLines:  cache.TotalLines,
+			Languages:   cache.Languages,
+		}
+	}
+
+	return detail, true
+}
+
+func parseTime(s string) time.Time {
+	t, err := time.Parse("2006-01-02 15:04:05", s)
+	if err != nil {
+		return time.Time{}
+	}
+	return t
 }
 
 // SetScanPath 设置扫描目录
