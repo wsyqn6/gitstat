@@ -57,7 +57,7 @@ jobs:
           cp -r dist/* ../backend/web/dist/
       - run: |
           cd backend
-          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} \
+          CGO_ENABLED=0 GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} \
             go build -ldflags "-s -w -X main.Version=${{ github.ref_name }}" \
             -o gitstat${{ matrix.ext }} .
       - uses: softprops/action-gh-release@v2
