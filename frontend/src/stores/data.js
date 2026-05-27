@@ -10,7 +10,11 @@ export const state = reactive({
   authorRank: [],
   scanPath: '',
   loading: false,
-  error: null
+  error: null,
+  reposInfo: [],
+  analyzing: false,
+  analyzeCache: {},
+  repoDetailCache: {}
 })
 
 export async function performScan(path, timeRange) {
@@ -89,6 +93,45 @@ export async function fetchAuthorRank() {
     state.authorRank = await api.getAuthorRank()
   } catch (err) {
     console.error('Failed to fetch author rank:', err)
+  }
+}
+
+export async function fetchReposInfo() {
+  try {
+    state.reposInfo = await api.getReposList()
+  } catch (err) {
+    console.error('Failed to fetch repos info:', err)
+  }
+}
+
+export async function fetchRepoDetail(path) {
+  if (state.repoDetailCache[path]) {
+    return state.repoDetailCache[path]
+  }
+  try {
+    const result = await api.getRepoDetail(path)
+    state.repoDetailCache[path] = result
+    return result
+  } catch (err) {
+    console.error('Failed to fetch repo detail:', err)
+    throw err
+  }
+}
+
+export async function triggerAnalyze(path) {
+  if (state.analyzeCache[path]) {
+    return state.analyzeCache[path]
+  }
+  state.analyzing = true
+  try {
+    const result = await api.analyzeRepo(path)
+    state.analyzeCache[path] = result
+    return result
+  } catch (err) {
+    console.error('Failed to analyze repo:', err)
+    throw err
+  } finally {
+    state.analyzing = false
   }
 }
 

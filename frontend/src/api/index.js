@@ -222,6 +222,41 @@ export async function getRepoComparison(repos = [], startDate = null, endDate = 
   return response.json()
 }
 
+export async function getReposList() {
+  const response = await fetch(`${API_BASE}/repos/list`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch repos list')
+  }
+
+  return response.json()
+}
+
+export async function getRepoDetail(path) {
+  const params = new URLSearchParams({ path })
+  const response = await fetch(`${API_BASE}/repos/detail?${params}`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch repo detail')
+  }
+
+  return response.json()
+}
+
+export async function analyzeRepo(path) {
+  const response = await fetch(`${API_BASE}/repos/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path })
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to analyze repo')
+  }
+
+  return response.json()
+}
+
 export async function getVersion() {
   const response = await fetch(`${API_BASE}/version`)
   
