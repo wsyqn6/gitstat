@@ -115,34 +115,32 @@
                 <span class="spinner"></span>
                 <span>{{ t('repo.analyzing') }}</span>
               </div>
-              <template v-else-if="detail.analysis">
-                <div class="lang-body">
-                  <div ref="langChartRef" class="lang-chart"></div>
-                  <div class="lang-table">
-                    <div class="lang-header">
-                      <span>{{ t('repo.lang') }}</span>
-                      <span>{{ t('repo.files') }}</span>
-                      <span>{{ t('repo.lines') }}</span>
-                      <span>{{ t('repo.percent') }}</span>
-                    </div>
-                    <div v-for="lang in detail.analysis.languages" :key="lang.name" class="lang-row">
-                      <span class="lang-name">{{ lang.name }}</span>
-                      <span>{{ lang.fileCount }}</span>
-                      <span>{{ formatNumber(lang.lines) }}</span>
+              <div v-else-if="detail.analysis" class="lang-body">
+                <div ref="langChartRef" id="lang-chart-el" class="lang-chart"></div>
+                <div class="lang-table">
+                  <div class="lang-header">
+                    <span>{{ t('repo.lang') }}</span>
+                    <span>{{ t('repo.files') }}</span>
+                    <span>{{ t('repo.lines') }}</span>
+                    <span>{{ t('repo.percent') }}</span>
+                  </div>
+                  <div v-for="lang in detail.analysis.languages" :key="lang.name" class="lang-row">
+                    <span class="lang-name">{{ lang.name }}</span>
+                    <span>{{ lang.fileCount }}</span>
+                    <span>{{ formatNumber(lang.lines) }}</span>
                       <span class="lang-pct">
-                        <span class="pct-bar" :style="{ width: lang.percentage + '%' }"></span>
-                        {{ lang.percentage.toFixed(1) }}%
-                      </span>
-                    </div>
-                    <div class="lang-total">
-                      <span>{{ t('repo.total') }}</span>
-                      <span>{{ detail.analysis.fileCount }}</span>
-                      <span>{{ formatNumber(detail.analysis.totalLines) }}</span>
-                      <span>100%</span>
-                    </div>
+                        <span class="pct-track"><span class="pct-bar" :style="{ width: lang.percentage + '%' }"></span></span>
+                        <span class="pct-text">{{ lang.percentage.toFixed(1) }}%</span>
+                    </span>
+                  </div>
+                  <div class="lang-total">
+                    <span>{{ t('repo.total') }}</span>
+                    <span>{{ detail.analysis.fileCount }}</span>
+                    <span>{{ formatNumber(detail.analysis.totalLines) }}</span>
+                    <span>100%</span>
                   </div>
                 </div>
-              </template>
+              </div>
               <div v-else class="analyze-cta">
                 <span class="analyze-icon">🔍</span>
                 <h4>{{ t('repo.analyzeTitle') }}</h4>
@@ -278,12 +276,12 @@ async function loadDetail(path) {
   langChart = null
   try {
     detail.value = await fetchRepoDetail(path)
-    await nextTick()
-    renderChart()
   } catch (err) {
     console.error('Failed to load detail:', err)
   } finally {
     loading.value = false
+    await nextTick()
+    renderChart()
   }
 }
 
@@ -325,35 +323,40 @@ function getLangColor(name) {
 }
 
 function renderChart() {
-  const el = langChartRef.value
+  const el = document.getElementById('lang-chart-el')
   if (!el || !detail.value?.analysis) return
-  if (!langChart) langChart = echarts.init(el)
-  const data = detail.value.analysis.languages.map(l => ({
-    name: l.name,
-    value: l.lines || 1
-  }))
-  langChart.setOption({
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: 'rgba(10, 14, 39, 0.9)',
-      borderColor: 'rgba(0, 212, 255, 0.3)',
-      textStyle: { color: '#e0e6ff', fontSize: 12 },
-      formatter: p => `${p.name}: ${p.percent}% (${formatNumber(p.value)} lines)`
-    },
-    series: [{
-      type: 'pie',
-      radius: ['30%', '65%'],
-      center: ['50%', '50%'],
-      avoidLabelOverlap: true,
-      itemStyle: { borderRadius: 4, borderColor: 'rgba(10,14,39,0.8)', borderWidth: 2 },
-      label: {
-        show: true, color: '#e0e6ff', fontFamily: 'Rajdhani', fontSize: 12,
-        formatter: p => `${p.name}\n${p.percent}%`
+  try {
+    if (!langChart) langChart = echarts.init(el)
+    const data = detail.value.analysis.languages.map(l => ({
+      name: l.name,
+      value: l.lines || 1
+    }))
+    langChart.setOption({
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: 'rgba(10, 14, 39, 0.9)',
+        borderColor: 'rgba(0, 212, 255, 0.3)',
+        textStyle: { color: '#e0e6ff', fontSize: 12 },
+        formatter: p => `${p.name}: ${p.percent}% (${formatNumber(p.value)} lines)`
       },
-      labelLine: { lineStyle: { color: 'rgba(0,212,255,0.3)' } },
-      data: data.map(d => ({ ...d, itemStyle: { color: getLangColor(d.name) } }))
-    }]
-  })
+      series: [{
+        type: 'pie',
+        radius: ['30%', '65%'],
+        center: ['50%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 4, borderColor: 'rgba(10,14,39,0.8)', borderWidth: 2 },
+        label: {
+          show: true, color: '#e0e6ff', fontFamily: 'Rajdhani', fontSize: 12,
+          formatter: p => `${p.name}\n${p.percent}%`
+        },
+        labelLine: { lineStyle: { color: 'rgba(0,212,255,0.3)' } },
+        data: data.map(d => ({ ...d, itemStyle: { color: getLangColor(d.name) } }))
+      }]
+    })
+    langChart.resize()
+  } catch (e) {
+    console.error('[Chart] render error:', e)
+  }
 }
 
 function handleResize() {
@@ -369,6 +372,10 @@ function init() {
   })
   window.addEventListener('resize', handleResize)
 }
+
+watch(() => detail.value?.analysis, val => {
+  if (val) nextTick(renderChart)
+})
 
 onMounted(init)
 </script>
@@ -611,8 +618,10 @@ onMounted(init)
 .lang-row { border-bottom: 1px solid rgba(0, 212, 255, 0.06); color: #e0e6ff; }
 .lang-row:hover { background: rgba(0, 212, 255, 0.03); }
 .lang-name { font-weight: 600; color: #e0e6ff; }
-.lang-pct { display: flex; align-items: center; gap: 0.4rem; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: #00d4ff; }
-.pct-bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, #00d4ff, #7800ff); flex-shrink: 0; min-width: 2px; }
+.lang-pct { display: flex; align-items: center; gap: 0.3rem; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: #00d4ff; }
+.pct-track { flex: 1; height: 8px; background: rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; min-width: 4px; }
+.pct-bar { display: block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #00d4ff, #7800ff); }
+.pct-text { flex-shrink: 0; font-family: 'Rajdhani', 'Orbitron', monospace; }
 .lang-total {
   border-top: 1px solid rgba(0, 212, 255, 0.3);
   font-family: 'Orbitron', sans-serif;
