@@ -559,7 +559,7 @@
 
   <section class="hero">
     <div class="container">
-      <div class="hero-badge">v0.2.0</div>
+      <div class="hero-badge"><span id="version-badge">v0.2.0</span></div>
       <h1>GitStat</h1>
       <p class="hero-sub">
         Git 仓库提交统计与可视化分析平台<br>
@@ -726,9 +726,26 @@
         &nbsp;·&nbsp;
         <a href="https://github.com/wsyqn6/gitstat/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
         &nbsp;·&nbsp;
-        v0.2.0
+        <span id="version-footer">v0.2.0</span>
       </p>
     </div>
   </footer>
+<script>
+;(async function() {
+  var LS_KEY = 'gitstat_ver'
+  var els = [document.getElementById('version-badge'), document.getElementById('version-footer')]
+  var cached = localStorage.getItem(LS_KEY)
+  if (cached) els.forEach(function(el) { if (el) el.textContent = cached })
+
+  try {
+    var res = await fetch('https://api.github.com/repos/wsyqn6/gitstat/releases/latest')
+    if (!res.ok) return
+    var data = await res.json()
+    var ver = data.tag_name
+    localStorage.setItem(LS_KEY, ver)
+    els.forEach(function(el) { if (el) el.textContent = ver })
+  } catch(e) {}
+})()
+</script>
 </body>
 </html>
