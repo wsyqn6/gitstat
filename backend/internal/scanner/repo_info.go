@@ -2,16 +2,16 @@ package scanner
 
 import (
 	"bufio"
+	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"gitstat/internal/model"
-
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 var extLangMap = map[string]string{
@@ -85,39 +85,25 @@ var exactNameMap = map[string]string{
 }
 
 func GetRepoMeta(repoPath string) (model.RepoInfo, error) {
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return model.RepoInfo{}, err
-	}
-
-	head, err := r.Head()
-	if err != nil {
-		return model.RepoInfo{}, err
-	}
-	currentBranch := head.Name().Short()
+	currentBranch, _ := gitExec(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
 
 	branchCount := 0
-	bIter, err := r.Branches()
-	if err == nil {
-		bIter.ForEach(func(ref *plumbing.Reference) error {
-			branchCount++
-			return nil
-		})
+	out, err := gitExec(repoPath, "for-each-ref", "refs/heads", "--format=%(refname:short)")
+	if err == nil && out != "" {
+		branchCount = len(strings.Split(out, "\n"))
 	}
 
 	fileCount := 0
+	out, err = gitExec(repoPath, "ls-tree", "-r", "HEAD", "--name-only")
+	if err == nil && out != "" {
+		fileCount = len(strings.Split(out, "\n"))
+	}
 
 	var lastCommitTime string
-	headCommit, err := r.CommitObject(head.Hash())
+	out, err = gitExec(repoPath, "log", "-1", "--format=%ci")
 	if err == nil {
-		lastCommitTime = headCommit.Committer.When.Format("2006-01-02 15:04:05")
-
-		tree, err := headCommit.Tree()
-		if err == nil {
-			tree.Files().ForEach(func(f *object.File) error {
-				fileCount++
-				return nil
-			})
+		if t, e := time.Parse("2006-01-02 15:04:05 -0700", out); e == nil {
+			lastCommitTime = t.Format("2006-01-02 15:04:05")
 		}
 	}
 
@@ -132,41 +118,31 @@ func GetRepoMeta(repoPath string) (model.RepoInfo, error) {
 }
 
 func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return model.AnalyzeResult{}, err
-	}
-
-	head, err := r.Head()
-	if err != nil {
-		return model.AnalyzeResult{}, err
-	}
-	currentBranch := head.Name().Short()
+	currentBranch, _ := gitExec(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
 
 	branchCount := 0
 	var branchNames []string
-	bIter, err := r.Branches()
-	if err == nil {
-		bIter.ForEach(func(ref *plumbing.Reference) error {
-			branchCount++
-			name := ref.Name().Short()
-			if name != currentBranch {
-				branchNames = append(branchNames, name)
+	out, err := gitExec(repoPath, "for-each-ref", "refs/heads", "--format=%(refname:short)")
+	if err == nil && out != "" {
+		branches := strings.Split(out, "\n")
+		branchCount = len(branches)
+		var others []string
+		for _, b := range branches {
+			b = strings.TrimSpace(b)
+			if b == "" {
+				continue
 			}
-			return nil
-		})
+			if b == currentBranch {
+				branchNames = append(branchNames, b+" (current)")
+			} else {
+				others = append(others, b)
+			}
+		}
+		sort.Strings(others)
+		branchNames = append(branchNames, others...)
 	}
-	sort.Strings(branchNames)
-	branchNames = append([]string{currentBranch + " (current)"}, branchNames...)
-
-	headCommit, err := r.CommitObject(head.Hash())
-	if err != nil {
-		return model.AnalyzeResult{}, err
-	}
-
-	tree, err := headCommit.Tree()
-	if err != nil {
-		return model.AnalyzeResult{}, err
+	if len(branchNames) == 0 {
+		branchNames = []string{currentBranch + " (current)"}
 	}
 
 	type fileInfo struct {
@@ -176,9 +152,19 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 	}
 	var files []fileInfo
 
-	tree.Files().ForEach(func(f *object.File) error {
-		ext := strings.ToLower(filepath.Ext(f.Name))
-		base := filepath.Base(f.Name)
+	out, err = gitExec(repoPath, "ls-tree", "-r", "HEAD", "--name-only", "-z")
+	if err != nil {
+		return model.AnalyzeResult{}, fmt.Errorf("ls-tree: %w", err)
+	}
+	filePaths := strings.Split(strings.TrimSuffix(out, "\x00"), "\x00")
+
+	for _, rel := range filePaths {
+		rel = strings.TrimSpace(rel)
+		if rel == "" {
+			continue
+		}
+		ext := strings.ToLower(filepath.Ext(rel))
+		base := filepath.Base(rel)
 
 		var lang string
 		if v, ok := exactNameMap[base]; ok {
@@ -189,22 +175,16 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 			lang = "Other"
 		}
 
-		blob, err := r.BlobObject(f.Hash)
-		if err != nil {
-			files = append(files, fileInfo{f.Name, 0, lang})
-			return nil
+		fullPath := filepath.Join(repoPath, rel)
+		lines := 0
+		f, err := os.Open(fullPath)
+		if err == nil {
+			lines = countLines(f)
+			f.Close()
 		}
-		reader, err := blob.Reader()
-		if err != nil {
-			files = append(files, fileInfo{f.Name, 0, lang})
-			return nil
-		}
-		lines := countLines(reader)
-		reader.Close()
 
-		files = append(files, fileInfo{f.Name, lines, lang})
-		return nil
-	})
+		files = append(files, fileInfo{rel, lines, lang})
+	}
 
 	langMap := make(map[string]*model.LanguageStat)
 	totalLines := 0
@@ -240,46 +220,41 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 }
 
 func GetRemoteUrl(repoPath string) string {
-	r, err := git.PlainOpen(repoPath)
+	out, err := gitExec(repoPath, "remote", "get-url", "origin")
 	if err != nil {
 		return ""
 	}
-	remote, err := r.Remote("origin")
-	if err != nil {
-		return ""
-	}
-	if len(remote.Config().URLs) > 0 {
-		return remote.Config().URLs[0]
-	}
-	return ""
+	return out
 }
 
 func GetRepoSize(repoPath string) int64 {
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return 0
-	}
-	head, err := r.Head()
-	if err != nil {
-		return 0
-	}
-	commit, err := r.CommitObject(head.Hash())
-	if err != nil {
-		return 0
-	}
-	tree, err := commit.Tree()
-	if err != nil {
+	out, err := gitExec(repoPath, "ls-tree", "-r", "HEAD")
+	if err != nil || out == "" {
 		return 0
 	}
 	var total int64
-	tree.Files().ForEach(func(f *object.File) error {
-		blob, err := r.BlobObject(f.Hash)
-		if err != nil {
-			return nil
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
 		}
-		total += blob.Size
-		return nil
-	})
+		// 100644 blob <hash>\t<path>
+		tabIdx := strings.IndexByte(line, '\t')
+		if tabIdx < 0 {
+			continue
+		}
+		meta := strings.Fields(line[:tabIdx])
+		if len(meta) < 3 || meta[1] != "blob" {
+			continue
+		}
+		hash := meta[2]
+		sizeOut, e := gitExec(repoPath, "cat-file", "-s", hash)
+		if e == nil && sizeOut != "" {
+			if n, e := strconv.ParseInt(sizeOut, 10, 64); e == nil {
+				total += n
+			}
+		}
+	}
 	return total
 }
 

@@ -101,10 +101,11 @@ export async function getDailyStats(email, timeRange = 'week', repos = [], start
   return response.json()
 }
 
-export async function getAuthorRank(repos = [], startDate = null, endDate = null) {
+export async function getAuthorRank(repos = [], startDate = null, endDate = null, timeRange = 'week') {
   const params = new URLSearchParams()
   if (startDate) params.append('startDate', startDate)
   if (endDate) params.append('endDate', endDate)
+  if (timeRange) params.append('range', timeRange)
   
   if (repos.length > 0 && !repos.includes('all')) {
     repos.forEach(repo => params.append('repo', repo))

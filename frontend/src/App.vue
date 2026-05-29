@@ -28,10 +28,10 @@
       </nav>
     </header>
     <main class="main-content">
-      <Dashboard v-show="currentView === 'dashboard'" />
-      <Analytics v-show="currentView === 'analytics'" />
-      <RepoSection v-show="currentView === 'repos'" />
-      <Settings v-show="currentView === 'settings'" />
+      <Dashboard v-if="currentView === 'dashboard'" />
+      <Analytics v-if="currentView === 'analytics'" />
+      <RepoSection v-if="currentView === 'repos'" />
+      <Settings v-if="currentView === 'settings'" />
     </main>
   </div>
 </template>

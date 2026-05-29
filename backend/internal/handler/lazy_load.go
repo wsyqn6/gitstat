@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"gitstat/internal/model"
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
 )
@@ -18,7 +17,6 @@ var (
 func getScanMutex(path string) *sync.Mutex {
 	scanMutexGuard.Lock()
 	defer scanMutexGuard.Unlock()
-
 	if _, exists := scanMutexMap[path]; !exists {
 		scanMutexMap[path] = &sync.Mutex{}
 	}
@@ -33,6 +31,7 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 		return
 	}
 
+	var wg sync.WaitGroup
 	for _, cache := range caches {
 		if len(repoPaths) > 0 {
 			found := false
@@ -47,63 +46,56 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 			}
 		}
 
-		if !cache.Initialized {
-			mu := getScanMutex(cache.Path)
-			mu.Lock()
-			cache = store.GlobalStore.GetRepoCache(cache.Path)
-			if cache != nil && !cache.Initialized {
-				initRepoCache(cache.Path, startDate, now)
-				mu.Unlock()
-				continue
-			}
-			mu.Unlock()
-		}
-
-		if !cache.EarliestDate.IsZero() && cache.EarliestDate.After(startDate) {
-			mu := getScanMutex(cache.Path)
-			mu.Lock()
-			cache = store.GlobalStore.GetRepoCache(cache.Path)
-			if cache != nil && !cache.EarliestDate.IsZero() && cache.EarliestDate.After(startDate) {
-				log.Printf("[LazyLoad] Scanning backward: %s from %s to %s", cache.Path, startDate.Format("2006-01-02"), cache.EarliestDate.Format("2006-01-02"))
-				newCommits, err := scanner.ScanIncremental(cache.Path, startDate, cache.EarliestDate)
-				if err != nil {
-					log.Printf("[LazyLoad] Scan failed for %s: %v", cache.Path, err)
-				} else if len(newCommits) > 0 {
-					log.Printf("[LazyLoad] Merged %d commits for %s", len(newCommits), cache.Path)
-					store.GlobalStore.MergeCommits(cache.Path, newCommits)
-				} else {
-					log.Printf("[LazyLoad] No new commits found for %s", cache.Path)
-				}
-			}
-			mu.Unlock()
-		}
-
-		if !cache.LatestDate.IsZero() && now.After(cache.LatestDate) {
-			mu := getScanMutex(cache.Path)
-			mu.Lock()
-			cache = store.GlobalStore.GetRepoCache(cache.Path)
-			if cache != nil && !cache.LatestDate.IsZero() && now.After(cache.LatestDate) {
-				log.Printf("[LazyLoad] Forward scanning: %s from %s to %s", cache.Path, cache.LatestDate.Format("2006-01-02"), now.Format("2006-01-02"))
-				newCommits, err := scanner.ScanIncremental(cache.Path, cache.LatestDate, now)
-				if err != nil {
-					log.Printf("[LazyLoad] Forward scan failed for %s: %v", cache.Path, err)
-				} else if len(newCommits) > 0 {
-					log.Printf("[LazyLoad] Forward scan found %d new commits for %s", len(newCommits), cache.Path)
-					store.GlobalStore.MergeCommits(cache.Path, newCommits)
-				}
-			}
-			mu.Unlock()
-		}
+		wg.Add(1)
+		cache := cache
+		go func() {
+			defer wg.Done()
+			ensureRepoLoaded(cache.Path, startDate, now)
+		}()
 	}
+	wg.Wait()
 }
 
-func initRepoCache(path string, startDate, endDate time.Time) {
-	commits, err := scanner.ScanCommitsByRange(path, startDate, endDate)
-	if err != nil {
-		log.Printf("[LazyLoad] Failed to scan commits for %s: %v", path, err)
-		commits = []model.Commit{}
+func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
+	mu := getScanMutex(repoPath)
+	mu.Lock()
+	defer mu.Unlock()
+
+	cache := store.GlobalStore.GetRepoCache(repoPath)
+	if cache == nil {
+		return
 	}
 
-	store.GlobalStore.SetRepoCommits(path, commits)
-	log.Printf("[LazyLoad] Initialized %s with %d commits", path, len(commits))
+	if !cache.Initialized {
+		commits, err := scanner.ScanCommitsByRange(repoPath, startDate, now)
+		if err != nil {
+			log.Printf("[LazyLoad] Scan failed for %s: %v", repoPath, err)
+			return
+		}
+		store.GlobalStore.SetRepoCommits(repoPath, commits)
+		log.Printf("[LazyLoad] Initialized %s with %d commits", repoPath, len(commits))
+		return
+	}
+
+	if !startDate.IsZero() && !cache.EarliestDate.IsZero() && cache.EarliestDate.After(startDate) {
+		log.Printf("[LazyLoad] Scanning backward: %s from %s to %s", repoPath, startDate.Format("2006-01-02"), cache.EarliestDate.Format("2006-01-02"))
+		newCommits, err := scanner.ScanCommitsByRange(repoPath, startDate, cache.EarliestDate)
+		if err != nil {
+			log.Printf("[LazyLoad] Backward scan failed for %s: %v", repoPath, err)
+		} else if len(newCommits) > 0 {
+			store.GlobalStore.MergeCommits(repoPath, newCommits)
+			log.Printf("[LazyLoad] Merged %d commits for %s", len(newCommits), repoPath)
+		}
+	}
+
+	if !cache.LatestDate.IsZero() && now.After(cache.LatestDate) {
+		log.Printf("[LazyLoad] Forward scanning: %s from %s to %s", repoPath, cache.LatestDate.Format("2006-01-02"), now.Format("2006-01-02"))
+		newCommits, err := scanner.ScanCommitsByRange(repoPath, cache.LatestDate, now)
+		if err != nil {
+			log.Printf("[LazyLoad] Forward scan failed for %s: %v", repoPath, err)
+		} else if len(newCommits) > 0 {
+			store.GlobalStore.MergeCommits(repoPath, newCommits)
+			log.Printf("[LazyLoad] Forward scan found %d new commits for %s", len(newCommits), repoPath)
+		}
+	}
 }

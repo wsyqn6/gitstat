@@ -1,19 +1,19 @@
 package scanner
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"gitstat/internal/model"
-
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 func ScanDirectory(path string, timeRange string) ([]model.Repository, error) {
-	// 计算时间范围
 	var startDate, endDate time.Time
 	now := time.Now()
 
@@ -30,8 +30,8 @@ func ScanDirectory(path string, timeRange string) ([]model.Repository, error) {
 	case "90d":
 		startDate = now.AddDate(0, 0, -90)
 		endDate = now
-	default: // all 或其他
-		startDate = time.Time{} // 零值表示不限制
+	default:
+		startDate = time.Time{}
 		endDate = now
 	}
 
@@ -46,97 +46,160 @@ func ScanDirectory(path string, timeRange string) ([]model.Repository, error) {
 		if !entry.IsDir() {
 			continue
 		}
-
 		repoPath := filepath.Join(path, entry.Name())
-		gitPath := filepath.Join(repoPath, ".git")
-
-		if _, err := os.Stat(gitPath); os.IsNotExist(err) {
+		if _, err := os.Stat(filepath.Join(repoPath, ".git")); os.IsNotExist(err) {
 			continue
 		}
-
 		repo, err := scanSingleRepo(repoPath, startDate, endDate)
 		if err != nil {
-			continue // 跳过错误的仓库
+			continue
 		}
-
 		repos = append(repos, repo)
 	}
 
 	return repos, nil
 }
 
-func scanSingleRepo(path string, startDate time.Time, endDate time.Time) (model.Repository, error) {
-	repo, err := git.PlainOpen(path)
+func gitExec(repoPath string, args ...string) (string, error) {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repoPath
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git %v in %s: %w", args, repoPath, err)
+	}
+	return strings.TrimRight(string(out), "\n\r "), nil
+}
+
+func scanSingleRepo(path string, startDate, endDate time.Time) (model.Repository, error) {
+	currentBranch, _ := gitExec(path, "rev-parse", "--abbrev-ref", "HEAD")
+	userEmail, _ := gitExec(path, "config", "user.email")
+
+	commits, err := runGitLog(path, startDate, endDate)
 	if err != nil {
 		return model.Repository{}, err
 	}
 
-	// 获取当前分支
-	var currentBranch string
-	head, err := repo.Head()
-	if err == nil {
-		currentBranch = head.Name().Short()
-	}
-
-	// 获取 Git 用户邮箱（项目级优先，否则全局）
-	var userEmail string
-	config, err := repo.Config()
-	if err == nil && config.User.Email != "" {
-		userEmail = config.User.Email
-	}
-
-	opts := &git.LogOptions{}
-	if !startDate.IsZero() {
-		opts.Since = &startDate
-	}
-	if !endDate.IsZero() {
-		opts.Until = &endDate
-	}
-	iter, err := repo.Log(opts)
-	if err != nil {
-		return model.Repository{}, err
-	}
-
-	var commits []model.Commit
-	var lastCommitTime time.Time
-
-	err = iter.ForEach(func(c *object.Commit) error {
-		commitTime := c.Committer.When
-
-		// 记录最后提交时间
-		if lastCommitTime.IsZero() || commitTime.After(lastCommitTime) {
-			lastCommitTime = commitTime
+	var lastCommitTime string
+	for _, c := range commits {
+		if !c.Date.IsZero() {
+			lastCommitTime = c.Date.Format("2006-01-02 15:04:05")
+			break
 		}
-
-		stats, _ := c.Stats()
-		var additions, deletions int
-		for _, stat := range stats {
-			additions += stat.Addition
-			deletions += stat.Deletion
+	}
+	if lastCommitTime == "" {
+		out, err := gitExec(path, "log", "-1", "--format=%ci")
+		if err == nil {
+			if t, e := time.Parse("2006-01-02 15:04:05 -0700", out); e == nil {
+				lastCommitTime = t.Format("2006-01-02 15:04:05")
+			}
 		}
-
-		commit := model.Commit{
-			Hash:      c.Hash.String(),
-			Author:    c.Author.Name,
-			Email:     c.Author.Email,
-			Date:      commitTime,
-			Message:   c.Message,
-			Additions: additions,
-			Deletions: deletions,
-		}
-
-		commits = append(commits, commit)
-		return nil
-	})
+	}
 
 	return model.Repository{
 		Path:           path,
 		Name:           filepath.Base(path),
 		CurrentBranch:  currentBranch,
-		LastCommitTime: lastCommitTime.Format("2006-01-02 15:04:05"),
+		LastCommitTime: lastCommitTime,
 		UserEmail:      userEmail,
 		Commits:        commits,
 	}, nil
+}
+
+func runGitLog(repoPath string, since, until time.Time) ([]model.Commit, error) {
+	args := []string{"log", "--format=---GITSTAT_COMMIT---%n%H%n%an%n%ae%n%ci%n%s", "--numstat"}
+	if !since.IsZero() {
+		args = append(args, "--since="+since.Format("2006-01-02 15:04:05"))
+	}
+	if !until.IsZero() {
+		args = append(args, "--until="+until.Format("2006-01-02 15:04:05"))
+	}
+
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repoPath
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("git log in %s: %w", repoPath, err)
+	}
+
+	return parseGitLog(string(out))
+}
+
+func parseGitLog(text string) ([]model.Commit, error) {
+	lines := strings.Split(text, "\n")
+	if len(lines) == 0 {
+		return nil, nil
+	}
+
+	var commits []model.Commit
+	const commitMarker = "---GITSTAT_COMMIT---"
+
+	i := 0
+	// skip leading lines until first marker
+	for i < len(lines) && lines[i] != commitMarker {
+		i++
+	}
+
+	for i < len(lines) {
+		if lines[i] != commitMarker {
+			i++
+			continue
+		}
+		i++ // skip marker
+
+		if i+4 >= len(lines) {
+			break
+		}
+
+		hash := strings.TrimSpace(lines[i]); i++
+		author := strings.TrimSpace(lines[i]); i++
+		email := strings.TrimSpace(lines[i]); i++
+		dateStr := strings.TrimSpace(lines[i]); i++
+		subject := strings.TrimSpace(lines[i]); i++
+
+		commitTime, _ := time.Parse("2006-01-02 15:04:05 -0700", dateStr)
+		if commitTime.IsZero() {
+			commitTime, _ = time.Parse("2006-01-02 15:04:05", dateStr)
+		}
+
+		var additions, deletions int
+		for i < len(lines) && lines[i] != commitMarker {
+			line := strings.TrimSpace(lines[i])
+			i++
+			if line == "" {
+				continue
+			}
+			parts := strings.Split(line, "\t")
+			if len(parts) >= 2 {
+				add, errA := strconv.Atoi(parts[0])
+				del, errD := strconv.Atoi(parts[1])
+				if errA == nil {
+					additions += add
+				}
+				if errD == nil {
+					deletions += del
+				}
+			}
+		}
+
+		commits = append(commits, model.Commit{
+			Hash:      hash,
+			Author:    author,
+			Email:     email,
+			Date:      commitTime,
+			Message:   subject,
+			Additions: additions,
+			Deletions: deletions,
+		})
+	}
+
+	return commits, nil
+}
+
+func ScanCommitsByRange(repoPath string, startDate, endDate time.Time) ([]model.Commit, error) {
+	if !startDate.IsZero() && !endDate.IsZero() {
+		log.Printf("[Scanner] git log %s from %s to %s", repoPath, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	}
+	return runGitLog(repoPath, startDate, endDate)
 }
 
 func calculateCutoffTime(timeRange string) time.Time {
@@ -150,15 +213,13 @@ func calculateCutoffTime(timeRange string) time.Time {
 	case "90d":
 		return time.Now().AddDate(0, 0, -90)
 	default:
-		return time.Time{} // 全部历史
+		return time.Time{}
 	}
 }
 
-// DiscoverRepos 发现目录下的所有 Git 仓库（仅元数据，不扫描提交）
 func DiscoverRepos(rootPath string) ([]model.Repository, error) {
 	var repos []model.Repository
 
-	// check if rootPath itself is a git repo
 	gitPath := filepath.Join(rootPath, ".git")
 	if _, err := os.Stat(gitPath); err == nil {
 		meta, err := ScanMetadata(rootPath)
@@ -176,14 +237,10 @@ func DiscoverRepos(rootPath string) ([]model.Repository, error) {
 		if !entry.IsDir() {
 			continue
 		}
-
 		repoPath := filepath.Join(rootPath, entry.Name())
-		gitPath := filepath.Join(repoPath, ".git")
-
-		if _, err := os.Stat(gitPath); os.IsNotExist(err) {
+		if _, err := os.Stat(filepath.Join(repoPath, ".git")); os.IsNotExist(err) {
 			continue
 		}
-
 		meta, err := ScanMetadata(repoPath)
 		if err != nil {
 			continue
@@ -193,33 +250,18 @@ func DiscoverRepos(rootPath string) ([]model.Repository, error) {
 	return repos, nil
 }
 
-// ScanMetadata 扫描单个仓库元数据（不含提交）
 func ScanMetadata(repoPath string) (model.Repository, error) {
-	repo, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return model.Repository{}, err
-	}
+	currentBranch, _ := gitExec(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	userEmail, _ := gitExec(repoPath, "config", "user.email")
 
-	var currentBranch string
-	head, err := repo.Head()
-	if err == nil {
-		currentBranch = head.Name().Short()
-	}
-
-	var userEmail string
-	config, err := repo.Config()
-	if err == nil && config.User.Email != "" {
-		userEmail = config.User.Email
-	}
-
-	// 获取最后提交时间
 	var lastCommitTime string
-	head, err = repo.Head()
+	out, err := gitExec(repoPath, "log", "-1", "--format=%ci")
 	if err == nil {
-		commit, err := repo.CommitObject(head.Hash())
-		if err == nil {
-			lastCommitTime = commit.Committer.When.Format("2006-01-02 15:04:05")
+		if t, e := time.Parse("2006-01-02 15:04:05 -0700", out); e == nil {
+			lastCommitTime = t.Format("2006-01-02 15:04:05")
 		}
+	} else {
+		_ = err
 	}
 
 	return model.Repository{
@@ -229,100 +271,4 @@ func ScanMetadata(repoPath string) (model.Repository, error) {
 		UserEmail:      userEmail,
 		LastCommitTime: lastCommitTime,
 	}, nil
-}
-
-// ScanCommitsByRange 扫描指定时间范围的提交
-func ScanCommitsByRange(repoPath string, startDate, endDate time.Time) ([]model.Commit, error) {
-	repo, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return nil, err
-	}
-
-	opts := &git.LogOptions{}
-	if !startDate.IsZero() {
-		opts.Since = &startDate
-	}
-	if !endDate.IsZero() {
-		opts.Until = &endDate
-	}
-	iter, err := repo.Log(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	var commits []model.Commit
-	err = iter.ForEach(func(c *object.Commit) error {
-		commitTime := c.Committer.When
-
-		stats, _ := c.Stats()
-		var additions, deletions int
-		for _, stat := range stats {
-			additions += stat.Addition
-			deletions += stat.Deletion
-		}
-
-		commits = append(commits, model.Commit{
-			Hash:      c.Hash.String(),
-			Author:    c.Author.Name,
-			Email:     c.Author.Email,
-			Date:      commitTime,
-			Message:   c.Message,
-			Additions: additions,
-			Deletions: deletions,
-		})
-		return nil
-	})
-
-	return commits, nil
-}
-
-// ScanIncremental 增量扫描指定时间范围的提交
-// startDate: 扫描起始时间（更早的时间）
-// endDate: 扫描结束时间（更晚的时间，通常是缓存的 EarliestDate）
-func ScanIncremental(path string, startDate time.Time, endDate time.Time) ([]model.Commit, error) {
-	log.Printf("[Scanner] Scanning %s from %s to %s", path, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
-
-	repo, err := git.PlainOpen(path)
-	if err != nil {
-		return nil, err
-	}
-
-	opts := &git.LogOptions{}
-	if !startDate.IsZero() {
-		opts.Since = &startDate
-	}
-	if !endDate.IsZero() {
-		opts.Until = &endDate
-	}
-	iter, err := repo.Log(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	var commits []model.Commit
-
-	err = iter.ForEach(func(c *object.Commit) error {
-		commitTime := c.Committer.When
-
-		stats, _ := c.Stats()
-		var additions, deletions int
-		for _, stat := range stats {
-			additions += stat.Addition
-			deletions += stat.Deletion
-		}
-
-		commit := model.Commit{
-			Hash:      c.Hash.String(),
-			Author:    c.Author.Name,
-			Email:     c.Author.Email,
-			Date:      commitTime,
-			Message:   c.Message,
-			Additions: additions,
-			Deletions: deletions,
-		}
-
-		commits = append(commits, commit)
-		return nil
-	})
-	return commits, nil
 }

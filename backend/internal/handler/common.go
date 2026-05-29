@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"gitstat/internal/model"
@@ -62,12 +64,19 @@ func resolveUserEmail(repos []model.Repository, email string) string {
 }
 
 func writeJSON(w http.ResponseWriter, tag string, data interface{}) {
-	if respJSON, err := json.MarshalIndent(data, "", "  "); err == nil {
-		log.Printf("[%s] Response JSON:\n%s", tag, string(respJSON))
-	} else {
-		log.Printf("[%s] Response error: %v", tag, err)
+	w.Header().Set("Content-Type", "application/json")
+
+	buf := &bytes.Buffer{}
+	if err := json.NewEncoder(buf).Encode(data); err != nil {
+		log.Printf("[%s] Serialize error: %v", tag, err)
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	if len(buf.Bytes()) < 2048 {
+		log.Printf("[%s] Response JSON: %s", tag, strings.TrimSpace(buf.String()))
+	} else {
+		log.Printf("[%s] Response %d bytes", tag, len(buf.Bytes())-1)
+	}
+
+	w.Write(buf.Bytes())
 }

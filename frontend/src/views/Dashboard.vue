@@ -44,54 +44,83 @@
       <div class="insight-grid">
         <div class="insight-card card">
           <div class="insight-header">
-            <h3>{{ t('dashboard.weeklyTrend') }}</h3>
+            <h3>{{ t('dashboard.weeklyTrend') }} <span class="range-hint">{{ weekRange }}</span></h3>
           </div>
-          <div ref="trendChartRef" class="trend-chart"></div>
-          <div v-if="state.repoDailyTrend.length === 0" class="insight-empty">{{ t('analytics.noData') }}</div>
-          <div v-if="state.repoDailyTrend.length > 1" class="chart-legend">
-            <span v-for="(repo, i) in state.repoDailyTrend" :key="repo.repoName" class="legend-item">
-              <span class="legend-dot" :style="{ background: repoColors[i] }"></span>
-              {{ repo.repoName }}
-            </span>
+          <div v-if="state.dashboardLoading" class="skeleton-chart-area">
+            <div class="skeleton-line w80"></div>
+            <div class="skeleton-line w60"></div>
+            <div class="skeleton-line w90"></div>
+            <div class="skeleton-line w40"></div>
+            <div class="skeleton-line w70"></div>
+            <div class="skeleton-line w50"></div>
           </div>
+          <div v-else-if="state.repoDailyTrend.length === 0" class="insight-empty">{{ t('analytics.noData') }}</div>
+          <template v-else>
+            <div ref="trendChartRef" class="trend-chart"></div>
+            <div v-if="state.repoDailyTrend.length > 1" class="chart-legend">
+              <span v-for="(repo, i) in state.repoDailyTrend" :key="repo.repoName" class="legend-item">
+                <span class="legend-dot" :style="{ background: repoColors[i] }"></span>
+                {{ repo.repoName }}
+              </span>
+            </div>
+          </template>
         </div>
         <div class="insight-card card">
           <div class="insight-header">
-            <h3>{{ t('dashboard.authorRank') }}</h3>
+            <h3>{{ t('dashboard.authorRank') }} <span class="range-hint">{{ weekRange }}</span></h3>
           </div>
-          <div v-if="authorRankWithRepos.length > 0" class="rank-list">
-            <div
-              v-for="(author, index) in authorRankWithRepos.slice(0, 5)"
-              :key="author.email"
-              class="rank-row rank-row-compact"
-            >
-              <div class="rank-num" :class="{ gold: index === 0, silver: index === 1, bronze: index === 2 }">
-                {{ index + 1 }}
-              </div>
-              <div class="rank-info">
-                <span class="rank-name">{{ author.author }}</span>
-                <span v-if="author.isMe" class="me-badge-small">{{ t('dashboard.me') }}</span>
-              </div>
-              <div class="rank-stats">
-                <span class="rank-commits">{{ author.commits }}</span>
-              </div>
-            </div>
-            <div class="rank-repo-dist" v-for="author in authorRankWithRepos.slice(0, 5)" :key="'dist-'+author.email">
-              <span v-for="r in author.repos" :key="r.name" class="repo-tag" :style="{ borderColor: r.color, color: r.color }">
-                {{ r.name }} {{ r.commits }}
-              </span>
+          <div v-if="state.dashboardLoading" class="skeleton-rank">
+            <div class="skeleton-rank-row" v-for="i in 5" :key="i">
+              <div class="skeleton-circle"></div>
+              <div class="skeleton-line w60"></div>
+              <div class="skeleton-line w20"></div>
             </div>
           </div>
+          <template v-else-if="authorRankWithRepos.length > 0">
+            <div class="rank-list">
+              <div
+                v-for="(author, index) in authorRankWithRepos.slice(0, 5)"
+                :key="author.email"
+                class="rank-row rank-row-compact"
+              >
+                <div class="rank-num" :class="{ gold: index === 0, silver: index === 1, bronze: index === 2 }">
+                  {{ index + 1 }}
+                </div>
+                <div class="rank-info">
+                  <span class="rank-name">{{ author.author }}</span>
+                  <span v-if="author.isMe" class="me-badge-small">{{ t('dashboard.me') }}</span>
+                </div>
+                <div class="rank-stats">
+                  <span class="rank-commits">{{ author.commits }}</span>
+                </div>
+              </div>
+              <div class="rank-repo-dist" v-for="author in authorRankWithRepos.slice(0, 5)" :key="'dist-'+author.email">
+                <span v-for="r in author.repos" :key="r.name" class="repo-tag" :style="{ borderColor: r.color, color: r.color }">
+                  {{ r.name }} {{ r.commits }}
+                </span>
+              </div>
+            </div>
+          </template>
           <div v-else class="insight-empty">{{ t('analytics.noData') }}</div>
         </div>
       </div>
 
       <!-- 仓库活跃度对比 -->
-      <div v-if="state.repoComparison.length > 0" class="comparison-section">
+      <div class="comparison-section">
         <div class="section-header">
-          <h3>{{ t('dashboard.repoComparison') }}</h3>
+          <h3>{{ t('dashboard.repoComparison') }} <span class="range-hint">{{ weekRange }}</span></h3>
         </div>
-        <div class="comparison-table card">
+        <div v-if="state.dashboardLoading" class="comparison-table card">
+          <div v-for="i in 3" :key="i" class="cmp-row">
+            <div class="skeleton-line w40"></div>
+            <div class="skeleton-line w15"></div>
+            <div class="skeleton-line w15"></div>
+            <div class="skeleton-line w15"></div>
+            <div class="skeleton-line w15"></div>
+            <div class="skeleton-line w15"></div>
+          </div>
+        </div>
+        <div v-else-if="state.repoComparison.length > 0" class="comparison-table card">
           <div class="cmp-header">
             <div class="cmp-col-name">{{ t('dashboard.repo') }}</div>
             <div class="cmp-col-num">{{ t('dashboard.commits') }}</div>
@@ -112,45 +141,62 @@
       </div>
 
       <!-- 分仓库分人统计 -->
-      <div v-if="state.dailyStats && state.dailyStats.length > 0" class="daily-stats-section">
+      <div class="daily-stats-section">
         <div class="section-header">
           <h3>{{ t('dashboard.todayDetails') }}</h3>
         </div>
         
-        <div v-for="repo in state.dailyStats" :key="repo.repoPath" class="repo-daily-card card">
-          <div class="repo-daily-header">
-            <div class="repo-info">
-              <h4>{{ repo.repoName }}</h4>
-              <div class="repo-meta">
-                <span class="branch-badge">{{ repo.currentBranch }}</span>
-                <span class="last-commit">{{ t('dashboard.lastCommit') }}: {{ repo.lastCommitTime }}</span>
-              </div>
+        <div v-if="state.dashboardLoading" class="skeleton-daily">
+          <div v-for="i in 2" :key="i" class="repo-daily-card card">
+            <div class="repo-daily-header">
+              <div class="skeleton-line w50"></div>
+              <div class="skeleton-line w30" style="margin-top:8px"></div>
             </div>
-          </div>
-          
-          <div class="authors-table">
-            <div class="table-header">
-              <div class="col-author">{{ t('dashboard.author') }}</div>
-              <div class="col-commits">{{ t('dashboard.commits') }}</div>
-              <div class="col-changes">{{ t('dashboard.changes') }}</div>
-            </div>
-            <div 
-              v-for="author in repo.authors" 
-              :key="author.email" 
-              class="table-row"
-            >
-              <div class="col-author">
-                <span class="author-name">{{ author.author }}</span>
-                <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">{{ t('dashboard.me') }}</span>
-              </div>
-              <div class="col-commits">{{ author.commits }}</div>
-              <div class="col-changes">
-                <span class="additions">+{{ author.additions }}</span>
-                <span class="deletions">-{{ author.deletions }}</span>
+            <div class="authors-table">
+              <div v-for="j in 2" :key="j" class="table-row">
+                <div class="skeleton-line w35"></div>
+                <div class="skeleton-line w15"></div>
+                <div class="skeleton-line w25"></div>
               </div>
             </div>
           </div>
         </div>
+        <template v-else-if="state.dailyStats && state.dailyStats.length > 0">
+          <div v-for="repo in state.dailyStats" :key="repo.repoPath" class="repo-daily-card card">
+            <div class="repo-daily-header">
+              <div class="repo-info">
+                <h4>{{ repo.repoName }}</h4>
+                <div class="repo-meta">
+                  <span class="branch-badge">{{ repo.currentBranch }}</span>
+                  <span class="last-commit">{{ t('dashboard.lastCommit') }}: {{ repo.lastCommitTime }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="authors-table">
+              <div class="table-header">
+                <div class="col-author">{{ t('dashboard.author') }}</div>
+                <div class="col-commits">{{ t('dashboard.commits') }}</div>
+                <div class="col-changes">{{ t('dashboard.changes') }}</div>
+              </div>
+              <div 
+                v-for="author in repo.authors" 
+                :key="author.email" 
+                class="table-row"
+              >
+                <div class="col-author">
+                  <span class="author-name">{{ author.author }}</span>
+                  <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">{{ t('dashboard.me') }}</span>
+                </div>
+                <div class="col-commits">{{ author.commits }}</div>
+                <div class="col-changes">
+                  <span class="additions">+{{ author.additions }}</span>
+                  <span class="deletions">-{{ author.deletions }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
   </div>
 </template>
@@ -158,11 +204,22 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from '../i18n'
-import { state, refreshStats, fetchRepoDailyTrend, fetchAuthorRank, fetchRepoComparison } from '../stores/data'
+import { state, refreshDashboard } from '../stores/data'
 import StatCard from '../components/StatCard.vue'
 import echarts from '../utils/echarts'
 
 const { t } = useI18n()
+
+function getWeekRange() {
+  const now = new Date()
+  const dow = now.getDay()
+  const diff = dow === 0 ? 6 : dow - 1
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - diff)
+  const fmt = (d) => `${d.getMonth() + 1}/${d.getDate()}`
+  return `${fmt(monday)} - ${fmt(now)}`
+}
+const weekRange = getWeekRange()
 
 const trendChartRef = ref(null)
 let trendChart = null
@@ -262,12 +319,7 @@ function handleResize() {
 }
 
 onMounted(async () => {
-  await Promise.all([
-    refreshStats(),
-    fetchRepoDailyTrend(),
-    fetchAuthorRank(),
-    fetchRepoComparison()
-  ])
+  await refreshDashboard()
   nextTick(() => renderTrendChart())
   window.addEventListener('resize', handleResize)
 })
@@ -329,6 +381,15 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+}
+
+.range-hint {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.75rem;
+  color: #4a5568;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
 }
 
 .section-header h3 {
@@ -718,5 +779,102 @@ onMounted(async () => {
 
 .cmp-col-num.deletions {
   color: #ff6b9d;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.skeleton-chart-area {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 20px 10px;
+}
+
+.skeleton-chart-area .skeleton-line {
+  height: 10px;
+}
+
+.skeleton-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.skeleton-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.skeleton-rank-row .skeleton-line {
+  height: 14px;
+}
+
+.skeleton-rank-row .skeleton-line.w60 {
+  flex: 1;
+}
+
+.skeleton-daily {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.skeleton-daily .repo-daily-header .skeleton-line {
+  height: 18px;
+}
+
+.skeleton-daily .authors-table .table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr;
+  padding: 1rem 2rem;
+  align-items: center;
+}
+
+.comparison-section .cmp-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  padding: 1rem 2rem;
+  align-items: center;
+}
+
+.comparison-section .cmp-row .skeleton-line {
+  height: 14px;
+}
+
+.w15 { width: 15%; }
+.w20 { width: 20%; }
+.w25 { width: 25%; }
+.w30 { width: 30%; }
+.w35 { width: 35%; }
+.w40 { width: 40%; }
+.w50 { width: 50%; }
+.w60 { width: 60%; }
+.w70 { width: 70%; }
+.w80 { width: 80%; }
+.w90 { width: 90%; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>

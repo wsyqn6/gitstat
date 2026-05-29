@@ -10,6 +10,7 @@ export const state = reactive({
   authorRank: [],
   scanPath: '',
   loading: false,
+  dashboardLoading: false,
   error: null,
   reposInfo: [],
   analyzing: false,
@@ -90,7 +91,7 @@ export async function fetchRepoComparison() {
 
 export async function fetchAuthorRank() {
   try {
-    state.authorRank = await api.getAuthorRank()
+    state.authorRank = await api.getAuthorRank(['all'], null, null, 'week')
   } catch (err) {
     console.error('Failed to fetch author rank:', err)
   }
@@ -132,6 +133,20 @@ export async function triggerAnalyze(path) {
     throw err
   } finally {
     state.analyzing = false
+  }
+}
+
+export async function refreshDashboard() {
+  state.dashboardLoading = true
+  try {
+    await Promise.all([
+      refreshStats(),
+      fetchRepoDailyTrend(),
+      fetchAuthorRank(),
+      fetchRepoComparison()
+    ])
+  } finally {
+    state.dashboardLoading = false
   }
 }
 
