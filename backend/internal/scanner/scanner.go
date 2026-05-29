@@ -2,7 +2,6 @@ package scanner
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -196,9 +195,6 @@ func parseGitLog(text string) ([]model.Commit, error) {
 }
 
 func ScanCommitsByRange(repoPath string, startDate, endDate time.Time) ([]model.Commit, error) {
-	if !startDate.IsZero() && !endDate.IsZero() {
-		log.Printf("[Scanner] git log %s from %s to %s", repoPath, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
-	}
 	return runGitLog(repoPath, startDate, endDate)
 }
 

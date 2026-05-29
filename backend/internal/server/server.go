@@ -2,8 +2,10 @@ package server
 
 import (
 	"io/fs"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"gitstat/internal/handler"
 
@@ -14,6 +16,7 @@ func NewServer() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(corsMiddleware)
+	r.Use(loggingMiddleware)
 
 	r.Post("/api/scan", handler.ScanHandler)
 	r.Post("/api/scan/path", handler.SetScanPathHandler)
@@ -77,6 +80,14 @@ func spaHandler(staticFS fs.FS) http.HandlerFunc {
 		}
 		http.ServeFileFS(w, r, staticFS, "index.html")
 	}
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		log.Printf("[%s] %s %s (%v)", r.Method, r.URL.Path, r.URL.RawQuery, time.Since(start))
+	})
 }
 
 func corsMiddleware(next http.Handler) http.Handler {

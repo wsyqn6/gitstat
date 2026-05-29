@@ -1,7 +1,6 @@
 package store
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -14,6 +13,8 @@ const (
 )
 
 type RepoCache struct {
+	initMu sync.Mutex // 保护首次初始化扫描
+
 	Path           string
 	Name           string
 	UserEmail      string
@@ -86,19 +87,15 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 	}
 
 	if len(uniqueCommits) == 0 {
-		log.Printf("[MergeCommits] No new commits for %s (all %d duplicates)", path, len(newCommits))
 		return true
 	}
 
-	// 检查上限
 	if len(cache.Commits)+len(uniqueCommits) > MaxCommitsPerRepo {
-		log.Printf("[MergeCommits] Reject: would exceed limit (%d + %d > %d)", len(cache.Commits), len(uniqueCommits), MaxCommitsPerRepo)
 		return false
 	}
 
 	cache.Commits = append(cache.Commits, uniqueCommits...)
 	s.updateDateRange(cache, uniqueCommits)
-	log.Printf("[MergeCommits] Added %d unique commits to %s (total: %d)", len(uniqueCommits), path, len(cache.Commits))
 	return true
 }
 
@@ -123,6 +120,17 @@ func (s *Store) GetRepoCache(path string) *RepoCache {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.Repos[path]
+}
+
+// CheckInitRange 原子检查仓库初始化状态和日期范围
+func (s *Store) CheckInitRange(path string) (ok bool, initialized bool, earliest, latest time.Time) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	cache, exists := s.Repos[path]
+	if !exists {
+		return false, false, time.Time{}, time.Time{}
+	}
+	return true, cache.Initialized, cache.EarliestDate, cache.LatestDate
 }
 
 // GetAllCaches 获取所有缓存副本（用于增量检查）
@@ -200,6 +208,33 @@ func (s *Store) InitRepoCache(path string, meta model.Repository, commits []mode
 	if len(commits) > 0 {
 		s.updateDateRange(cache, commits)
 	}
+}
+
+// EnsureFirstInit 首次初始化保护（双检锁，仅一个 goroutine 扫库）
+func (s *Store) EnsureFirstInit(path string, scanFn func() ([]model.Commit, error)) (bool, error) {
+	s.mu.RLock()
+	cache, exists := s.Repos[path]
+	s.mu.RUnlock()
+	if !exists {
+		return false, nil
+	}
+
+	cache.initMu.Lock()
+	_, initialized, _, _ := s.CheckInitRange(path)
+	if initialized {
+		cache.initMu.Unlock()
+		return true, nil
+	}
+
+	commits, err := scanFn()
+	if err != nil {
+		cache.initMu.Unlock()
+		return false, err
+	}
+
+	s.SetRepoCommits(path, commits)
+	cache.initMu.Unlock()
+	return true, nil
 }
 
 // SetRepoCommits 设置仓库提交数据（保留元数据，仅更新 commits + Initialized）
