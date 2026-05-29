@@ -2,10 +2,10 @@ package store
 
 import (
 	"log"
-	"sort"
 	"sync"
 	"time"
 
+	"gitstat/internal/aggregator"
 	"gitstat/internal/model"
 )
 
@@ -274,31 +274,24 @@ func (s *Store) GetRepoDetail(path string) (model.RepoDetail, bool) {
 		return model.RepoDetail{}, false
 	}
 
-	// 聚合贡献者
-	authorMap := make(map[string]*model.ContributorStat)
-	for _, c := range cache.Commits {
-		key := c.Email
-		if _, ok := authorMap[key]; !ok {
-			authorMap[key] = &model.ContributorStat{
-				Author: c.Author,
-				Email:  c.Email,
-			}
-		}
-		authorMap[key].CommitCount++
-		authorMap[key].Additions += c.Additions
-		authorMap[key].Deletions += c.Deletions
-		if c.Date.After(parseTime(authorMap[key].LastCommitDate)) {
-			authorMap[key].LastCommitDate = c.Date.Format("2006-01-02 15:04:05")
+	// 复用 aggregator 的作者统计
+	repos := []model.Repository{{
+		Path:   cache.Path,
+		Name:   cache.Name,
+		Commits: cache.Commits,
+	}}
+	rank := aggregator.AggregateAuthorRank(repos, "", time.Time{}, time.Time{})
+	contributors := make([]model.ContributorStat, len(rank))
+	for i, item := range rank {
+		contributors[i] = model.ContributorStat{
+			Author:         item.Author,
+			Email:          item.Email,
+			CommitCount:    item.Commits,
+			Additions:      item.Additions,
+			Deletions:      item.Deletions,
+			LastCommitDate: item.LastCommitDate,
 		}
 	}
-
-	var contributors []model.ContributorStat
-	for _, cs := range authorMap {
-		contributors = append(contributors, *cs)
-	}
-	sort.Slice(contributors, func(i, j int) bool {
-		return contributors[i].CommitCount > contributors[j].CommitCount
-	})
 
 	// 最近 20 条提交
 	recentCommits := cache.Commits
@@ -354,14 +347,6 @@ func (s *Store) GetRepoDetail(path string) (model.RepoDetail, bool) {
 	}
 
 	return detail, true
-}
-
-func parseTime(s string) time.Time {
-	t, err := time.Parse("2006-01-02 15:04:05", s)
-	if err != nil {
-		return time.Time{}
-	}
-	return t
 }
 
 // SetScanPath 设置扫描目录

@@ -126,12 +126,17 @@ func TestAggregateYearlyStatsWithRange(t *testing.T) {
 }
 
 func TestAggregateOverview(t *testing.T) {
-	commits := []model.Commit{
-		{Author: "Alice", Additions: 10, Deletions: 5},
-		{Author: "Bob", Additions: 20, Deletions: 10},
+	repos := []model.Repository{
+		{
+			Path: "/test",
+			Commits: []model.Commit{
+				{Author: "Alice", Email: "a@x", Additions: 10, Deletions: 5},
+				{Author: "Bob", Email: "b@x", Additions: 20, Deletions: 10},
+			},
+		},
 	}
 
-	stats := AggregateOverview(commits, 1)
+	stats := AggregateOverview(repos, "", time.Time{}, time.Time{})
 
 	if stats.TotalCommits != 2 {
 		t.Errorf("Expected 2 commits, got %d", stats.TotalCommits)
@@ -143,25 +148,6 @@ func TestAggregateOverview(t *testing.T) {
 
 	if stats.TotalAdditions != 30 {
 		t.Errorf("Expected 30 additions, got %d", stats.TotalAdditions)
-	}
-}
-
-func TestAggregateByAuthor(t *testing.T) {
-	commits := []model.Commit{
-		{Author: "Alice", Additions: 10, Deletions: 5},
-		{Author: "Alice", Additions: 20, Deletions: 10},
-		{Author: "Bob", Additions: 5, Deletions: 2},
-	}
-
-	stats := AggregateByAuthor(commits)
-
-	if len(stats) != 2 {
-		t.Errorf("Expected 2 authors, got %d", len(stats))
-	}
-
-	aliceStats := stats["Alice"]
-	if aliceStats["commits"].(int) != 2 {
-		t.Errorf("Expected Alice to have 2 commits, got %d", aliceStats["commits"])
 	}
 }
 

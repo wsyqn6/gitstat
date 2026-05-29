@@ -107,6 +107,7 @@ type AuthorRankItem struct {
 	NetChange     int     `json:"netChange"` // 新增-删除
 	IsMe          bool    `json:"isMe"`
 	AvgCommitSize float64 `json:"avgCommitSize"` // 平均提交大小
+	LastCommitDate string `json:"lastCommitDate,omitempty"` // 最后提交时间
 }
 
 // 活动热力图数据点

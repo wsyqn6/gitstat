@@ -1,19 +1,5 @@
 const API_BASE = '/api'
 
-export async function scanRepositories(path, timeRange) {
-  const response = await fetch(`${API_BASE}/scan`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path, timeRange })
-  })
-  
-  if (!response.ok) {
-    throw new Error('Scan failed')
-  }
-  
-  return response.json()
-}
-
 export async function setScanPath(path) {
   const response = await fetch(`${API_BASE}/scan/path`, {
     method: 'POST',

@@ -12,44 +12,38 @@ import (
 	"gitstat/internal/model"
 )
 
-func AggregateOverview(commits []model.Commit, repoCount int) model.OverviewStats {
+func AggregateOverview(repos []model.Repository, userEmail string, startDate, endDate time.Time) model.OverviewStats {
 	var totalAdditions, totalDeletions int
+	var commitCount int
 	authors := make(map[string]bool)
+	repoSet := make(map[string]bool)
 
-	for _, c := range commits {
-		totalAdditions += c.Additions
-		totalDeletions += c.Deletions
-		authors[c.Author] = true
+	for _, repo := range repos {
+		repoSet[repo.Path] = true
+		for _, c := range repo.Commits {
+			if userEmail != "" && c.Email != userEmail {
+				continue
+			}
+			if !startDate.IsZero() && c.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && c.Date.After(endDate) {
+				continue
+			}
+			commitCount++
+			totalAdditions += c.Additions
+			totalDeletions += c.Deletions
+			authors[c.Author] = true
+		}
 	}
 
 	return model.OverviewStats{
-		TotalCommits:    len(commits),
+		TotalCommits:    commitCount,
 		TotalAdditions:  totalAdditions,
 		TotalDeletions:  totalDeletions,
 		ActiveAuthors:   len(authors),
-		RepositoryCount: repoCount,
+		RepositoryCount: len(repoSet),
 	}
-}
-
-func AggregateByAuthor(commits []model.Commit) map[string]map[string]interface{} {
-	authorStats := make(map[string]map[string]interface{})
-
-	for _, c := range commits {
-		if _, exists := authorStats[c.Author]; !exists {
-			authorStats[c.Author] = map[string]interface{}{
-				"commits":   0,
-				"additions": 0,
-				"deletions": 0,
-			}
-		}
-
-		stats := authorStats[c.Author]
-		stats["commits"] = stats["commits"].(int) + 1
-		stats["additions"] = stats["additions"].(int) + c.Additions
-		stats["deletions"] = stats["deletions"].(int) + c.Deletions
-	}
-
-	return authorStats
 }
 
 func AggregateByTime(commits []model.Commit, granularity string) []map[string]interface{} {
@@ -84,22 +78,8 @@ func AggregateByTime(commits []model.Commit, granularity string) []map[string]in
 	return result
 }
 
-func AggregateDailyStats(repos []model.Repository, userEmail string) []model.RepositoryDailyStats {
-	return AggregateDailyStatsWithRange(repos, userEmail, time.Time{}, time.Time{})
-}
-
 func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.RepositoryDailyStats {
 	var result []model.RepositoryDailyStats
-
-	// 如果没有提供邮箱，从仓库配置中获取（使用第一个有配置的）
-	if userEmail == "" {
-		for _, repo := range repos {
-			if repo.UserEmail != "" {
-				userEmail = repo.UserEmail
-				break
-			}
-		}
-	}
 
 	for _, repo := range repos {
 		authorMap := make(map[string]*model.AuthorDailyStats)
@@ -195,15 +175,6 @@ func getYearKey(t time.Time) string {
 func aggregatePeriodStats(repos []model.Repository, userEmail string, startDate, endDate time.Time, periodKeyFn func(time.Time) string) []model.RepositoryPeriodStats {
 	var result []model.RepositoryPeriodStats
 
-	if userEmail == "" {
-		for _, repo := range repos {
-			if repo.UserEmail != "" {
-				userEmail = repo.UserEmail
-				break
-			}
-		}
-	}
-
 	for _, repo := range repos {
 		authorMap := make(map[string]*model.AuthorPeriodStats)
 		periodDataMap := make(map[string]map[string]*model.PeriodCommitData)
@@ -291,10 +262,10 @@ func AggregateYearlyStatsWithRange(repos []model.Repository, userEmail string, s
 // 开发者排行榜聚合
 func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.AuthorRankItem {
 	authorMap := make(map[string]*model.AuthorRankItem)
+	lastTimes := make(map[string]time.Time)
 
 	for _, repo := range repos {
 		for _, commit := range repo.Commits {
-			// 时间过滤
 			if !startDate.IsZero() && commit.Date.Before(startDate) {
 				continue
 			}
@@ -316,6 +287,10 @@ func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate t
 			stats.Additions += commit.Additions
 			stats.Deletions += commit.Deletions
 			stats.NetChange = stats.Additions - stats.Deletions
+			if commit.Date.After(lastTimes[key]) {
+				lastTimes[key] = commit.Date
+				stats.LastCommitDate = commit.Date.Format("2006-01-02 15:04:05")
+			}
 		}
 	}
 

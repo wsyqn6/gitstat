@@ -4,39 +4,17 @@ import (
 	"net/http"
 
 	"gitstat/internal/aggregator"
-	"gitstat/internal/model"
 )
 
 func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
-	userEmail := r.URL.Query().Get("email")
 	repoPaths := r.URL.Query()["repo"]
-
 	startDate, endDate := parseTimeParams(r, "today")
 
 	ensureDataLoaded(repoPaths, startDate)
 	repos := loadRepos(repoPaths)
+	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
-	if userEmail == "" {
-		userEmail = resolveUserEmail(repos, "")
-	}
-
-	var filteredCommits []model.Commit
-	for _, repo := range repos {
-		for _, c := range repo.Commits {
-			if userEmail != "" && c.Email != userEmail {
-				continue
-			}
-			if !startDate.IsZero() && c.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && c.Date.After(endDate) {
-				continue
-			}
-			filteredCommits = append(filteredCommits, c)
-		}
-	}
-
-	stats := aggregator.AggregateOverview(filteredCommits, len(repos))
+	stats := aggregator.AggregateOverview(repos, userEmail, startDate, endDate)
 	writeJSON(w, "Overview", stats)
 }
 
@@ -46,8 +24,9 @@ func GetDailyStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	ensureDataLoaded(repoPaths, startDate)
 	repos := loadRepos(repoPaths)
+	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
-	stats := aggregator.AggregateDailyStatsWithRange(repos, r.URL.Query().Get("email"), startDate, endDate)
+	stats := aggregator.AggregateDailyStatsWithRange(repos, userEmail, startDate, endDate)
 	writeJSON(w, "Daily", stats)
 }
 
@@ -57,8 +36,9 @@ func GetWeeklyStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	ensureDataLoaded(repoPaths, startDate)
 	repos := loadRepos(repoPaths)
+	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
-	stats := aggregator.AggregateWeeklyStatsWithRange(repos, r.URL.Query().Get("email"), startDate, endDate)
+	stats := aggregator.AggregateWeeklyStatsWithRange(repos, userEmail, startDate, endDate)
 	writeJSON(w, "Weekly", stats)
 }
 
@@ -68,8 +48,9 @@ func GetMonthlyStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	ensureDataLoaded(repoPaths, startDate)
 	repos := loadRepos(repoPaths)
+	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
-	stats := aggregator.AggregateMonthlyStatsWithRange(repos, r.URL.Query().Get("email"), startDate, endDate)
+	stats := aggregator.AggregateMonthlyStatsWithRange(repos, userEmail, startDate, endDate)
 	writeJSON(w, "Monthly", stats)
 }
 
@@ -79,8 +60,9 @@ func GetYearlyStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	ensureDataLoaded(repoPaths, startDate)
 	repos := loadRepos(repoPaths)
+	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
-	stats := aggregator.AggregateYearlyStatsWithRange(repos, r.URL.Query().Get("email"), startDate, endDate)
+	stats := aggregator.AggregateYearlyStatsWithRange(repos, userEmail, startDate, endDate)
 	writeJSON(w, "Yearly", stats)
 }
 
