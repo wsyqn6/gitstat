@@ -219,12 +219,23 @@ export async function getReposList() {
   return response.json()
 }
 
-export async function getRepoDetail(path) {
+export async function getRepoInfo(path) {
   const params = new URLSearchParams({ path })
-  const response = await fetch(`${API_BASE}/repos/detail?${params}`)
+  const response = await fetch(`${API_BASE}/repos/info?${params}`)
 
   if (!response.ok) {
-    throw new Error('Failed to fetch repo detail')
+    throw new Error('Failed to fetch repo info')
+  }
+
+  return response.json()
+}
+
+export async function getRepoStats(path) {
+  const params = new URLSearchParams({ path })
+  const response = await fetch(`${API_BASE}/repos/stats?${params}`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch repo stats')
   }
 
   return response.json()

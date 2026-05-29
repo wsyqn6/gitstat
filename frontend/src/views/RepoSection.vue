@@ -65,48 +65,64 @@
             <p v-else class="expand-hint">{{ t('repo.analyzeToSee') }}</p>
           </div>
 
-          <div class="card-row stats-row">
-            <div class="info-card dim" :class="{ 'has-data': hasCommits }">
-              <span class="info-value">{{ hasCommits ? totalCommitCount : '--' }}</span>
-              <span class="info-label">{{ t('repo.commits') }}</span>
-            </div>
-            <div class="info-card clickable dim" :class="{ expanded: expandedContributor, 'has-data': hasCommits }" @click="toggleContributor">
-              <span class="info-value">{{ hasCommits ? detail.contributors.length : '--' }}</span>
-              <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
-            </div>
-            <div class="info-card dim" :class="{ 'has-data': detail.repoSize > 0 }">
-              <span class="info-value">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</span>
-              <span class="info-label">{{ t('repo.diskSize') }}</span>
-            </div>
-            <div class="info-card dim" :class="{ 'has-data': detail.earliestCommitAuthor }">
-              <span class="info-value">{{ detail.earliestCommitAuthor || '--' }}</span>
-              <span class="info-label">{{ t('repo.creator') }}</span>
-            </div>
-            <div class="info-card dim" :class="{ 'has-data': detail.analysis }">
-              <span class="info-value">{{ mainLangName }}</span>
-              <span class="info-label">{{ t('repo.mainLang') }}</span>
+          <div v-if="!statsLoaded" class="stats-cta card" @click="loadStats">
+            <div class="stats-cta-content">
+              <span class="stats-cta-icon">▦</span>
+              <div>
+                <h4>{{ t('repo.statsTitle') }}</h4>
+                <p>{{ t('repo.statsDesc') }}</p>
+              </div>
+              <button class="btn" :disabled="loadingStats" @click.stop="loadStats">
+                <span v-if="loadingStats" class="spinner"></span>
+                {{ loadingStats ? t('repo.statsLoading') : t('repo.statsBtn') }}
+              </button>
             </div>
           </div>
 
-          <div v-if="expandedContributor" class="expand-panel card">
-            <h4>{{ t('repo.contributors') }}</h4>
-            <div class="contrib-table">
-              <div class="contrib-header">
-                <span>{{ t('repo.author') }}</span>
-                <span>{{ t('repo.commits') }}</span>
-                <span class="add">{{ t('repo.additions') }}</span>
-                <span class="del">{{ t('repo.deletions') }}</span>
-                <span>{{ t('repo.lastCommit') }}</span>
+          <template v-if="statsLoaded">
+            <div class="card-row stats-row">
+              <div class="info-card dim" :class="{ 'has-data': hasCommits }">
+                <span class="info-value">{{ hasCommits ? totalCommitCount : '--' }}</span>
+                <span class="info-label">{{ t('repo.commits') }}</span>
               </div>
-              <div v-for="ct in detail.contributors" :key="ct.email" class="contrib-row">
-                <span class="contrib-name">{{ ct.author }}</span>
-                <span>{{ ct.commitCount }}</span>
-                <span class="add">+{{ ct.additions }}</span>
-                <span class="del">-{{ ct.deletions }}</span>
-                <span class="contrib-time">{{ ct.lastCommitDate?.slice(0, 10) }}</span>
+              <div class="info-card clickable dim" :class="{ expanded: expandedContributor, 'has-data': hasCommits }" @click="toggleContributor">
+                <span class="info-value">{{ hasCommits ? detail.contributors.length : '--' }}</span>
+                <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
+              </div>
+              <div class="info-card dim" :class="{ 'has-data': detail.repoSize > 0 }">
+                <span class="info-value">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</span>
+                <span class="info-label">{{ t('repo.diskSize') }}</span>
+              </div>
+              <div class="info-card dim" :class="{ 'has-data': detail.earliestCommitAuthor }">
+                <span class="info-value">{{ detail.earliestCommitAuthor || '--' }}</span>
+                <span class="info-label">{{ t('repo.creator') }}</span>
+              </div>
+              <div class="info-card dim" :class="{ 'has-data': detail.analysis }">
+                <span class="info-value">{{ mainLangName }}</span>
+                <span class="info-label">{{ t('repo.mainLang') }}</span>
               </div>
             </div>
-          </div>
+
+            <div v-if="expandedContributor" class="expand-panel card">
+              <h4>{{ t('repo.contributors') }}</h4>
+              <div class="contrib-table">
+                <div class="contrib-header">
+                  <span>{{ t('repo.author') }}</span>
+                  <span>{{ t('repo.commits') }}</span>
+                  <span class="add">{{ t('repo.additions') }}</span>
+                  <span class="del">{{ t('repo.deletions') }}</span>
+                  <span>{{ t('repo.lastCommit') }}</span>
+                </div>
+                <div v-for="ct in detail.contributors" :key="ct.email" class="contrib-row">
+                  <span class="contrib-name">{{ ct.author }}</span>
+                  <span>{{ ct.commitCount }}</span>
+                  <span class="add">+{{ ct.additions }}</span>
+                  <span class="del">-{{ ct.deletions }}</span>
+                  <span class="contrib-time">{{ ct.lastCommitDate?.slice(0, 10) }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
 
           <div class="section-group">
             <div class="section card">
@@ -152,26 +168,28 @@
               </div>
             </div>
 
-            <div v-if="detail.recentCommits && detail.recentCommits.length > 0" class="section card">
-              <h3 class="section-title">{{ t('repo.recentCommits') }}</h3>
-              <div class="commit-list">
-                <div v-for="c in detail.recentCommits" :key="c.hash" class="commit-item">
-                  <div class="commit-main" @click="toggleCommit(c.hash)">
-                    <span class="commit-hash">{{ c.hash.slice(0, 7) }}</span>
-                    <span class="commit-msg">{{ c.message.split('\n')[0] }}</span>
-                    <span class="commit-author">{{ c.author }}</span>
-                    <span class="commit-time">{{ formatTimeAgo(c.date) }}</span>
-                    <span class="commit-changes">
-                      <span v-if="c.additions > 0" class="add">+{{ c.additions }}</span>
-                      <span v-if="c.deletions > 0" class="del">-{{ c.deletions }}</span>
-                    </span>
-                  </div>
-                  <div v-if="expandedCommit === c.hash" class="commit-body">
-                    <pre>{{ c.message }}</pre>
+            <template v-if="statsLoaded">
+              <div v-if="detail.recentCommits && detail.recentCommits.length > 0" class="section card">
+                <h3 class="section-title">{{ t('repo.recentCommits') }}</h3>
+                <div class="commit-list">
+                  <div v-for="c in detail.recentCommits" :key="c.hash" class="commit-item">
+                    <div class="commit-main" @click="toggleCommit(c.hash)">
+                      <span class="commit-hash">{{ c.hash.slice(0, 7) }}</span>
+                      <span class="commit-msg">{{ c.message.split('\n')[0] }}</span>
+                      <span class="commit-author">{{ c.author }}</span>
+                      <span class="commit-time">{{ formatTimeAgo(c.date) }}</span>
+                      <span class="commit-changes">
+                        <span v-if="c.additions > 0" class="add">+{{ c.additions }}</span>
+                        <span v-if="c.deletions > 0" class="del">-{{ c.deletions }}</span>
+                      </span>
+                    </div>
+                    <div v-if="expandedCommit === c.hash" class="commit-body">
+                      <pre>{{ c.message }}</pre>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </template>
           </div>
         </template>
       </div>
@@ -182,14 +200,16 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from '../i18n'
-import { state, fetchReposInfo, fetchRepoDetail, triggerAnalyze } from '../stores/data'
+import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, triggerAnalyze } from '../stores/data'
 import echarts from '../utils/echarts'
 
 const { t } = useI18n()
 
-const activePath = ref('')
+const activePath = ref(localStorage.getItem('activeRepoPath') || '')
 const loading = ref(false)
 const detail = ref(null)
+const statsLoaded = ref(false)
+const loadingStats = ref(false)
 const expandedBranch = ref(false)
 const expandedContributor = ref(false)
 const expandedCommit = ref(null)
@@ -270,23 +290,40 @@ function toggleCommit(hash) {
 
 async function loadDetail(path) {
   loading.value = true
+  statsLoaded.value = false
   expandedBranch.value = false
   expandedContributor.value = false
   expandedCommit.value = null
   langChart = null
   try {
-    detail.value = await fetchRepoDetail(path)
+    const info = await fetchRepoInfo(path)
+    detail.value = { contributors: [], recentCommits: [], repoSize: 0, earliestDate: '', earliestCommitAuthor: '', ...info }
   } catch (err) {
-    console.error('Failed to load detail:', err)
+    console.error('Failed to load info:', err)
   } finally {
     loading.value = false
+  }
+}
+
+async function loadStats() {
+  if (!activePath.value || loadingStats.value) return
+  loadingStats.value = true
+  try {
+    const stats = await fetchRepoStats(activePath.value)
+    detail.value = { ...detail.value, ...stats }
+    statsLoaded.value = true
     await nextTick()
     renderChart()
+  } catch (err) {
+    console.error('Failed to load stats:', err)
+  } finally {
+    loadingStats.value = false
   }
 }
 
 function switchRepo(path) {
   activePath.value = path
+  localStorage.setItem('activeRepoPath', path)
   loadDetail(path)
 }
 
@@ -295,12 +332,12 @@ async function doAnalyze() {
   try {
     const result = await triggerAnalyze(activePath.value)
     detail.value.analysis = result
-    await nextTick()
-    renderChart()
   } catch (err) {
     console.error('Analysis failed:', err)
   } finally {
     analysisLoading.value = false
+    await nextTick()
+    renderChart()
   }
 }
 
@@ -366,7 +403,10 @@ function handleResize() {
 function init() {
   fetchReposInfo().then(() => {
     if (state.reposInfo.length > 0) {
-      activePath.value = state.reposInfo[0].path
+      const saved = activePath.value
+      const exists = state.reposInfo.some(r => r.path === saved)
+      activePath.value = exists ? saved : state.reposInfo[0].path
+      localStorage.setItem('activeRepoPath', activePath.value)
       loadDetail(activePath.value)
     }
   })
@@ -632,6 +672,43 @@ onMounted(init)
 }
 .lang-total span { text-align: center; }
 .lang-total span:first-child { text-align: left; }
+
+/* Stats CTA */
+.stats-cta {
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+.stats-cta:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+.stats-cta-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.stats-cta-icon {
+  font-size: 2.5rem;
+  color: #00d4ff;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+.stats-cta-content div { flex: 1; }
+.stats-cta-content h4 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: #00d4ff;
+  letter-spacing: 1px;
+  margin: 0 0 0.3rem 0;
+}
+.stats-cta-content p {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: 0;
+  font-family: 'Rajdhani', sans-serif;
+}
 
 /* Analyze CTA */
 .analyze-cta { text-align: center; padding: 2rem 1rem; }

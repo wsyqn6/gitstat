@@ -115,7 +115,11 @@ const messages = {
       changes: '变更',
       backToList: '← 返回列表',
       loading: '加载中...',
-      detail: '详情'
+      detail: '详情',
+      statsTitle: '加载统计信息',
+      statsDesc: '获取提交统计、磁盘占用、贡献者排行等数据（首次加载可能需要数秒）',
+      statsBtn: '加载统计信息',
+      statsLoading: '加载中...'
     },
     settings: {
       title: '设置',
@@ -245,7 +249,11 @@ const messages = {
       changes: 'Changes',
       backToList: '← Back to List',
       loading: 'Loading...',
-      detail: 'Detail'
+      detail: 'Detail',
+      statsTitle: 'Load Statistics',
+      statsDesc: 'Fetch commit stats, disk usage, contributor rankings (first load may take seconds)',
+      statsBtn: 'Load Statistics',
+      statsLoading: 'Loading...'
     },
     settings: {
       title: 'Settings',

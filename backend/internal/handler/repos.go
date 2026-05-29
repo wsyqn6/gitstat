@@ -14,39 +14,17 @@ import (
 func GetReposListHandler(w http.ResponseWriter, r *http.Request) {
 	caches := store.GlobalStore.GetAllCaches()
 
-	var infos []model.RepoInfo
+	infos := make([]model.RepoInfo, 0, len(caches))
 	for _, cache := range caches {
-		branchCount := cache.BranchCount
-		fileCount := cache.FileCount
-		remoteUrl := cache.RemoteUrl
-
-		if branchCount == 0 {
-			meta, err := scanner.GetRepoMeta(cache.Path)
-			if err == nil {
-				branchCount = meta.BranchCount
-				fileCount = meta.FileCount
-				store.GlobalStore.UpdateRepoMeta(cache.Path, branchCount, fileCount)
-			}
-		}
-
-		if remoteUrl == "" {
-			remoteUrl = scanner.GetRemoteUrl(cache.Path)
-			cache.RemoteUrl = remoteUrl
-		}
-
 		infos = append(infos, model.RepoInfo{
 			Path:           cache.Path,
 			Name:           cache.Name,
 			CurrentBranch:  cache.CurrentBranch,
-			BranchCount:    branchCount,
-			FileCount:      fileCount,
+			BranchCount:    cache.BranchCount,
+			FileCount:      cache.FileCount,
 			LastCommitTime: cache.LastCommitTime,
-			RemoteUrl:      remoteUrl,
+			RemoteUrl:      cache.RemoteUrl,
 		})
-	}
-
-	if infos == nil {
-		infos = []model.RepoInfo{}
 	}
 
 	slices.SortFunc(infos, func(a, b model.RepoInfo) int {
@@ -56,28 +34,67 @@ func GetReposListHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, "ReposList", infos)
 }
 
-func GetRepoDetailHandler(w http.ResponseWriter, r *http.Request) {
+func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	if path == "" {
 		http.Error(w, "path is required", http.StatusBadRequest)
 		return
 	}
 
-	detail, ok := store.GlobalStore.GetRepoDetail(path)
+	cache := store.GlobalStore.GetRepoCache(path)
+	if cache == nil {
+		http.Error(w, "repo not found", http.StatusNotFound)
+		return
+	}
+
+	branchCount := cache.BranchCount
+	fileCount := cache.FileCount
+	remoteUrl := cache.RemoteUrl
+
+	if branchCount == 0 {
+		meta, err := scanner.GetRepoMeta(cache.Path)
+		if err == nil {
+			branchCount = meta.BranchCount
+			fileCount = meta.FileCount
+			store.GlobalStore.UpdateRepoMeta(cache.Path, branchCount, fileCount)
+		}
+	}
+
+	if remoteUrl == "" {
+		remoteUrl = scanner.GetRemoteUrl(cache.Path)
+		cache.RemoteUrl = remoteUrl
+	}
+
+	writeJSON(w, "RepoInfo", model.RepoInfo{
+		Path:           cache.Path,
+		Name:           cache.Name,
+		CurrentBranch:  cache.CurrentBranch,
+		BranchCount:    branchCount,
+		FileCount:      fileCount,
+		LastCommitTime: cache.LastCommitTime,
+		RemoteUrl:      remoteUrl,
+	})
+}
+
+func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Query().Get("path")
+	if path == "" {
+		http.Error(w, "path is required", http.StatusBadRequest)
+		return
+	}
+
+	stats, ok := store.GlobalStore.GetRepoStats(path)
 	if !ok {
 		http.Error(w, "repo not found", http.StatusNotFound)
 		return
 	}
 
-	// 补充未被 store 缓存的字段
-	if detail.RemoteUrl == "" {
-		detail.RemoteUrl = scanner.GetRemoteUrl(path)
-	}
-	if detail.RepoSize == 0 {
-		detail.RepoSize = scanner.GetRepoSize(path)
+	if stats.RepoSize == 0 {
+		stats.RepoSize = scanner.GetRepoSize(path)
+		store.GlobalStore.CacheRepoSize(path, stats.RepoSize)
 	}
 
-	writeJSON(w, "RepoDetail", detail)
+	writeJSON(w, "RepoStats", stats)
 }
 
 func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {

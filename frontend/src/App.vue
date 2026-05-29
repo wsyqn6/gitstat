@@ -6,19 +6,19 @@
         <div class="logo-glow"></div>
       </div>
       <nav>
-        <a @click="currentView = 'dashboard'" :class="{ active: currentView === 'dashboard' }">
+        <a @click="setView('dashboard')" :class="{ active: currentView === 'dashboard' }">
           <span class="nav-icon">◈</span>
           {{ t('nav.dashboard') }}
         </a>
-        <a @click="currentView = 'analytics'" :class="{ active: currentView === 'analytics' }">
+        <a @click="setView('analytics')" :class="{ active: currentView === 'analytics' }">
           <span class="nav-icon">◉</span>
           {{ t('nav.analytics') }}
         </a>
-        <a @click="currentView = 'repos'" :class="{ active: currentView === 'repos' }">
+        <a @click="setView('repos')" :class="{ active: currentView === 'repos' }">
           <span class="nav-icon">▤</span>
           {{ t('nav.repos') }}
         </a>
-        <a @click="currentView = 'settings'" :class="{ active: currentView === 'settings' }">
+        <a @click="setView('settings')" :class="{ active: currentView === 'settings' }">
           <span class="nav-icon">⚙</span>
           {{ t('nav.settings') }}
         </a>
@@ -45,7 +45,12 @@ import RepoSection from './views/RepoSection.vue'
 import Settings from './views/Settings.vue'
 
 const { t, locale, setLocale } = useI18n()
-const currentView = ref('dashboard')
+const currentView = ref(localStorage.getItem('currentView') || 'dashboard')
+
+function setView(view) {
+  currentView.value = view
+  localStorage.setItem('currentView', view)
+}
 
 function toggleLanguage() {
   setLocale(locale.value === 'zh' ? 'en' : 'zh')

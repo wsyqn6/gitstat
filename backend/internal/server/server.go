@@ -32,7 +32,8 @@ func NewServer() *chi.Mux {
 	r.Get("/api/stats/repo-comparison", handler.GetRepoComparisonHandler)
 	r.Post("/api/export/json", handler.ExportDataHandler)
 	r.Get("/api/repos/list", handler.GetReposListHandler)
-	r.Get("/api/repos/detail", handler.GetRepoDetailHandler)
+	r.Get("/api/repos/info", handler.GetRepoInfoHandler)
+	r.Get("/api/repos/stats", handler.GetRepoStatsHandler)
 	r.Post("/api/repos/analyze", handler.GetRepoAnalyzeHandler)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {

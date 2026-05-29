@@ -228,7 +228,7 @@ func GetRemoteUrl(repoPath string) string {
 }
 
 func GetRepoSize(repoPath string) int64 {
-	out, err := gitExec(repoPath, "ls-tree", "-r", "HEAD")
+	out, err := gitExec(repoPath, "ls-tree", "-r", "-l", "HEAD")
 	if err != nil || out == "" {
 		return 0
 	}
@@ -238,21 +238,17 @@ func GetRepoSize(repoPath string) int64 {
 		if line == "" {
 			continue
 		}
-		// 100644 blob <hash>\t<path>
+		// 100644 blob <hash> <size>\t<path>
 		tabIdx := strings.IndexByte(line, '\t')
 		if tabIdx < 0 {
 			continue
 		}
 		meta := strings.Fields(line[:tabIdx])
-		if len(meta) < 3 || meta[1] != "blob" {
+		if len(meta) < 4 || meta[1] != "blob" {
 			continue
 		}
-		hash := meta[2]
-		sizeOut, e := gitExec(repoPath, "cat-file", "-s", hash)
-		if e == nil && sizeOut != "" {
-			if n, e := strconv.ParseInt(sizeOut, 10, 64); e == nil {
-				total += n
-			}
+		if n, e := strconv.ParseInt(meta[3], 10, 64); e == nil {
+			total += n
 		}
 	}
 	return total

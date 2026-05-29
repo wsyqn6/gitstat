@@ -162,22 +162,22 @@ type ContributorStat struct {
 	LastCommitDate string `json:"lastCommitDate"`
 }
 
-// 仓库详情（聚合数据）
-type RepoDetail struct {
+// 仓库统计（计算字段）
+type RepoStats struct {
 	Path                 string            `json:"path"`
 	Name                 string            `json:"name"`
 	CurrentBranch        string            `json:"currentBranch"`
 	LastCommitTime       string            `json:"lastCommitTime"`
-	RemoteUrl            string            `json:"remoteUrl"`
 	EarliestDate         string            `json:"earliestDate"`
 	EarliestCommitAuthor string            `json:"earliestCommitAuthor"`
-	BranchCount          int               `json:"branchCount"`
-	FileCount            int               `json:"fileCount"`
 	RepoSize             int64             `json:"repoSize"`
 	RecentCommits        []Commit          `json:"recentCommits"`
 	Contributors         []ContributorStat `json:"contributors"`
 	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
 }
+
+// 仓库详情（聚合数据）— 保留兼容
+type RepoDetail = RepoStats
 
 // 仓库对比数据
 type RepoComparison struct {

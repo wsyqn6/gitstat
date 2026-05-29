@@ -15,7 +15,8 @@ export const state = reactive({
   reposInfo: [],
   analyzing: false,
   analyzeCache: {},
-  repoDetailCache: {}
+  repoInfoCache: {},
+  repoStatsCache: {}
 })
 
 export async function performScan(path, timeRange) {
@@ -105,16 +106,30 @@ export async function fetchReposInfo() {
   }
 }
 
-export async function fetchRepoDetail(path) {
-  if (state.repoDetailCache[path]) {
-    return state.repoDetailCache[path]
+export async function fetchRepoInfo(path) {
+  if (state.repoInfoCache[path]) {
+    return state.repoInfoCache[path]
   }
   try {
-    const result = await api.getRepoDetail(path)
-    state.repoDetailCache[path] = result
+    const result = await api.getRepoInfo(path)
+    state.repoInfoCache[path] = result
     return result
   } catch (err) {
-    console.error('Failed to fetch repo detail:', err)
+    console.error('Failed to fetch repo info:', err)
+    throw err
+  }
+}
+
+export async function fetchRepoStats(path) {
+  if (state.repoStatsCache[path]) {
+    return state.repoStatsCache[path]
+  }
+  try {
+    const result = await api.getRepoStats(path)
+    state.repoStatsCache[path] = result
+    return result
+  } catch (err) {
+    console.error('Failed to fetch repo stats:', err)
     throw err
   }
 }

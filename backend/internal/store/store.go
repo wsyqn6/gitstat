@@ -27,6 +27,7 @@ type RepoCache struct {
 	LatestDate     time.Time
 	Commits        []model.Commit
 	Initialized    bool
+	RepoSize       int64
 	Analyzed       bool
 	Branches       []string
 	TotalLines     int
@@ -283,36 +284,19 @@ func (s *Store) GetAnalyzeCache(path string) (model.AnalyzeResult, bool) {
 	}, true
 }
 
-// SetAnalyzeCache 写入深度分析结果到缓存
-func (s *Store) SetAnalyzeCache(path string, result model.AnalyzeResult) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	cache, ok := s.Repos[path]
-	if !ok {
-		return
-	}
-	cache.BranchCount = result.BranchCount
-	cache.Branches = result.Branches
-	cache.FileCount = result.FileCount
-	cache.TotalLines = result.TotalLines
-	cache.Languages = result.Languages
-	cache.Analyzed = true
-}
-
-// GetRepoDetail 获取仓库详情（聚合数据）
-func (s *Store) GetRepoDetail(path string) (model.RepoDetail, bool) {
+// GetRepoStats 获取仓库统计（只含计算字段）
+func (s *Store) GetRepoStats(path string) (model.RepoStats, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	cache, ok := s.Repos[path]
 	if !ok {
-		return model.RepoDetail{}, false
+		return model.RepoStats{}, false
 	}
 
-	// 复用 aggregator 的作者统计
 	repos := []model.Repository{{
-		Path:   cache.Path,
-		Name:   cache.Name,
+		Path:    cache.Path,
+		Name:    cache.Name,
 		Commits: cache.Commits,
 	}}
 	rank := aggregator.AggregateAuthorRank(repos, "", time.Time{}, time.Time{})
@@ -328,17 +312,14 @@ func (s *Store) GetRepoDetail(path string) (model.RepoDetail, bool) {
 		}
 	}
 
-	// 最近 20 条提交
 	recentCommits := cache.Commits
 	if len(recentCommits) > 20 {
 		recentCommits = recentCommits[len(recentCommits)-20:]
 	}
-	// 反转为时间降序
 	for i, j := 0, len(recentCommits)-1; i < j; i, j = i+1, j-1 {
 		recentCommits[i], recentCommits[j] = recentCommits[j], recentCommits[i]
 	}
 
-	// 最早日期
 	var earliestDate string
 	var earliestAuthor string
 	if !cache.EarliestDate.IsZero() {
@@ -354,23 +335,20 @@ func (s *Store) GetRepoDetail(path string) (model.RepoDetail, bool) {
 		earliestAuthor = earliest.Author
 	}
 
-	detail := model.RepoDetail{
+	stats := model.RepoStats{
 		Path:                 cache.Path,
 		Name:                 cache.Name,
 		CurrentBranch:        cache.CurrentBranch,
 		LastCommitTime:       cache.LastCommitTime,
-		RemoteUrl:            cache.RemoteUrl,
 		EarliestDate:         earliestDate,
 		EarliestCommitAuthor: earliestAuthor,
-		BranchCount:          cache.BranchCount,
-		FileCount:            cache.FileCount,
+		RepoSize:             cache.RepoSize,
 		RecentCommits:        recentCommits,
 		Contributors:         contributors,
 	}
 
-	// 检查分析缓存
 	if cache.Analyzed {
-		detail.Analysis = &model.AnalyzeResult{
+		stats.Analysis = &model.AnalyzeResult{
 			Name:        cache.Name,
 			Path:        cache.Path,
 			BranchCount: cache.BranchCount,
@@ -381,7 +359,32 @@ func (s *Store) GetRepoDetail(path string) (model.RepoDetail, bool) {
 		}
 	}
 
-	return detail, true
+	return stats, true
+}
+
+// CacheRepoSize 写入仓库大小到缓存（由 handler 按需调用）
+func (s *Store) CacheRepoSize(path string, size int64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if cache, ok := s.Repos[path]; ok {
+		cache.RepoSize = size
+	}
+}
+
+// SetAnalyzeCache 写入深度分析结果到缓存
+func (s *Store) SetAnalyzeCache(path string, result model.AnalyzeResult) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	cache, ok := s.Repos[path]
+	if !ok {
+		return
+	}
+	cache.BranchCount = result.BranchCount
+	cache.Branches = result.Branches
+	cache.FileCount = result.FileCount
+	cache.TotalLines = result.TotalLines
+	cache.Languages = result.Languages
+	cache.Analyzed = true
 }
 
 // SetScanPath 设置扫描目录
