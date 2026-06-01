@@ -117,7 +117,9 @@
     </div>
 
     <!-- 概览统计卡片 -->
-    <div v-if="overviewStats" class="overview-cards">
+    <div v-if="overviewStats" class="overview-section">
+      <div class="overview-period-label">{{ timePeriodLabel }}{{ t('analytics.overviewTitle') }}</div>
+      <div class="overview-cards">
       <div class="stat-card">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -153,7 +155,7 @@
           <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card clickable" :class="{ expanded: expandedSection === 'authors' }" @click="toggleSection('authors')">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -169,9 +171,35 @@
       </div>
     </div>
 
+      <!-- 活跃作者展开面板 -->
+      <div v-if="expandedSection === 'authors' && overviewStats.authors" class="expand-panel">
+        <div class="expand-panel-header">{{ timePeriodPrefix }}活跃作者 · 共 {{ overviewStats.authors.length }} 人</div>
+        <table class="expand-table">
+          <thead>
+            <tr>
+              <th>作者</th>
+              <th>提交数</th>
+              <th>新增</th>
+              <th>删除</th>
+              <th>净变更</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="author in overviewStats.authors" :key="author.email">
+              <td class="cell-author">{{ author.author }}</td>
+              <td>{{ author.commits }}</td>
+              <td class="cell-additions">+{{ author.additions }}</td>
+              <td class="cell-deletions">-{{ author.deletions }}</td>
+              <td :class="author.netChange >= 0 ? 'cell-additions' : 'cell-deletions'">{{ author.netChange >= 0 ? '+' : '' }}{{ author.netChange }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- 洞察卡片 -->
     <div v-if="insights.length > 0" class="insights-grid">
-      <div v-for="(insight, idx) in insights" :key="idx" class="insight-card">
+      <div v-for="(insight, idx) in insights" :key="idx" class="insight-card" :class="{ clickable: insight.clickable, expanded: insight.clickable && expandedSection === insight.section }" @click="insight.clickable && toggleSection(insight.section)">
         <div class="insight-icon" v-html="insight.iconSvg"></div>
         <div class="insight-content">
           <div class="insight-title">{{ insight.title }}</div>
@@ -179,6 +207,33 @@
           <div class="insight-desc">{{ insight.description }}</div>
         </div>
       </div>
+    </div>
+
+    <!-- 活跃仓库展开面板 -->
+    <div v-if="expandedSection === 'repos' && repoComparison.length > 0" class="expand-panel">
+      <div class="expand-panel-header">{{ timePeriodPrefix }}活跃仓库 · 共 {{ repoComparison.filter(r => r.commits > 0).length }} 个</div>
+      <table class="expand-table">
+        <thead>
+          <tr>
+            <th>仓库名</th>
+            <th>提交数</th>
+            <th>作者数</th>
+            <th>新增行数</th>
+            <th>活跃天数</th>
+            <th>日均提交</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="repo in repoComparison" :key="repo.repoPath">
+            <td class="cell-author">{{ repo.repoName }}</td>
+            <td>{{ repo.commits }}</td>
+            <td>{{ repo.authors }}</td>
+            <td class="cell-additions">+{{ repo.additions }}</td>
+            <td>{{ repo.activeDays }}</td>
+            <td>{{ repo.avgCommitsPerDay }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- 图表区域 -->
@@ -253,6 +308,11 @@ const showRepoDropdown = ref(false)
 const authorRank = ref([])
 const activityHeatmap = ref([])
 const repoComparison = ref([])
+const expandedSection = ref(null)
+
+const toggleSection = (section) => {
+  expandedSection.value = expandedSection.value === section ? null : section
+}
 
 // 时间选项配置
 const timeOptions = [
@@ -382,6 +442,29 @@ const granularityPrefix = computed(() => {
 
 const commitTrendTitle = computed(() => granularityPrefix.value + t('analytics.commitTrend'))
 const codeChangeTitle = computed(() => granularityPrefix.value + t('analytics.codeChange'))
+
+// 时间周期文本标签（用于概览和洞察）
+const timePeriodLabel = computed(() => {
+  switch (selectedTimeRange.value) {
+    case 'week': return t('analytics.thisWeek')
+    case 'lastWeek': return t('analytics.lastWeek')
+    case 'month': return t('analytics.thisMonth')
+    case 'year': return t('analytics.thisYear')
+    case 'custom': return t('analytics.customPeriod')
+    default: return ''
+  }
+})
+
+const timePeriodPrefix = computed(() => {
+  switch (selectedTimeRange.value) {
+    case 'week': return '本周'
+    case 'lastWeek': return '上周'
+    case 'month': return '本月'
+    case 'year': return '本年'
+    case 'custom': return '统计周期'
+    default: return ''
+  }
+})
 
 // 提交趋势图配置
 const commitTrendOption = computed(() => {
@@ -873,13 +956,14 @@ const repoComparisonOption = computed(() => {
 // 洞察卡片数据
 const insights = computed(() => {
   const result = []
+  const prefix = timePeriodPrefix.value
   
   // 最活跃开发者
   if (authorRank.value && authorRank.value.length > 0) {
     const topAuthor = authorRank.value[0]
     result.push({
       iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-      title: '本周之星',
+      title: `${prefix}之星`,
       value: topAuthor.author,
       description: `${topAuthor.commits} 次提交 · ${topAuthor.additions} 行新增`
     })
@@ -892,7 +976,7 @@ const insights = computed(() => {
       iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
       title: '平均提交规模',
       value: `${avgSize} 行`,
-      description: '每次提交的平均代码变更量'
+      description: `${prefix}每次提交平均变更 ${avgSize} 行`
     })
   }
   
@@ -903,7 +987,7 @@ const insights = computed(() => {
       iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
       title: '代码净增长',
       value: `${netChange > 0 ? '+' : ''}${netChange}`,
-      description: '新增与删除的差值'
+      description: `${prefix}代码净增 ${netChange} 行`
     })
   }
   
@@ -914,7 +998,9 @@ const insights = computed(() => {
       iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
       title: '活跃仓库',
       value: `${activeRepos} 个`,
-      description: '本周期内有提交的仓库'
+      description: `${prefix}${activeRepos} 个仓库有提交活动`,
+      clickable: true,
+      section: 'repos'
     })
   }
   
@@ -1007,7 +1093,7 @@ const loadData = async () => {
 
     // 并行请求 overview 和 stats
     const [overview, stats, authors, heatmap, comparison] = await Promise.all([
-      getOverviewStats(startDate, endDate),
+      getOverviewStats(startDate, endDate, selectedRepos.value),
       statsPromise,
       getAuthorRank(selectedRepos.value, startDate, endDate),
       getActivityHeatmap(selectedRepos.value, startDate, endDate),
@@ -1069,11 +1155,115 @@ onMounted(async () => {
 }
 
 /* 概览统计卡片 */
+.overview-section {
+  margin-bottom: 2rem;
+}
+
+.overview-period-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  color: #00f5ff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  opacity: 0.8;
+}
+
+/* 可点击卡片 */
+.stat-card.clickable,
+.insight-card.clickable {
+  cursor: pointer;
+}
+
+.insight-card.clickable:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+}
+
+.stat-card.clickable.expanded,
+.insight-card.clickable.expanded {
+  border-color: #00f5ff;
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.3), inset 0 0 20px rgba(0, 245, 255, 0.05);
+}
+
+/* 展开面板 */
+.expand-panel {
+  background: rgba(10, 14, 39, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+  animation: slideDown 0.25s ease;
+  overflow-x: auto;
+}
+
+.expand-panel-header {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  color: #00f5ff;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+}
+
+.expand-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.9rem;
+}
+
+.expand-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+}
+
+.expand-table td {
+  padding: 0.5rem 0.75rem;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.expand-table tbody tr:hover {
+  background: rgba(0, 245, 255, 0.05);
+}
+
+.expand-table .cell-author {
+  color: #00f5ff;
+  font-weight: 600;
+}
+
+.expand-table .cell-additions {
+  color: #00ff88;
+}
+
+.expand-table .cell-deletions {
+  color: #ff6b6b;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .overview-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .stat-card {
