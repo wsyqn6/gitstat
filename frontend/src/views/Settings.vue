@@ -6,11 +6,6 @@
     <div class="card settings-card">
       <div class="card-header">
         <h3>{{ t('settings.scanConfig') }}</h3>
-        <div class="tech-lines">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
       </div>
       <div class="scan-config-section">
         <div class="form-group">
@@ -34,11 +29,6 @@
     <div class="card settings-card">
       <div class="card-header">
         <h3>{{ t('settings.dataManagement') }}</h3>
-        <div class="tech-lines">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
       </div>
       <button @click="handleExport" class="btn export-btn">
         <span class="btn-icon">↓</span>
@@ -49,11 +39,6 @@
     <div class="card settings-card">
       <div class="card-header">
         <h3>{{ t('settings.about') }}</h3>
-        <div class="tech-lines">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
       </div>
       <div class="about-content">
         <div class="logo-text">GITSTAT</div>
@@ -235,38 +220,6 @@ async function handleExport() {
   letter-spacing: 2px;
   text-transform: uppercase;
   margin: 0;
-}
-
-.tech-lines {
-  display: flex;
-  gap: 8px;
-  margin-top: 1rem;
-}
-
-.tech-lines span {
-  height: 2px;
-  background: linear-gradient(90deg, #00d4ff, transparent);
-  animation: techLine 2s ease-in-out infinite;
-}
-
-.tech-lines span:nth-child(1) {
-  width: 60px;
-  animation-delay: 0s;
-}
-
-.tech-lines span:nth-child(2) {
-  width: 40px;
-  animation-delay: 0.2s;
-}
-
-.tech-lines span:nth-child(3) {
-  width: 20px;
-  animation-delay: 0.4s;
-}
-
-@keyframes techLine {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
 }
 
 .export-btn {

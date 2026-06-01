@@ -5,11 +5,6 @@
         <h3>{{ title }}</h3>
         <p v-if="subtitle" class="subtitle">{{ subtitle }}</p>
       </div>
-      <div class="tech-lines">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
     </div>
     <div v-show="loading" class="chart-loading">
       <div class="loading-spinner"></div>
@@ -113,38 +108,6 @@ function handleResize() {
   color: #64748b;
   letter-spacing: 1px;
   margin: 0;
-}
-
-.tech-lines {
-  display: flex;
-  gap: 8px;
-  margin-top: 1rem;
-}
-
-.tech-lines span {
-  height: 2px;
-  background: linear-gradient(90deg, #00f5ff, transparent);
-  animation: techLine 2s ease-in-out infinite;
-}
-
-.tech-lines span:nth-child(1) {
-  width: 60px;
-  animation-delay: 0s;
-}
-
-.tech-lines span:nth-child(2) {
-  width: 40px;
-  animation-delay: 0.2s;
-}
-
-.tech-lines span:nth-child(3) {
-  width: 20px;
-  animation-delay: 0.4s;
-}
-
-@keyframes techLine {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
 }
 
 .chart-loading {

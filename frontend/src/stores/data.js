@@ -10,7 +10,6 @@ export const state = reactive({
   authorRank: [],
   scanPath: '',
   loading: false,
-  dashboardLoading: false,
   error: null,
   reposInfo: [],
   analyzing: false,
@@ -47,6 +46,37 @@ export async function refreshStats() {
   } catch (err) {
     console.error('Failed to refresh stats:', err)
   }
+}
+
+export async function fetchOverviewStats() {
+  try {
+    state.overviewStats = await api.getOverviewStats(null, null, ['all'])
+  } catch (err) {
+    console.error('Failed to fetch overview stats:', err)
+  }
+}
+
+export async function fetchDailyStatsToday() {
+  try {
+    state.dailyStats = await api.getDailyStats('', 'today', ['all'])
+  } catch (err) {
+    console.error('Failed to fetch daily stats:', err)
+  }
+}
+
+export async function loadDashboardS1() {
+  await Promise.all([
+    fetchOverviewStats(),
+    fetchRepoDailyTrend(),
+    fetchAuthorRank()
+  ])
+}
+
+export async function loadDashboardS2() {
+  await Promise.all([
+    fetchRepoComparison(),
+    fetchDailyStatsToday()
+  ])
 }
 
 export async function refreshDailyStats() {
@@ -148,20 +178,6 @@ export async function triggerAnalyze(path) {
     throw err
   } finally {
     state.analyzing = false
-  }
-}
-
-export async function refreshDashboard() {
-  state.dashboardLoading = true
-  try {
-    await Promise.all([
-      refreshStats(),
-      fetchRepoDailyTrend(),
-      fetchAuthorRank(),
-      fetchRepoComparison()
-    ])
-  } finally {
-    state.dashboardLoading = false
   }
 }
 

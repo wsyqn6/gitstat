@@ -1,7 +1,14 @@
 <template>
   <div class="dashboard">
     <!-- 今日统计概览 -->
-      <div v-if="state.overviewStats" class="stats-grid">
+      <div v-if="sectionLoading.stats" class="stats-grid">
+        <div v-for="i in 6" :key="i" class="stat-card-ph">
+          <div class="skeleton-circle stat-ph-icon"></div>
+          <div class="skeleton-line w40 stat-ph-value"></div>
+          <div class="skeleton-line w60 stat-ph-label"></div>
+        </div>
+      </div>
+      <div v-else-if="state.overviewStats" class="stats-grid">
         <StatCard 
           :value="todayCommits" 
           :label="t('dashboard.todayCommits')"
@@ -46,7 +53,7 @@
           <div class="insight-header">
             <h3>{{ t('dashboard.weeklyTrend') }} <span class="range-hint">{{ weekRange }}</span></h3>
           </div>
-          <div v-if="state.dashboardLoading" class="skeleton-chart-area">
+          <div v-if="sectionLoading.trend" class="skeleton-chart-area">
             <div class="skeleton-line w80"></div>
             <div class="skeleton-line w60"></div>
             <div class="skeleton-line w90"></div>
@@ -69,7 +76,7 @@
           <div class="insight-header">
             <h3>{{ t('dashboard.authorRank') }} <span class="range-hint">{{ weekRange }}</span></h3>
           </div>
-          <div v-if="state.dashboardLoading" class="skeleton-rank">
+          <div v-if="sectionLoading.rank" class="skeleton-rank">
             <div class="skeleton-rank-row" v-for="i in 5" :key="i">
               <div class="skeleton-circle"></div>
               <div class="skeleton-line w60"></div>
@@ -105,110 +112,119 @@
         </div>
       </div>
 
-      <!-- 仓库活跃度对比 -->
-      <div class="comparison-section">
-        <div class="section-header">
-          <h3>{{ t('dashboard.repoComparison') }} <span class="range-hint">{{ weekRange }}</span></h3>
-        </div>
-        <div v-if="state.dashboardLoading" class="comparison-table card">
-          <div v-for="i in 3" :key="i" class="cmp-row">
-            <div class="skeleton-line w40"></div>
-            <div class="skeleton-line w15"></div>
-            <div class="skeleton-line w15"></div>
-            <div class="skeleton-line w15"></div>
-            <div class="skeleton-line w15"></div>
-            <div class="skeleton-line w15"></div>
+      <div ref="section2Ref">
+        <!-- 仓库活跃度对比 -->
+        <div class="comparison-section">
+          <div class="section-header">
+            <h3>{{ t('dashboard.repoComparison') }} <span class="range-hint">{{ weekRange }}</span></h3>
+          </div>
+          <div v-if="sectionLoading.below" class="comparison-table card">
+            <div v-for="i in 3" :key="i" class="cmp-row">
+              <div class="skeleton-line w40"></div>
+              <div class="skeleton-line w15"></div>
+              <div class="skeleton-line w15"></div>
+              <div class="skeleton-line w15"></div>
+              <div class="skeleton-line w15"></div>
+              <div class="skeleton-line w15"></div>
+            </div>
+          </div>
+          <div v-else-if="state.repoComparison.length > 0" class="comparison-table card">
+            <div class="cmp-header">
+              <div class="cmp-col-name">{{ t('dashboard.repo') }}</div>
+              <div class="cmp-col-num">{{ t('dashboard.commits') }}</div>
+              <div class="cmp-col-num">{{ t('analytics.additions') }}</div>
+              <div class="cmp-col-num">{{ t('analytics.deletions') }}</div>
+              <div class="cmp-col-num">{{ t('dashboard.activeDays') }}</div>
+              <div class="cmp-col-num">{{ t('dashboard.dailyAvg') }}</div>
+            </div>
+            <div v-for="repo in state.repoComparison" :key="repo.repoPath" class="cmp-row">
+              <div class="cmp-col-name">{{ repo.repoName }}</div>
+              <div class="cmp-col-num">{{ repo.commits }}</div>
+              <div class="cmp-col-num additions">+{{ repo.additions }}</div>
+              <div class="cmp-col-num deletions">-{{ repo.deletions }}</div>
+              <div class="cmp-col-num">{{ repo.activeDays }}</div>
+              <div class="cmp-col-num">{{ repo.avgCommitsPerDay }}</div>
+            </div>
           </div>
         </div>
-        <div v-else-if="state.repoComparison.length > 0" class="comparison-table card">
-          <div class="cmp-header">
-            <div class="cmp-col-name">{{ t('dashboard.repo') }}</div>
-            <div class="cmp-col-num">{{ t('dashboard.commits') }}</div>
-            <div class="cmp-col-num">{{ t('analytics.additions') }}</div>
-            <div class="cmp-col-num">{{ t('analytics.deletions') }}</div>
-            <div class="cmp-col-num">{{ t('dashboard.activeDays') }}</div>
-            <div class="cmp-col-num">{{ t('dashboard.dailyAvg') }}</div>
-          </div>
-          <div v-for="repo in state.repoComparison" :key="repo.repoPath" class="cmp-row">
-            <div class="cmp-col-name">{{ repo.repoName }}</div>
-            <div class="cmp-col-num">{{ repo.commits }}</div>
-            <div class="cmp-col-num additions">+{{ repo.additions }}</div>
-            <div class="cmp-col-num deletions">-{{ repo.deletions }}</div>
-            <div class="cmp-col-num">{{ repo.activeDays }}</div>
-            <div class="cmp-col-num">{{ repo.avgCommitsPerDay }}</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- 分仓库分人统计 -->
-      <div class="daily-stats-section">
-        <div class="section-header">
-          <h3>{{ t('dashboard.todayDetails') }}</h3>
-        </div>
-        
-        <div v-if="state.dashboardLoading" class="skeleton-daily">
-          <div v-for="i in 2" :key="i" class="repo-daily-card card">
-            <div class="repo-daily-header">
-              <div class="skeleton-line w50"></div>
-              <div class="skeleton-line w30" style="margin-top:8px"></div>
-            </div>
-            <div class="authors-table">
-              <div v-for="j in 2" :key="j" class="table-row">
-                <div class="skeleton-line w35"></div>
-                <div class="skeleton-line w15"></div>
-                <div class="skeleton-line w25"></div>
-              </div>
-            </div>
+        <!-- 分仓库分人统计 -->
+        <div class="daily-stats-section">
+          <div class="section-header">
+            <h3>{{ t('dashboard.todayDetails') }}</h3>
           </div>
-        </div>
-        <template v-else-if="state.dailyStats && state.dailyStats.length > 0">
-          <div v-for="repo in state.dailyStats" :key="repo.repoPath" class="repo-daily-card card">
-            <div class="repo-daily-header">
-              <div class="repo-info">
-                <h4>{{ repo.repoName }}</h4>
-                <div class="repo-meta">
-                  <span class="branch-badge">{{ repo.currentBranch }}</span>
-                  <span class="last-commit">{{ t('dashboard.lastCommit') }}: {{ repo.lastCommitTime }}</span>
-                </div>
+          
+          <div v-if="sectionLoading.below" class="skeleton-daily">
+            <div v-for="i in 2" :key="i" class="repo-daily-card card">
+              <div class="repo-daily-header">
+                <div class="skeleton-line w50"></div>
+                <div class="skeleton-line w30" style="margin-top:8px"></div>
               </div>
-            </div>
-            
-            <div class="authors-table">
-              <div class="table-header">
-                <div class="col-author">{{ t('dashboard.author') }}</div>
-                <div class="col-commits">{{ t('dashboard.commits') }}</div>
-                <div class="col-changes">{{ t('dashboard.changes') }}</div>
-              </div>
-              <div 
-                v-for="author in repo.authors" 
-                :key="author.email" 
-                class="table-row"
-              >
-                <div class="col-author">
-                  <span class="author-name">{{ author.author }}</span>
-                  <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">{{ t('dashboard.me') }}</span>
-                </div>
-                <div class="col-commits">{{ author.commits }}</div>
-                <div class="col-changes">
-                  <span class="additions">+{{ author.additions }}</span>
-                  <span class="deletions">-{{ author.deletions }}</span>
+              <div class="authors-table">
+                <div v-for="j in 2" :key="j" class="table-row">
+                  <div class="skeleton-line w35"></div>
+                  <div class="skeleton-line w15"></div>
+                  <div class="skeleton-line w25"></div>
                 </div>
               </div>
             </div>
           </div>
-        </template>
+          <template v-else-if="state.dailyStats && state.dailyStats.length > 0">
+            <div v-for="repo in state.dailyStats" :key="repo.repoPath" class="repo-daily-card card">
+              <div class="repo-daily-header">
+                <div class="repo-info">
+                  <h4>{{ repo.repoName }}</h4>
+                  <div class="repo-meta">
+                    <span class="branch-badge">{{ repo.currentBranch }}</span>
+                    <span class="last-commit">{{ t('dashboard.lastCommit') }}: {{ repo.lastCommitTime }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="authors-table">
+                <div class="table-header">
+                  <div class="col-author">{{ t('dashboard.author') }}</div>
+                  <div class="col-commits">{{ t('dashboard.commits') }}</div>
+                  <div class="col-changes">{{ t('dashboard.changes') }}</div>
+                </div>
+                <div 
+                  v-for="author in repo.authors" 
+                  :key="author.email" 
+                  class="table-row"
+                >
+                  <div class="col-author">
+                    <span class="author-name">{{ author.author }}</span>
+                    <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">{{ t('dashboard.me') }}</span>
+                  </div>
+                  <div class="col-commits">{{ author.commits }}</div>
+                  <div class="col-changes">
+                    <span class="additions">+{{ author.additions }}</span>
+                    <span class="deletions">-{{ author.deletions }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from '../i18n'
-import { state, refreshDashboard } from '../stores/data'
+import { state, fetchOverviewStats, fetchRepoDailyTrend, fetchAuthorRank, loadDashboardS2 } from '../stores/data'
 import StatCard from '../components/StatCard.vue'
 import echarts from '../utils/echarts'
 
 const { t } = useI18n()
+
+const sectionLoading = reactive({
+  stats: true,
+  trend: true,
+  rank: true,
+  below: true
+})
 
 function getWeekRange() {
   const now = new Date()
@@ -222,7 +238,9 @@ function getWeekRange() {
 const weekRange = getWeekRange()
 
 const trendChartRef = ref(null)
+const section2Ref = ref(null)
 let trendChart = null
+let observer = null
 
 const COLORS = ['#00d4ff', '#ff6b9d', '#00ff88', '#ffd700', '#a78bfa', '#f472b6', '#34d399', '#fb923c']
 
@@ -319,9 +337,31 @@ function handleResize() {
 }
 
 onMounted(async () => {
-  await refreshDashboard()
+  await Promise.all([
+    fetchOverviewStats().then(() => { sectionLoading.stats = false }),
+    fetchRepoDailyTrend().then(() => { sectionLoading.trend = false }),
+    fetchAuthorRank().then(() => { sectionLoading.rank = false })
+  ])
   nextTick(() => renderTrendChart())
+
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting && sectionLoading.below) {
+        loadDashboardS2().then(() => { sectionLoading.below = false })
+        observer.disconnect()
+      }
+    },
+    { rootMargin: '200px' }
+  )
+  if (section2Ref.value) {
+    observer.observe(section2Ref.value)
+  }
+
   window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
 })
 </script>
 
@@ -858,6 +898,33 @@ onMounted(async () => {
 }
 
 .comparison-section .cmp-row .skeleton-line {
+  height: 14px;
+}
+
+.stat-card-ph {
+  background: rgba(20, 25, 50, 0.6);
+  backdrop-filter: blur(20px);
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-ph-icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.5rem;
+}
+
+.stat-ph-value {
+  height: 40px;
+}
+
+.stat-ph-label {
   height: 14px;
 }
 

@@ -2,11 +2,6 @@
   <div class="scan-form card">
     <div class="form-header">
       <h3>{{ t('scan.title') }}</h3>
-      <div class="tech-lines">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
     </div>
     <div class="form-group">
       <label>{{ t('scan.directoryPath') }}:</label>
@@ -71,38 +66,6 @@ async function handleScan() {
   color: #00d4ff;
   letter-spacing: 2px;
   text-transform: uppercase;
-}
-
-.tech-lines {
-  display: flex;
-  gap: 8px;
-  margin-top: 1rem;
-}
-
-.tech-lines span {
-  height: 2px;
-  background: linear-gradient(90deg, #00d4ff, transparent);
-  animation: techLine 2s ease-in-out infinite;
-}
-
-.tech-lines span:nth-child(1) {
-  width: 60px;
-  animation-delay: 0s;
-}
-
-.tech-lines span:nth-child(2) {
-  width: 40px;
-  animation-delay: 0.2s;
-}
-
-.tech-lines span:nth-child(3) {
-  width: 20px;
-  animation-delay: 0.4s;
-}
-
-@keyframes techLine {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
 }
 
 .form-group {
