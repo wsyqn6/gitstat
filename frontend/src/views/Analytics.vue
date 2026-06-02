@@ -353,29 +353,25 @@ const expandedSection = ref(null)
 const viewMode = ref('chart')
 const currentStartDate = ref('')
 const currentEndDate = ref('')
+const loadedTimeRange = ref('')
+
+function toLocalDateStr(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 const toggleSection = (section) => {
   expandedSection.value = expandedSection.value === section ? null : section
 }
 
 const calendarViewType = computed(() => {
-  switch (selectedTimeRange.value) {
-    case 'week':
-    case 'lastWeek':
-      return 'week'
-    case 'month':
-      return 'month'
-    case 'year':
-      return 'year'
-    case 'custom':
-      if (!currentStartDate.value || !currentEndDate.value) return 'week'
-      const days = Math.round((new Date(currentEndDate.value) - new Date(currentStartDate.value)) / (1000 * 60 * 60 * 24))
-      if (days <= 7) return 'week'
-      if (days <= 31) return 'month'
-      return 'year'
-    default:
-      return 'week'
-  }
+  if (!currentStartDate.value || !currentEndDate.value) return 'week'
+  const days = Math.round((new Date(currentEndDate.value) - new Date(currentStartDate.value)) / (1000 * 60 * 60 * 24))
+  if (days <= 7) return 'week'
+  if (days <= 31) return 'month'
+  return 'year'
 })
 
 const handleSwitchToMonth = (month) => {
@@ -394,6 +390,7 @@ const timeOptions = [
   { label: computed(() => t('analytics.thisWeek')), value: 'week' },
   { label: computed(() => t('analytics.lastWeek')), value: 'lastWeek' },
   { label: computed(() => t('analytics.thisMonth')), value: 'month' },
+  { label: computed(() => t('analytics.lastMonth')), value: 'lastMonth' },
   { label: computed(() => t('analytics.thisYear')), value: 'year' }
 ]
 
@@ -520,21 +517,25 @@ const codeChangeTitle = computed(() => granularityPrefix.value + t('analytics.co
 
 // 时间周期文本标签（用于概览和洞察）
 const timePeriodLabel = computed(() => {
-  switch (selectedTimeRange.value) {
+  switch (loadedTimeRange.value) {
     case 'week': return t('analytics.thisWeek')
     case 'lastWeek': return t('analytics.lastWeek')
     case 'month': return t('analytics.thisMonth')
+    case 'lastMonth': return t('analytics.lastMonth')
     case 'year': return t('analytics.thisYear')
-    case 'custom': return t('analytics.customPeriod')
+    case 'custom': return currentStartDate.value && currentEndDate.value
+      ? `${currentStartDate.value} ~ ${currentEndDate.value}`
+      : t('analytics.customPeriod')
     default: return ''
   }
 })
 
 const timePeriodPrefix = computed(() => {
-  switch (selectedTimeRange.value) {
+  switch (loadedTimeRange.value) {
     case 'week': return '本周'
     case 'lastWeek': return '上周'
     case 'month': return '本月'
+    case 'lastMonth': return '上月'
     case 'year': return '本年'
     case 'custom': return '统计周期'
     default: return ''
@@ -1097,33 +1098,39 @@ const loadData = async () => {
     
     switch (selectedTimeRange.value) {
       case 'today': // 今日
-        startDate = now.toISOString().split('T')[0]
-        endDate = now.toISOString().split('T')[0]
+        startDate = toLocalDateStr(now)
+        endDate = toLocalDateStr(now)
         break
       case 'week': // 本周（从周一开始）
         const currentDay = now.getDay() || 7
         const monday = new Date(now)
         monday.setDate(now.getDate() - currentDay + 1)
-        startDate = monday.toISOString().split('T')[0]
-        endDate = now.toISOString().split('T')[0]
+        startDate = toLocalDateStr(monday)
+        endDate = toLocalDateStr(now)
         break
       case 'lastWeek': // 上周
         const lastWeekMonday = new Date(now)
         lastWeekMonday.setDate(now.getDate() - (now.getDay() || 7) - 6)
         const lastWeekSunday = new Date(lastWeekMonday)
         lastWeekSunday.setDate(lastWeekMonday.getDate() + 6)
-        startDate = lastWeekMonday.toISOString().split('T')[0]
-        endDate = lastWeekSunday.toISOString().split('T')[0]
+        startDate = toLocalDateStr(lastWeekMonday)
+        endDate = toLocalDateStr(lastWeekSunday)
         break
       case 'month': // 本月
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-        startDate = firstDay.toISOString().split('T')[0]
-        endDate = now.toISOString().split('T')[0]
+        startDate = toLocalDateStr(firstDay)
+        endDate = toLocalDateStr(now)
+        break
+      case 'lastMonth': // 上月
+        const firstDayLast = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        const lastDayLast = new Date(now.getFullYear(), now.getMonth(), 0)
+        startDate = toLocalDateStr(firstDayLast)
+        endDate = toLocalDateStr(lastDayLast)
         break
       case 'year': // 本年
         const firstDayOfYear = new Date(now.getFullYear(), 0, 1)
-        startDate = firstDayOfYear.toISOString().split('T')[0]
-        endDate = now.toISOString().split('T')[0]
+        startDate = toLocalDateStr(firstDayOfYear)
+        endDate = toLocalDateStr(now)
         break
       case 'custom': // 自定义
         startDate = customStartDate.value
@@ -1147,7 +1154,7 @@ const loadData = async () => {
     if (tr === 'today' || tr === 'week' || tr === 'lastWeek') {
       granularity = 'day'
       statsPromise = getDailyStats(null, tr === 'custom' ? '' : tr, selectedRepos.value, startDate, endDate)
-    } else if (tr === 'month') {
+    } else if (tr === 'month' || tr === 'lastMonth') {
       if (viewMode.value === 'calendar') {
         granularity = 'day'
         statsPromise = getDailyStats(null, tr, selectedRepos.value, startDate, endDate)
@@ -1207,6 +1214,7 @@ const loadData = async () => {
     console.log('  - allAuthors:', allAuthors.value.map(a => a.name))
     
     // 先关闭 loading，让图表容器显示
+    loadedTimeRange.value = selectedTimeRange.value
     loading.value = false
   } catch (error) {
     console.error('加载数据失败:', error)

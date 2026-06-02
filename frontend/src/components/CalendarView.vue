@@ -26,9 +26,10 @@
             >
               <td class="row-header cell-author">
                 <div class="author-label">
+                  <span class="author-name">{{ author.author }}</span>
                   <span v-if="author.isMe" class="me-badge">{{ t('dashboard.me') }}</span>
-                  <span>{{ author.author }}</span>
                 </div>
+                <div class="author-email">{{ author.email }}</div>
               </td>
               <td v-for="day in weekDays" :key="day.date"
                 class="data-cell"
@@ -36,6 +37,10 @@
                 :style="{ backgroundColor: cellBg(author.days[day.date]?.commits || 0, maxCommits) }"
               >
                 <div class="cell-commits">{{ author.days[day.date]?.commits ?? '-' }}</div>
+                <div v-if="author.days[day.date]" class="cell-changes">
+                  <span class="add">+{{ author.days[day.date].additions }}</span>
+                  <span class="del">-{{ author.days[day.date].deletions }}</span>
+                </div>
               </td>
               <td class="data-cell total-cell">
                 <div class="cell-commits">{{ author.total.commits }}</div>
@@ -88,31 +93,47 @@
         </div>
 
         <div v-if="selectedCell" class="detail-panel expand-panel">
-          <div class="detail-header">
-            {{ selectedCell.dateStr }} · {{ selectedCell.data?.commits || 0 }} {{ t('calendar.commitsUnit') }}
-            <span v-if="selectedCell.data"> · +{{ selectedCell.data.additions }}/-{{ selectedCell.data.deletions }}</span>
+          <div class="detail-hero">
+            <div class="hero-date">{{ formattedDate }}</div>
+            <div class="hero-stats">
+              <div class="hero-commits">
+                <span class="hero-number">{{ selectedCell.data?.commits || 0 }}</span>
+                <span class="hero-label">{{ t('calendar.commitsUnit') }}</span>
+              </div>
+              <div v-if="selectedCell.data" class="hero-changes">
+                <span class="hero-add">+{{ selectedCell.data.additions }}</span>
+                <span class="hero-del">-{{ selectedCell.data.deletions }}</span>
+                <span class="hero-net" :class="netChange >= 0 ? 'pos' : 'neg'">
+                  {{ netChange >= 0 ? '+' : '' }}{{ netChange }}
+                </span>
+              </div>
+            </div>
           </div>
-          <table v-if="dateDetail && dateDetail.length > 0" class="expand-table">
+          <div class="detail-divider"></div>
+          <table v-if="dateDetail && dateDetail.length > 0" class="detail-table">
             <thead>
               <tr>
                 <th>{{ t('analytics.repoName') }}</th>
                 <th>{{ t('analytics.developer') }}</th>
-                <th>{{ t('dashboard.commits') }}</th>
-                <th>{{ t('analytics.additions') }}</th>
-                <th>{{ t('analytics.deletions') }}</th>
+                <th class="num-col">{{ t('dashboard.commits') }}</th>
+                <th class="num-col">{{ t('analytics.additions') }}</th>
+                <th class="num-col">{{ t('analytics.deletions') }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, idx) in dateDetail" :key="idx">
-                <td class="cell-author">{{ item.repoName }}</td>
-                <td>{{ item.author }}</td>
-                <td>{{ item.commits }}</td>
-                <td class="cell-additions">+{{ item.additions }}</td>
-                <td class="cell-deletions">-{{ item.deletions }}</td>
+              <tr v-for="(item, idx) in dateDetail" :key="idx" :style="{ animationDelay: idx * 0.04 + 's' }">
+                <td class="cell-repo">{{ item.repoName }}</td>
+                <td class="cell-author">{{ item.author }}</td>
+                <td class="num-col">{{ item.commits }}</td>
+                <td class="num-col cell-additions">+{{ item.additions }}</td>
+                <td class="num-col cell-deletions">-{{ item.deletions }}</td>
               </tr>
             </tbody>
           </table>
-          <div v-else class="detail-empty">{{ t('calendar.noDetail') }}</div>
+          <div v-else class="detail-empty">
+            <span class="empty-icon">⌧</span>
+            {{ t('calendar.noDetail') }}
+          </div>
         </div>
       </template>
     </div>
@@ -207,18 +228,22 @@ function isToday(dateStr) {
 // ====== WEEK VIEW ======
 
 const weekDays = computed(() => {
-  if (!props.startDate || !props.endDate) return []
+  if (!props.startDate) return []
   const start = new Date(props.startDate + 'T00:00:00')
-  const end = new Date(props.endDate + 'T00:00:00')
+  const dow = start.getDay() || 7
+  const monday = new Date(start)
+  monday.setDate(start.getDate() - dow + 1)
   const days = []
-  const d = new Date(start)
-  while (d <= end) {
-    const dateStr = d.toISOString().split('T')[0]
-    const dow = d.getDay() || 7
-    const name = dayNames.value[dow - 1]
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    const y = d.getFullYear()
+    const mo = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const dateStr = `${y}-${mo}-${day}`
+    const name = dayNames.value[i]
     const dateShort = `${d.getMonth()+1}/${d.getDate()}`
     days.push({ date: dateStr, name, dateShort })
-    d.setDate(d.getDate() + 1)
   }
   return days
 })
@@ -366,6 +391,25 @@ const dateDetail = computed(() => {
   return items.sort((a, b) => b.commits - a.commits)
 })
 
+// ====== Detail Helpers ======
+
+const formattedDate = computed(() => {
+  if (!selectedCell.value) return ''
+  const d = new Date(selectedCell.value.dateStr + 'T00:00:00')
+  if (locale.value === 'zh') {
+    const wd = ['日', '一', '二', '三', '四', '五', '六']
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${wd[d.getDay()]}`
+  }
+  const ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+  return `${wd[d.getDay()]}, ${ms[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+})
+
+const netChange = computed(() => {
+  if (!selectedCell.value?.data) return 0
+  return selectedCell.value.data.additions - selectedCell.value.data.deletions
+})
+
 // ====== YEAR VIEW ======
 
 const yearLabel = computed(() => {
@@ -464,24 +508,17 @@ const yearMaxCommits = computed(() => {
   vertical-align: bottom;
 }
 .cal-table .row-header {
-  text-align: left;
-  padding: 0.5rem 0.75rem;
-  min-width: 100px;
+  text-align: center;
+  padding: 0.5rem 0.3rem;
+  min-width: 64px;
   color: #64748b;
   font-family: 'Orbitron', sans-serif;
   font-size: 0.75rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  position: sticky;
-  left: 0;
-  background: rgba(10, 14, 39, 0.95);
-  z-index: 2;
-}
-.th-dev {
-  min-width: 120px;
 }
 .col-header {
-  min-width: 72px;
+  min-width: 64px;
 }
 .day-name {
   font-family: 'Orbitron', sans-serif;
@@ -496,7 +533,7 @@ const yearMaxCommits = computed(() => {
   margin-top: 2px;
 }
 .total-col {
-  min-width: 90px;
+  min-width: 80px;
 }
 .total-col .day-name {
   color: #ffd700;
@@ -550,14 +587,38 @@ const yearMaxCommits = computed(() => {
   background: rgba(0, 245, 255, 0.06);
 }
 .cell-author {
-  color: #00f5ff !important;
-  font-weight: 600;
-  font-size: 0.85rem;
+  text-align: center;
+  padding: 0.35rem 0.15rem !important;
+  line-height: 1.2;
 }
 .author-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 3px;
+}
+.author-name {
+  font-family: 'Rajdhani', sans-serif;
+  color: #00f5ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.author-email {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.6rem;
+  color: #64748b;
+  text-transform: none !important;
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+  margin-top: 1px;
 }
 .me-badge {
   font-family: 'Orbitron', sans-serif;
@@ -651,20 +712,154 @@ const yearMaxCommits = computed(() => {
 .detail-panel {
   margin-top: 1rem;
   animation: slideDown 0.25s ease;
+  text-align: center;
 }
-.detail-header {
+
+.detail-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 0.25rem 0;
+}
+
+.hero-date {
   font-family: 'Orbitron', sans-serif;
-  font-size: 0.8rem;
-  color: #00f5ff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e2e8f0, #00f5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: 1px;
-  margin-bottom: 0.75rem;
-  opacity: 0.9;
 }
+
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.hero-commits {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.hero-number {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #00f5ff;
+}
+
+.hero-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hero-changes {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.9rem;
+}
+
+.hero-add { color: #00ff88; }
+.hero-del { color: #ff6b6b; }
+
+.hero-net {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.hero-net.pos {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+.hero-net.neg {
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+.detail-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.25), transparent);
+  margin: 0.75rem 0;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.85rem;
+}
+
+.detail-table th {
+  padding: 0.4rem 0.6rem;
+  color: #64748b;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 245, 255, 0.12);
+}
+
+.detail-table th.num-col,
+.detail-table td.num-col {
+  text-align: right;
+}
+
+.detail-table td {
+  padding: 0.4rem 0.6rem;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+.detail-table tbody tr {
+  animation: rowFadeIn 0.3s ease both;
+}
+
+.detail-table tbody tr:hover {
+  background: rgba(0, 245, 255, 0.04);
+}
+
+.detail-table .cell-repo {
+  color: #94a3b8;
+}
+
+.detail-table .cell-author {
+  color: #00f5ff;
+  font-weight: 600;
+}
+
 .detail-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   color: #64748b;
   font-size: 0.85rem;
-  text-align: center;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.detail-empty .empty-icon {
+  font-size: 1.1rem;
+  opacity: 0.4;
+}
+
+@keyframes rowFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ====== Year View Grid ====== */
@@ -742,11 +937,26 @@ const yearMaxCommits = computed(() => {
     grid-template-columns: repeat(2, 1fr);
   }
   .cal-table .row-header {
-    min-width: 80px;
-    font-size: 0.65rem;
+    min-width: 50px;
+    font-size: 0.6rem;
+  }
+  .th-dev {
+    min-width: 65px;
   }
   .col-header {
-    min-width: 52px;
+    min-width: 44px;
+  }
+  .cell-author {
+    padding: 0.2rem 0.2rem !important;
+    max-width: 45px;
+  }
+  .author-name {
+    font-size: 0.65rem;
+    max-width: 38px;
+  }
+  .author-email {
+    font-size: 0.45rem;
+    max-width: 38px;
   }
   .cal-cell {
     height: 60px;
