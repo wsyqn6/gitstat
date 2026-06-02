@@ -28,9 +28,18 @@ const props = defineProps({
 const chartRef = ref(null)
 let chartInstance = null
 
-onMounted(() => {
-  // 不在 mounted 时初始化，等待 loading 结束
+onMounted(async () => {
   window.addEventListener('resize', handleResize)
+  if (!props.loading && chartRef.value) {
+    await nextTick()
+    if (!chartInstance) {
+      chartInstance = echarts.init(chartRef.value)
+    }
+    if (props.option) {
+      chartInstance.setOption(props.option, true)
+      chartInstance.resize()
+    }
+  }
 })
 
 watch(() => props.loading, async (newVal) => {

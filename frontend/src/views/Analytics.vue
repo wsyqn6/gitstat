@@ -327,7 +327,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from '../components/ChartContainer.vue'
@@ -384,6 +384,14 @@ const handleSwitchToMonth = (month) => {
   viewMode.value = 'calendar'
   loadData()
 }
+
+// 切到日历且粒度为周时重取日粒度数据
+watch(viewMode, (newMode) => {
+  if (!currentStartDate.value || loading.value) return
+  if (newMode === 'calendar' && currentGranularity.value !== 'day') {
+    loadData()
+  }
+})
 
 // 时间选项配置
 const timeOptions = [
