@@ -69,7 +69,16 @@ const messages = {
       codeChangeSub: '新增 vs 删除',
       noData: '暂无数据',
       additions: '新增',
-      deletions: '删除'
+      deletions: '删除',
+      developer: '开发者',
+      repoName: '仓库'
+    },
+    calendar: {
+      chartView: '图表视图',
+      calendarView: '日历视图',
+      total: '合计',
+      commitsUnit: '次提交',
+      noDetail: '暂无详细信息'
     },
     repo: {
       empty: '暂无仓库信息，请先在设置页面扫描目录',
@@ -205,7 +214,16 @@ const messages = {
       codeChangeSub: 'Additions vs Deletions',
       noData: 'No Data',
       additions: 'Additions',
-      deletions: 'Deletions'
+      deletions: 'Deletions',
+      developer: 'Developer',
+      repoName: 'Repository'
+    },
+    calendar: {
+      chartView: 'Charts',
+      calendarView: 'Calendar',
+      total: 'Total',
+      commitsUnit: 'commits',
+      noDetail: 'No details available'
     },
     repo: {
       empty: 'No repo info available. Please scan a directory in Settings first.',

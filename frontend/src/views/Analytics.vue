@@ -116,6 +116,35 @@
       </div>
     </div>
 
+    <!-- 视图切换 -->
+    <div class="view-toggle-bar">
+      <div class="view-toggle-inner">
+        <button
+          @click="viewMode = 'chart'"
+          class="view-toggle-btn"
+          :class="{ active: viewMode === 'chart' }"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span>{{ t('calendar.chartView') }}</span>
+        </button>
+        <button
+          @click="viewMode = 'calendar'"
+          class="view-toggle-btn"
+          :class="{ active: viewMode === 'calendar' }"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>{{ t('calendar.calendarView') }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- 概览统计卡片 -->
     <div v-if="overviewStats" class="overview-section">
       <div class="overview-period-label">{{ timePeriodLabel }}{{ t('analytics.overviewTitle') }}</div>
@@ -237,7 +266,7 @@
     </div>
 
     <!-- 图表区域 -->
-    <div class="charts-grid">
+    <div v-if="viewMode === 'chart'" class="charts-grid">
       <!-- 提交趋势图 -->
       <ChartContainer 
         :title="commitTrendTitle" 
@@ -283,6 +312,17 @@
         class="chart-card quinary"
       />
     </div>
+
+    <!-- 日历表格视图 -->
+    <CalendarView
+      v-else
+      :viewType="calendarViewType"
+      :dailyStats="dailyStats"
+      :periodStats="periodStats"
+      :startDate="currentStartDate"
+      :endDate="currentEndDate"
+      @switch-to-month="handleSwitchToMonth"
+    />
   </div>
 </template>
 
@@ -291,6 +331,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from '../components/ChartContainer.vue'
+import CalendarView from '../components/CalendarView.vue'
 import { getDailyStats, getWeeklyStats, getMonthlyStats, getYearlyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
 
 const { t } = useI18n()
@@ -309,9 +350,43 @@ const authorRank = ref([])
 const activityHeatmap = ref([])
 const repoComparison = ref([])
 const expandedSection = ref(null)
+const viewMode = ref('chart')
+const currentStartDate = ref('')
+const currentEndDate = ref('')
 
 const toggleSection = (section) => {
   expandedSection.value = expandedSection.value === section ? null : section
+}
+
+const calendarViewType = computed(() => {
+  switch (selectedTimeRange.value) {
+    case 'week':
+    case 'lastWeek':
+      return 'week'
+    case 'month':
+      return 'month'
+    case 'year':
+      return 'year'
+    case 'custom':
+      if (!currentStartDate.value || !currentEndDate.value) return 'week'
+      const days = Math.round((new Date(currentEndDate.value) - new Date(currentStartDate.value)) / (1000 * 60 * 60 * 24))
+      if (days <= 7) return 'week'
+      if (days <= 31) return 'month'
+      return 'year'
+    default:
+      return 'week'
+  }
+})
+
+const handleSwitchToMonth = (month) => {
+  const year = parseInt(currentStartDate.value?.slice(0, 4)) || new Date().getFullYear()
+  const m = String(month).padStart(2, '0')
+  currentStartDate.value = `${year}-${m}-01`
+  const lastDay = new Date(year, month, 0).getDate()
+  currentEndDate.value = `${year}-${m}-${String(lastDay).padStart(2, '0')}`
+  selectedTimeRange.value = 'custom'
+  viewMode.value = 'calendar'
+  loadData()
 }
 
 // 时间选项配置
@@ -1061,6 +1136,9 @@ const loadData = async () => {
     
     // TODO: 在此处增加检查逻辑，如果缓存不足，先调用 performIncrementalScan
     
+    currentStartDate.value = startDate
+    currentEndDate.value = endDate
+
     // 根据时间范围选择聚合粒度
     let granularity = 'day'
     let statsPromise
@@ -1070,8 +1148,13 @@ const loadData = async () => {
       granularity = 'day'
       statsPromise = getDailyStats(null, tr === 'custom' ? '' : tr, selectedRepos.value, startDate, endDate)
     } else if (tr === 'month') {
-      granularity = 'week'
-      statsPromise = getWeeklyStats(null, tr, selectedRepos.value, startDate, endDate)
+      if (viewMode.value === 'calendar') {
+        granularity = 'day'
+        statsPromise = getDailyStats(null, tr, selectedRepos.value, startDate, endDate)
+      } else {
+        granularity = 'week'
+        statsPromise = getWeeklyStats(null, tr, selectedRepos.value, startDate, endDate)
+      }
     } else if (tr === 'year') {
       granularity = 'month'
       statsPromise = getMonthlyStats(null, tr, selectedRepos.value, startDate, endDate)
@@ -1081,7 +1164,7 @@ const loadData = async () => {
       if (days <= 31) {
         granularity = 'day'
         statsPromise = getDailyStats(null, '', selectedRepos.value, startDate, endDate)
-      } else if (days <= 180) {
+      } else if (days <= 180 && viewMode.value !== 'calendar') {
         granularity = 'week'
         statsPromise = getWeeklyStats(null, '', selectedRepos.value, startDate, endDate)
       } else {
@@ -1913,6 +1996,49 @@ onMounted(async () => {
 .chart-card {
   min-height: 450px;
   height: 450px;
+}
+
+/* 视图切换栏 */
+.view-toggle-bar {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+.view-toggle-inner {
+  display: flex;
+  background: rgba(10, 14, 39, 0.6);
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1.2rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+.view-toggle-btn:hover {
+  color: #94a3b8;
+}
+.view-toggle-btn.active {
+  background: rgba(0, 245, 255, 0.15);
+  color: #00f5ff;
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+}
+.toggle-icon {
+  width: 16px;
+  height: 16px;
 }
 
 @media (max-width: 1200px) {
