@@ -15,7 +15,7 @@ import (
 func AggregateOverview(repos []model.Repository, userEmail string, startDate, endDate time.Time) model.OverviewStats {
 	var totalAdditions, totalDeletions int
 	var commitCount int
-	authors := make(map[string]bool)
+	authorMap := make(map[string]*model.AuthorRankItem)
 	repoSet := make(map[string]bool)
 
 	for _, repo := range repos {
@@ -33,16 +33,41 @@ func AggregateOverview(repos []model.Repository, userEmail string, startDate, en
 			commitCount++
 			totalAdditions += c.Additions
 			totalDeletions += c.Deletions
-			authors[c.Author] = true
+
+			key := c.Email
+			if _, exists := authorMap[key]; !exists {
+				authorMap[key] = &model.AuthorRankItem{
+					Author: c.Author,
+					Email:  c.Email,
+					IsMe:   c.Email == userEmail,
+				}
+			}
+			stats := authorMap[key]
+			stats.Commits++
+			stats.Additions += c.Additions
+			stats.Deletions += c.Deletions
+			stats.NetChange = stats.Additions - stats.Deletions
 		}
 	}
+
+	var authorList []model.AuthorRankItem
+	for _, item := range authorMap {
+		if item.Commits > 0 {
+			item.AvgCommitSize = float64(item.Additions+item.Deletions) / float64(item.Commits)
+		}
+		authorList = append(authorList, *item)
+	}
+	slices.SortFunc(authorList, func(a, b model.AuthorRankItem) int {
+		return cmp.Compare(b.Commits, a.Commits)
+	})
 
 	return model.OverviewStats{
 		TotalCommits:    commitCount,
 		TotalAdditions:  totalAdditions,
 		TotalDeletions:  totalDeletions,
-		ActiveAuthors:   len(authors),
+		ActiveAuthors:   len(authorMap),
 		RepositoryCount: len(repoSet),
+		Authors:         authorList,
 	}
 }
 

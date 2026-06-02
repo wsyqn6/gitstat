@@ -33,11 +33,12 @@ type ScanResponse struct {
 }
 
 type OverviewStats struct {
-	TotalCommits    int `json:"totalCommits"`
-	TotalAdditions  int `json:"totalAdditions"`
-	TotalDeletions  int `json:"totalDeletions"`
-	ActiveAuthors   int `json:"activeAuthors"`
-	RepositoryCount int `json:"repositoryCount"`
+	TotalCommits    int              `json:"totalCommits"`
+	TotalAdditions  int              `json:"totalAdditions"`
+	TotalDeletions  int              `json:"totalDeletions"`
+	ActiveAuthors   int              `json:"activeAuthors"`
+	RepositoryCount int              `json:"repositoryCount"`
+	Authors         []AuthorRankItem `json:"authors,omitempty"`
 }
 
 type AuthorDailyStats struct {

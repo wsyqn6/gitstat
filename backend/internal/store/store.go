@@ -233,6 +233,11 @@ func (s *Store) EnsureFirstInit(path string, scanFn func() ([]model.Commit, erro
 		return false, err
 	}
 
+	if len(commits) == 0 {
+		cache.initMu.Unlock()
+		return false, nil
+	}
+
 	s.SetRepoCommits(path, commits)
 	cache.initMu.Unlock()
 	return true, nil
