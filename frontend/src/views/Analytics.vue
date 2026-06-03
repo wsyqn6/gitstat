@@ -321,7 +321,6 @@
       :periodStats="periodStats"
       :startDate="currentStartDate"
       :endDate="currentEndDate"
-      @switch-to-month="handleSwitchToMonth"
     />
   </div>
 </template>
@@ -373,17 +372,6 @@ const calendarViewType = computed(() => {
   if (days <= 31) return 'month'
   return 'year'
 })
-
-const handleSwitchToMonth = (month) => {
-  const year = parseInt(currentStartDate.value?.slice(0, 4)) || new Date().getFullYear()
-  const m = String(month).padStart(2, '0')
-  currentStartDate.value = `${year}-${m}-01`
-  const lastDay = new Date(year, month, 0).getDate()
-  currentEndDate.value = `${year}-${m}-${String(lastDay).padStart(2, '0')}`
-  selectedTimeRange.value = 'custom'
-  viewMode.value = 'calendar'
-  loadData()
-}
 
 // 切到日历且粒度为周时重取日粒度数据
 watch(viewMode, (newMode) => {

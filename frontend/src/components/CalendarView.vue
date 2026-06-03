@@ -147,18 +147,60 @@
       <div v-else class="year-grid">
         <div v-for="month in yearData" :key="month.month"
           class="year-month-card"
-          :class="{ 'future-month': month.isFuture }"
-          @click="!month.isFuture && $emit('switch-to-month', month.month)"
+          :class="{ 'future-month': month.isFuture, 'selected': selectedMonth?.key === month.key }"
+          :style="{ '--bg-alpha': month.commits ? (0.05 + Math.min(month.commits / yearMaxCommits, 1) * 0.55).toFixed(2) : '0' }"
+          @click="!month.isFuture && (selectedMonth = selectedMonth?.key === month.key ? null : month)"
         >
           <div class="ym-header">{{ month.name }}</div>
           <div class="ym-commits">{{ month.commits }}</div>
-          <div class="ym-bar-track">
-            <div class="ym-bar" :style="{ width: barPct(month.commits, yearMaxCommits) }"></div>
-          </div>
           <div class="ym-changes">
-            <span class="add">+{{ month.additions }}</span>
-            <span class="del">-{{ month.deletions }}</span>
+            <span class="ym-add">+{{ month.additions }}</span>
+            <span class="ym-del">-{{ month.deletions }}</span>
+            <span class="ym-net">{{ (month.additions || 0) - (month.deletions || 0) >= 0 ? '+' : '' }}{{ (month.additions || 0) - (month.deletions || 0) }}</span>
           </div>
+        </div>
+      </div>
+      <div v-if="selectedMonth" class="detail-panel expand-panel">
+        <div class="detail-hero">
+          <div class="hero-date">{{ selectedMonth.name }} {{ startDate?.slice(0, 4) }}</div>
+          <div class="hero-stats">
+            <div class="hero-commits">
+              <span class="hero-number">{{ selectedMonth.commits }}</span>
+              <span class="hero-label">{{ t('calendar.commitsUnit') }}</span>
+            </div>
+            <div class="hero-changes">
+              <span class="hero-add">+{{ selectedMonth.additions }}</span>
+              <span class="hero-del">-{{ selectedMonth.deletions }}</span>
+              <span class="hero-net" :class="(selectedMonth.additions - selectedMonth.deletions) >= 0 ? 'pos' : 'neg'">
+                {{ (selectedMonth.additions - selectedMonth.deletions) >= 0 ? '+' : '' }}{{ selectedMonth.additions - selectedMonth.deletions }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="detail-divider"></div>
+        <table v-if="monthDetail.length > 0" class="detail-table">
+          <thead>
+            <tr>
+              <th>{{ t('analytics.repoName') }}</th>
+              <th>{{ t('analytics.developer') }}</th>
+              <th class="num-col">{{ t('dashboard.commits') }}</th>
+              <th class="num-col">{{ t('analytics.additions') }}</th>
+              <th class="num-col">{{ t('analytics.deletions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, idx) in monthDetail" :key="idx" :style="{ animationDelay: idx * 0.04 + 's' }">
+              <td class="cell-repo">{{ item.repoName }}</td>
+              <td class="cell-author">{{ item.author }}</td>
+              <td class="num-col">{{ item.commits }}</td>
+              <td class="num-col cell-additions">+{{ item.additions }}</td>
+              <td class="num-col cell-deletions">-{{ item.deletions }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="detail-empty">
+          <span class="empty-icon">⌧</span>
+          {{ t('calendar.noDetail') }}
         </div>
       </div>
     </div>
@@ -177,12 +219,11 @@ const props = defineProps({
   endDate: { type: String, default: '' }
 })
 
-defineEmits(['switch-to-month'])
-
 const { t, locale } = useI18n()
 
 const expandedAuthor = ref(null)
 const selectedCell = ref(null)
+const selectedMonth = ref(null)
 
 function toggleExpandAuthor(email) {
   expandedAuthor.value = expandedAuthor.value === email ? null : email
@@ -211,12 +252,7 @@ function cellBg(commits, maxC) {
   if (!commits || !maxC) return 'transparent'
   const intensity = Math.min(commits / maxC, 1)
   const alpha = 0.05 + intensity * 0.55
-  return `rgba(0, 245, 255, ${alpha.toFixed(2)})`
-}
-
-function barPct(val, maxV) {
-  if (!val || !maxV) return '0%'
-  return Math.round((val / maxV) * 100) + '%'
+  return `rgba(160, 100, 200, ${alpha.toFixed(2)})`
 }
 
 function isToday(dateStr) {
@@ -465,11 +501,53 @@ const yearMaxCommits = computed(() => {
   }
   return m
 })
+
+const monthDetail = computed(() => {
+  if (!selectedMonth.value) return []
+  const key = selectedMonth.value.key
+  const items = []
+  for (const repo of props.periodStats) {
+    for (const author of repo.authors) {
+      for (const period of author.dailyData) {
+        if (period.date === key && period.commits > 0) {
+          items.push({
+            repoName: repo.repoName,
+            author: author.author,
+            commits: period.commits,
+            additions: period.additions,
+            deletions: period.deletions
+          })
+        }
+      }
+    }
+  }
+  return items.sort((a, b) => b.commits - a.commits)
+})
 </script>
 
 <style scoped>
 .calendar-area {
   animation: slideDown 0.3s ease;
+}
+
+.cal-week-view.card,
+.cal-month-view.card,
+.cal-year-view.card {
+  position: relative;
+}
+.cal-week-view.card::after,
+.cal-month-view.card::after,
+.cal-year-view.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  border-radius: 2px;
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 /* ====== Shared Header ====== */
@@ -504,7 +582,7 @@ const yearMaxCommits = computed(() => {
 .cal-table thead th {
   text-align: center;
   padding: 0.5rem 0.4rem;
-  border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+  border-bottom: 1px solid rgba(160, 100, 200, 0.15);
   vertical-align: bottom;
 }
 .cal-table .row-header {
@@ -544,7 +622,7 @@ const yearMaxCommits = computed(() => {
   text-align: center;
   padding: 0.6rem 0.3rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   cursor: default;
 }
 .data-cell.has-data {
@@ -552,6 +630,7 @@ const yearMaxCommits = computed(() => {
 }
 .data-cell:hover {
   filter: brightness(1.3);
+  border-color: rgba(160, 100, 200, 0.3);
 }
 .cell-commits {
   font-size: 1.05rem;
@@ -569,7 +648,7 @@ const yearMaxCommits = computed(() => {
 .cell-changes .del { color: #ff6b6b; }
 
 .total-cell {
-  border-left: 1px solid rgba(0, 245, 255, 0.2);
+  border-left: 1px solid rgba(160, 100, 200, 0.25);
 }
 .total-cell .cell-commits {
   color: #ffd700;
@@ -581,10 +660,10 @@ const yearMaxCommits = computed(() => {
   transition: background 0.2s;
 }
 .author-row:hover {
-  background: rgba(0, 245, 255, 0.03);
+  background: rgba(160, 100, 200, 0.05);
 }
 .author-row.expanded {
-  background: rgba(0, 245, 255, 0.06);
+  background: rgba(160, 100, 200, 0.08);
 }
 .cell-author {
   text-align: center;
@@ -647,7 +726,7 @@ const yearMaxCommits = computed(() => {
   color: #94a3b8;
   letter-spacing: 1px;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+  border-bottom: 1px solid rgba(160, 100, 200, 0.15);
 }
 .weekend-header {
   color: #64748b;
@@ -655,6 +734,7 @@ const yearMaxCommits = computed(() => {
 }
 
 .cal-cell {
+  position: relative;
   text-align: center;
   vertical-align: top;
   padding: 4px;
@@ -668,8 +748,9 @@ const yearMaxCommits = computed(() => {
   cursor: pointer;
 }
 .cal-cell:hover {
-  border-color: rgba(0, 245, 255, 0.3);
-  filter: brightness(1.2);
+  border-color: rgba(160, 100, 200, 0.4);
+  filter: brightness(1.25);
+  z-index: 1;
 }
 .weekend-cell {
   background: rgba(148, 163, 184, 0.03);
@@ -695,10 +776,10 @@ const yearMaxCommits = computed(() => {
   border-radius: 50%;
 }
 .cell-day.today-text {
-  background: #00f5ff;
+  background: rgba(160, 100, 200, 0.8);
   color: #0a0e27;
   font-weight: 700;
-  box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+  box-shadow: 0 0 12px rgba(160, 100, 200, 0.5);
 }
 .cell-count {
   font-family: 'Orbitron', sans-serif;
@@ -727,7 +808,7 @@ const yearMaxCommits = computed(() => {
   font-family: 'Orbitron', sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #e2e8f0, #00f5ff);
+  background: linear-gradient(135deg, #e2e8f0, #a064c8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -792,7 +873,7 @@ const yearMaxCommits = computed(() => {
 
 .detail-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(160, 100, 200, 0.3), transparent);
   margin: 0.75rem 0;
 }
 
@@ -810,7 +891,7 @@ const yearMaxCommits = computed(() => {
   font-size: 0.65rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(0, 245, 255, 0.12);
+  border-bottom: 1px solid rgba(160, 100, 200, 0.15);
 }
 
 .detail-table th.num-col,
@@ -829,7 +910,7 @@ const yearMaxCommits = computed(() => {
 }
 
 .detail-table tbody tr:hover {
-  background: rgba(0, 245, 255, 0.04);
+  background: rgba(160, 100, 200, 0.05);
 }
 
 .detail-table .cell-repo {
@@ -869,62 +950,97 @@ const yearMaxCommits = computed(() => {
   gap: 1rem;
 }
 .year-month-card {
-  background: rgba(10, 14, 39, 0.4);
+  position: relative;
+  background: rgba(10, 14, 39, 0.6);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 212, 255, 0.15);
-  border-radius: 10px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
   text-align: center;
-  transition: all 0.3s ease;
   cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .year-month-card:hover:not(.future-month) {
-  border-color: rgba(0, 212, 255, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 245, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 245, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
+}
+.year-month-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  border-radius: 2px;
+  opacity: 0.4;
+  transition: all 0.4s ease;
+  pointer-events: none;
+}
+.year-month-card:hover::before {
+  left: 5%;
+  right: 5%;
+  opacity: 0.8;
+}
+.year-month-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(160, 100, 200, calc(var(--bg-alpha, 0)));
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.year-month-card.selected {
+  border-color: #00f5ff;
+  box-shadow: 0 0 25px rgba(0, 245, 255, 0.3), inset 0 0 20px rgba(0, 245, 255, 0.05);
+}
+.year-month-card.selected::before {
+  left: 5%;
+  right: 5%;
+  opacity: 1;
 }
 .year-month-card.future-month {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
+  filter: grayscale(0.5);
 }
 .ym-header {
+  position: relative;
+  z-index: 1;
   font-family: 'Orbitron', sans-serif;
-  font-size: 0.75rem;
-  color: #00f5ff;
-  letter-spacing: 1px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 .ym-commits {
+  position: relative;
+  z-index: 1;
   font-family: 'Orbitron', sans-serif;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #00d4ff, #7800ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 0.5rem;
-}
-.ym-bar-track {
-  height: 5px;
-  background: rgba(148, 163, 184, 0.15);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-.ym-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #00f5ff, #ff00ff);
-  border-radius: 3px;
-  transition: width 0.5s ease;
+  color: #e2e8f0;
+  line-height: 1.15;
+  margin-bottom: 0.4rem;
 }
 .ym-changes {
-  font-size: 0.65rem;
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 6px;
+  align-items: center;
   justify-content: center;
+  gap: 0.4rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
 }
-.ym-changes .add { color: #00ff88; }
-.ym-changes .del { color: #ff6b6b; }
+.ym-changes .ym-add { color: #00ff88; }
+.ym-changes .ym-del { color: #ff6b6b; }
+.ym-changes .ym-net { color: #64748b; }
 
 /* responsive */
 @media (max-width: 900px) {
