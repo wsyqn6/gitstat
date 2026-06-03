@@ -25,18 +25,7 @@
                 </button>
               </div>
               
-              <div class="custom-divider"></div>
-              
-              <button 
-                @click="selectedTimeRange = 'custom'"
-                class="cyber-time-btn custom-btn"
-                :class="{ active: selectedTimeRange === 'custom' }"
-              >
-                <span class="btn-glow"></span>
-                <span class="btn-text-cyber">自定义</span>
-              </button>
-              
-              <div class="custom-range-cyber" v-if="selectedTimeRange === 'custom' || (customStartDate && customEndDate)">
+              <div class="custom-range-cyber">
                 <div class="date-input-wrapper">
                   <input 
                     type="date" 
@@ -398,9 +387,7 @@ watch(viewMode, (newMode) => {
 // 时间选项配置
 const timeOptions = [
   { label: computed(() => t('analytics.thisWeek')), value: 'week' },
-  { label: computed(() => t('analytics.lastWeek')), value: 'lastWeek' },
   { label: computed(() => t('analytics.thisMonth')), value: 'month' },
-  { label: computed(() => t('analytics.lastMonth')), value: 'lastMonth' },
   { label: computed(() => t('analytics.thisYear')), value: 'year' }
 ]
 
@@ -1598,8 +1585,10 @@ onMounted(async () => {
 /* 时间选择器 - 赛博朋克风格 */
 .time-selector-cyber {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .quick-options-cyber {
@@ -1683,28 +1672,11 @@ onMounted(async () => {
   z-index: 1;
 }
 
-.custom-divider {
-  width: 1px;
-  height: 28px;
-  background: linear-gradient(180deg, transparent, rgba(0, 245, 255, 0.3), transparent);
-  align-self: center;
-}
-.cyber-time-btn.custom-btn {
-  min-width: 70px;
-  font-size: 0.78rem;
-  padding: 0.6rem 0.8rem;
-}
-
 /* 自定义日期范围 - 赛博朋克风格 */
 .custom-range-cyber {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: rgba(10, 14, 39, 0.4);
-  border: 1px solid rgba(0, 245, 255, 0.15);
-  border-radius: 8px;
-  animation: slideDown 0.3s ease;
+  gap: 0.5rem;
 }
 
 @keyframes slideDown {
@@ -1720,17 +1692,16 @@ onMounted(async () => {
 
 .date-input-wrapper {
   position: relative;
-  flex: 1;
 }
 
 .cyber-date-input {
-  width: 100%;
+  width: 130px;
   background: rgba(10, 14, 39, 0.8);
   border: 1px solid rgba(0, 245, 255, 0.3);
   border-radius: 4px;
-  padding: 0.6rem 0.9rem;
+  padding: 0.5rem 0.6rem;
   color: #e2e8f0;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   outline: none;
   font-family: 'Rajdhani', sans-serif;
   transition: all 0.3s ease;
