@@ -23,32 +23,35 @@
                   <span class="btn-glow"></span>
                   <span class="btn-text-cyber">{{ option.label }}</span>
                 </button>
+                <button 
+                  @click.stop="showCustomPicker = !showCustomPicker"
+                  class="cyber-time-btn custom-btn"
+                  :class="{ active: selectedTimeRange === 'custom' }"
+                >
+                  <span class="btn-glow"></span>
+                  <span class="btn-text-cyber">自定义</span>
+                </button>
               </div>
               
-              <div class="custom-range-cyber">
-                <div class="date-input-wrapper">
-                  <input 
-                    type="date" 
-                    v-model="customStartDate"
-                    @change="handleCustomDateChange"
-                    class="cyber-date-input"
-                  />
-                  <div class="input-glow"></div>
+              <div v-if="showCustomPicker" class="custom-picker-popup" @click.stop>
+                <div class="picker-row">
+                  <div class="date-input-wrapper">
+                    <input type="date" v-model="customStartDate" class="cyber-date-input" />
+                    <div class="input-glow"></div>
+                  </div>
+                  <div class="date-connector">
+                    <div class="connector-line"></div>
+                    <span class="connector-icon">→</span>
+                    <div class="connector-line"></div>
+                  </div>
+                  <div class="date-input-wrapper">
+                    <input type="date" v-model="customEndDate" class="cyber-date-input" />
+                    <div class="input-glow"></div>
+                  </div>
                 </div>
-                <div class="date-connector">
-                  <div class="connector-line"></div>
-                  <span class="connector-icon">→</span>
-                  <div class="connector-line"></div>
-                </div>
-                <div class="date-input-wrapper">
-                  <input 
-                    type="date" 
-                    v-model="customEndDate"
-                    @change="handleCustomDateChange"
-                    class="cyber-date-input"
-                  />
-                  <div class="input-glow"></div>
-                </div>
+                <button @click="applyCustomRange" class="picker-confirm-btn">
+                  <span class="btn-text-cyber">确认</span>
+                </button>
               </div>
             </div>
           </div>
@@ -339,6 +342,7 @@ const overviewStats = ref(null)
 const selectedTimeRange = ref('week')
 const customStartDate = ref('')
 const customEndDate = ref('')
+const showCustomPicker = ref(false)
 const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
@@ -396,14 +400,26 @@ const selectTimeRange = (value) => {
   selectedTimeRange.value = value
   customStartDate.value = ''
   customEndDate.value = ''
+  showCustomPicker.value = false
 }
 
-// 处理自定义日期变化
-const handleCustomDateChange = () => {
+const applyCustomRange = () => {
   if (customStartDate.value && customEndDate.value) {
     selectedTimeRange.value = 'custom'
+    showCustomPicker.value = false
+    loadData()
   }
 }
+
+const closeCustomPicker = (e) => {
+  if (showCustomPicker.value) {
+    const picker = e.target.closest('.custom-picker-popup')
+    const btn = e.target.closest('.custom-btn')
+    if (!picker && !btn) showCustomPicker.value = false
+  }
+}
+onMounted(() => document.addEventListener('click', closeCustomPicker))
+onUnmounted(() => document.removeEventListener('click', closeCustomPicker))
 
 // 计算所有仓库是否都选中
 const allReposSelected = computed(() => {
@@ -1584,6 +1600,7 @@ onMounted(async () => {
 
 /* 时间选择器 - 赛博朋克风格 */
 .time-selector-cyber {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1672,23 +1689,58 @@ onMounted(async () => {
   z-index: 1;
 }
 
-/* 自定义日期范围 - 赛博朋克风格 */
-.custom-range-cyber {
+.cyber-time-btn.custom-btn {
+  min-width: 70px;
+  font-size: 0.78rem;
+  padding: 0.6rem 0.8rem;
+}
+
+/* 自定义日期浮窗 */
+.custom-picker-popup {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  margin-top: 0.5rem;
+  background: rgba(10, 14, 39, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 245, 255, 0.25);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 245, 255, 0.15);
+  animation: slideDown 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 320px;
+}
+.picker-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.picker-confirm-btn {
+  position: relative;
+  background: linear-gradient(135deg, #00f5ff, #ff00ff);
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
+.picker-confirm-btn:hover {
+  box-shadow: 0 0 25px rgba(0, 245, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* 自定义日期范围 - 赛博朋克风格 */
 
 .date-input-wrapper {
   position: relative;
