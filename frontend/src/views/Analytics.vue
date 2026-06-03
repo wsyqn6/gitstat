@@ -25,6 +25,17 @@
                 </button>
               </div>
               
+              <div class="custom-divider"></div>
+              
+              <button 
+                @click="selectedTimeRange = 'custom'"
+                class="cyber-time-btn custom-btn"
+                :class="{ active: selectedTimeRange === 'custom' }"
+              >
+                <span class="btn-glow"></span>
+                <span class="btn-text-cyber">自定义</span>
+              </button>
+              
               <div class="custom-range-cyber" v-if="selectedTimeRange === 'custom' || (customStartDate && customEndDate)">
                 <div class="date-input-wrapper">
                   <input 
@@ -367,6 +378,9 @@ const toggleSection = (section) => {
 
 const calendarViewType = computed(() => {
   if (!currentStartDate.value || !currentEndDate.value) return 'week'
+  if (selectedTimeRange.value === 'year') return 'year'
+  if (selectedTimeRange.value === 'month' || selectedTimeRange.value === 'lastMonth') return 'month'
+  if (selectedTimeRange.value === 'week' || selectedTimeRange.value === 'lastWeek' || selectedTimeRange.value === 'today') return 'week'
   const days = Math.round((new Date(currentEndDate.value) - new Date(currentStartDate.value)) / (1000 * 60 * 60 * 24))
   if (days <= 7) return 'week'
   if (days <= 31) return 'month'
@@ -1667,6 +1681,18 @@ onMounted(async () => {
 .btn-text-cyber {
   position: relative;
   z-index: 1;
+}
+
+.custom-divider {
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(180deg, transparent, rgba(0, 245, 255, 0.3), transparent);
+  align-self: center;
+}
+.cyber-time-btn.custom-btn {
+  min-width: 70px;
+  font-size: 0.78rem;
+  padding: 0.6rem 0.8rem;
 }
 
 /* 自定义日期范围 - 赛博朋克风格 */
