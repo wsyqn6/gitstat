@@ -34,24 +34,12 @@
               </div>
               
               <div v-if="showCustomPicker" class="custom-picker-popup" @click.stop>
-                <div class="picker-row">
-                  <div class="date-input-wrapper">
-                    <input type="date" v-model="customStartDate" class="cyber-date-input" />
-                    <div class="input-glow"></div>
-                  </div>
-                  <div class="date-connector">
-                    <div class="connector-line"></div>
-                    <span class="connector-icon">→</span>
-                    <div class="connector-line"></div>
-                  </div>
-                  <div class="date-input-wrapper">
-                    <input type="date" v-model="customEndDate" class="cyber-date-input" />
-                    <div class="input-glow"></div>
-                  </div>
-                </div>
-                <button @click="applyCustomRange" class="picker-confirm-btn">
-                  <span class="btn-text-cyber">确认</span>
-                </button>
+                <DatePicker
+                  :start="customStartDate"
+                  :end="customEndDate"
+                  @update:start="onCustomStart"
+                  @update:end="onCustomEnd"
+                />
               </div>
             </div>
           </div>
@@ -334,6 +322,7 @@ import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from '../components/ChartContainer.vue'
 import CalendarView from '../components/CalendarView.vue'
+import DatePicker from '../components/DatePicker.vue'
 import { getDailyStats, getWeeklyStats, getMonthlyStats, getYearlyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
 
 const { t } = useI18n()
@@ -403,12 +392,19 @@ const selectTimeRange = (value) => {
   showCustomPicker.value = false
 }
 
-const applyCustomRange = () => {
-  if (customStartDate.value && customEndDate.value) {
-    selectedTimeRange.value = 'custom'
+const onCustomStart = (v) => {
+  customStartDate.value = v
+  if (customEndDate.value) {
+    customEndDate.value = ''
     showCustomPicker.value = false
-    loadData()
   }
+}
+
+const onCustomEnd = (v) => {
+  customEndDate.value = v
+  selectedTimeRange.value = 'custom'
+  showCustomPicker.value = false
+  loadData()
 }
 
 const closeCustomPicker = (e) => {
@@ -1702,130 +1698,8 @@ onMounted(async () => {
   right: 0;
   z-index: 100;
   margin-top: 0.5rem;
-  background: rgba(10, 14, 39, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 245, 255, 0.25);
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 245, 255, 0.15);
+  padding: 0.25rem;
   animation: slideDown 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  min-width: 320px;
-}
-.picker-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.picker-confirm-btn {
-  position: relative;
-  background: linear-gradient(135deg, #00f5ff, #ff00ff);
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  color: #fff;
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-.picker-confirm-btn:hover {
-  box-shadow: 0 0 25px rgba(0, 245, 255, 0.5);
-  transform: translateY(-1px);
-}
-
-/* 自定义日期范围 - 赛博朋克风格 */
-
-.date-input-wrapper {
-  position: relative;
-}
-
-.cyber-date-input {
-  width: 130px;
-  background: rgba(10, 14, 39, 0.8);
-  border: 1px solid rgba(0, 245, 255, 0.3);
-  border-radius: 4px;
-  padding: 0.5rem 0.6rem;
-  color: #e2e8f0;
-  font-size: 0.78rem;
-  outline: none;
-  font-family: 'Rajdhani', sans-serif;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-}
-
-.cyber-date-input::-webkit-calendar-picker-indicator {
-  filter: invert(1) hue-rotate(180deg);
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.cyber-date-input::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-}
-
-.cyber-date-input:focus {
-  border-color: #00f5ff;
-  box-shadow: 
-    0 0 20px rgba(0, 245, 255, 0.3),
-    inset 0 0 20px rgba(0, 245, 255, 0.05);
-}
-
-.input-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 4px;
-  background: radial-gradient(circle at center, rgba(0, 245, 255, 0.1), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.date-input-wrapper:focus-within .input-glow {
-  opacity: 1;
-}
-
-/* 日期连接器 */
-.date-connector {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #00f5ff;
-}
-
-.connector-line {
-  width: 20px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #00f5ff, transparent);
-  animation: line-flow 2s ease-in-out infinite;
-}
-
-@keyframes line-flow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
-
-.connector-icon {
-  font-size: 1.2rem;
-  color: #00f5ff;
-  text-shadow: 0 0 10px rgba(0, 245, 255, 0.8);
-  animation: arrow-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes arrow-pulse {
-  0%, 100% { transform: translateX(0); opacity: 0.6; }
-  50% { transform: translateX(3px); opacity: 1; }
 }
 
 .cyber-select {
