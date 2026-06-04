@@ -90,20 +90,14 @@ const filteredStats = computed(() => {
     : source.filter(stat => props.selectedRepos.includes(stat.repoPath))
 })
 
-const allDates = computed(() => {
+const processedStats = computed(() => {
+  const data = filteredStats.value
   const dateSet = new Set()
-  filteredStats.value.forEach(repo => {
+  const authorMap = new Map()
+
+  data.forEach(repo => {
     repo.authors?.forEach(author => {
       author.dailyData?.forEach(day => dateSet.add(day.date))
-    })
-  })
-  return Array.from(dateSet).sort()
-})
-
-const allAuthors = computed(() => {
-  const authorMap = new Map()
-  filteredStats.value.forEach(repo => {
-    repo.authors?.forEach(author => {
       if (!authorMap.has(author.email)) {
         authorMap.set(author.email, {
           name: author.author,
@@ -113,7 +107,11 @@ const allAuthors = computed(() => {
       }
     })
   })
-  return Array.from(authorMap.values())
+
+  return {
+    dates: Array.from(dateSet).sort(),
+    authors: Array.from(authorMap.values())
+  }
 })
 
 const granularityPrefix = computed(() => {
@@ -129,8 +127,7 @@ const commitTrendTitle = computed(() => granularityPrefix.value + t('analytics.c
 const codeChangeTitle = computed(() => granularityPrefix.value + t('analytics.codeChange'))
 
 const commitTrendOption = computed(() => {
-  const dates = allDates.value
-  const authors = allAuthors.value
+  const { dates, authors } = processedStats.value
 
   if (dates.length === 0 || authors.length === 0) {
     return {
@@ -232,8 +229,7 @@ const commitTrendOption = computed(() => {
 })
 
 const codeChangeOption = computed(() => {
-  const dates = allDates.value
-  const authors = allAuthors.value
+  const { dates, authors } = processedStats.value
 
   if (dates.length === 0 || authors.length === 0) {
     return {

@@ -68,7 +68,7 @@ watch(() => props.option, (newVal) => {
       chartInstance?.resize()
     })
   }
-}, { deep: true })
+})
 
 function handleResize() {
   if (chartInstance) {

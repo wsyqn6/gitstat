@@ -329,7 +329,7 @@ function renderTrendChart() {
 
 watch(() => state.repoDailyTrend, () => {
   nextTick(() => renderTrendChart())
-}, { deep: true })
+})
 
 function handleResize() {
   if (trendChart) trendChart.resize()
