@@ -11,18 +11,25 @@
 
 # 中文文档
 
-## 简介
+## 特点
 
-**GitStat** 扫描指定目录下所有 Git 仓库，提取提交活动数据，通过赛博朋克风格 Web 界面呈现交互式图表。支持 CLI 终端输出和 Web UI 仪表盘两种模式。单文件分发，零依赖。
+- **单文件分发** — Go 单二进制，前端内嵌，解压即用，零依赖
+- **全离线** — 不调用 GitHub API，纯本地扫描，无需联网
+- **惰性加载** — 按需拉取 git log，支持增量补数据，启动飞快
+- **赛博朋克 UI** — 暗色霓虹风格，ECharts 交互图表
+- **开箱即用** — serve 后自动打开浏览器，中英文双语
 
 ## 快速开始
 
-从 [Releases](https://github.com/wsyqn6/gitstat/releases) 下载预编译二进制，解压后即可使用。
+从 [Releases](https://github.com/wsyqn6/gitstat/releases) 下载预编译二进制，解压后：
 
 ```bash
-gitstat serve D:/work --port 12580   # 启动 Web UI
-gitstat stats D:/work                 # CLI 统计
+gitstat serve                  # 扫描当前目录，启动 Web UI
+gitstat serve D:/work          # 扫描指定目录
+gitstat serve D:/work --port 8080  # 自定义端口
 ```
+
+启动后自动打开浏览器，访问 `http://localhost:12580` 查看仪表盘。
 
 ## 从源码构建
 
@@ -34,11 +41,10 @@ mkdir -p backend/web/dist && cp -r frontend/dist/* backend/web/dist/
 cd backend && go build -ldflags="-s -w" -o gitstat.exe .
 ```
 
-或使用 `.\build.ps1`
-
 ## 技术栈
 
-后端：Go + chi + go-git | 前端：Vue 3 + Vite + ECharts
+后端：Go + chi（调 git log 命令解析提交数据）
+前端：Vue 3 + Vite + ECharts
 
 ## 许可证
 
@@ -48,18 +54,25 @@ cd backend && go build -ldflags="-s -w" -o gitstat.exe .
 
 # English Documentation
 
-## Introduction
+## Features
 
-**GitStat** scans Git repositories under a directory, extracts commit activity data, and displays interactive charts through a cyberpunk-themed web UI. Supports CLI terminal output and Web UI dashboard modes. Single binary, zero dependencies.
+- **Single binary** — Go binary with embedded frontend, extract and run, zero dependencies
+- **Fully offline** — No GitHub API calls, scans local repos only, no internet needed
+- **Lazy loading** — Fetches git log on demand with incremental updates, fast startup
+- **Cyberpunk UI** — Dark neon theme, interactive ECharts visualizations
+- **Ready to go** — Auto-opens browser on serve, bilingual (CN/EN)
 
 ## Quick Start
 
-Download the pre-built binary from [Releases](https://github.com/wsyqn6/gitstat/releases), extract and run.
+Download the pre-built binary from [Releases](https://github.com/wsyqn6/gitstat/releases), extract and run:
 
 ```bash
-gitstat serve D:/work --port 12580   # Start Web UI
-gitstat stats D:/work                 # CLI stats
+gitstat serve                     # Scan current dir, start Web UI
+gitstat serve D:/work             # Scan specified directory
+gitstat serve D:/work --port 8080 # Custom port
 ```
+
+Browser opens automatically. Visit `http://localhost:12580` to view the dashboard.
 
 ## Build from Source
 
@@ -71,11 +84,10 @@ mkdir -p backend/web/dist && cp -r frontend/dist/* backend/web/dist/
 cd backend && go build -ldflags="-s -w" -o gitstat.exe .
 ```
 
-Or use `.\build.ps1`
-
 ## Tech Stack
 
-Backend: Go + chi + go-git | Frontend: Vue 3 + Vite + ECharts
+Backend: Go + chi (parses git log output directly)
+Frontend: Vue 3 + Vite + ECharts
 
 ## License
 

@@ -17,7 +17,7 @@ import (
 	"gitstat/internal/store"
 )
 
-const Version = "v0.5.0"
+var Version = "dev"
 
 //go:embed web/dist/*
 var embeddedDist embed.FS
