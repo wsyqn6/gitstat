@@ -216,6 +216,7 @@ import { useI18n } from '../i18n'
 import { state, fetchOverviewStats, fetchRepoDailyTrend, fetchAuthorRank, loadDashboardS2 } from '../stores/data'
 import StatCard from '../components/StatCard.vue'
 import echarts from '../utils/echarts'
+import { CHART_COLORS } from '../utils/constants'
 
 const { t } = useI18n()
 
@@ -242,8 +243,6 @@ const section2Ref = ref(null)
 let trendChart = null
 let observer = null
 
-const COLORS = ['#00d4ff', '#ff6b9d', '#00ff88', '#ffd700', '#a78bfa', '#f472b6', '#34d399', '#fb923c']
-
 const todayCommits = computed(() => state.overviewStats?.totalCommits ?? 0)
 const todayAdditions = computed(() => state.overviewStats?.totalAdditions ?? 0)
 const todayDeletions = computed(() => state.overviewStats?.totalDeletions ?? 0)
@@ -254,7 +253,7 @@ const weeklyTotal = computed(() =>
 )
 
 const repoColors = computed(() =>
-  state.repoDailyTrend.map((_, i) => COLORS[i % COLORS.length])
+  state.repoDailyTrend.map((_, i) => CHART_CHART_COLORS[i % CHART_COLORS.length])
 )
 
 const authorRankWithRepos = computed(() => {
@@ -264,7 +263,7 @@ const authorRankWithRepos = computed(() => {
     for (const author of repo.authors || []) {
       if (!repoOf[author.email]) repoOf[author.email] = []
       const total = author.dailyData ? author.dailyData.reduce((s, d) => s + d.commits, 0) : 0
-      repoOf[author.email].push({ name: repo.repoName, commits: total, color: COLORS[state.repoDailyTrend.indexOf(repo) % COLORS.length] })
+      repoOf[author.email].push({ name: repo.repoName, commits: total, color: CHART_COLORS[state.repoDailyTrend.indexOf(repo) % COLORS.length] })
     }
   }
   return state.authorRank.map(a => ({
@@ -291,14 +290,14 @@ function renderTrendChart() {
       stack: 'total',
       smooth: true,
       symbol: 'none',
-      lineStyle: { width: 1.5, color: COLORS[i % COLORS.length] },
+      lineStyle: { width: 1.5, color: CHART_COLORS[i % COLORS.length] },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: COLORS[i % COLORS.length] + '60' },
-          { offset: 1, color: COLORS[i % COLORS.length] + '05' }
+          { offset: 0, color: CHART_COLORS[i % COLORS.length] + '60' },
+          { offset: 1, color: CHART_COLORS[i % COLORS.length] + '05' }
         ])
       },
-      itemStyle: { color: COLORS[i % COLORS.length] },
+      itemStyle: { color: CHART_COLORS[i % COLORS.length] },
       data: allDates.map(d => dateMap[d] || 0)
     }
   })
@@ -361,6 +360,9 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  trendChart?.dispose()
+  trendChart = null
   if (observer) observer.disconnect()
 })
 </script>

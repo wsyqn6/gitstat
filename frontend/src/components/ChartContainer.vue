@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import echarts from '../utils/echarts'
 
 const props = defineProps({
@@ -42,40 +42,31 @@ onMounted(async () => {
   }
 })
 
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  chartInstance?.dispose()
+  chartInstance = null
+})
+
 watch(() => props.loading, async (newVal) => {
-  console.log('[ChartContainer] loading changed:', newVal, 'chartRef:', !!chartRef.value)
   if (!newVal && chartRef.value) {
-    // loading 结束后初始化或更新图表
     await nextTick()
-    console.log('[ChartContainer] After nextTick, initializing chart, has option:', !!props.option)
     if (!chartInstance) {
       chartInstance = echarts.init(chartRef.value)
-      console.log('[ChartContainer] Chart instance created')
     }
     if (props.option) {
-      console.log('[ChartContainer] Setting initial option')
       chartInstance.setOption(props.option, true)
       chartInstance.resize()
-    } else {
-      console.warn('[ChartContainer] No option to set')
     }
-  } else if (!newVal) {
-    console.warn('[ChartContainer] loading=false but chartRef is null')
   }
-}, { immediate: false })
+})
 
 watch(() => props.option, (newVal) => {
-  console.log('[ChartContainer] option changed, has chartInstance:', !!chartInstance)
   if (newVal && chartInstance) {
-    console.log('[ChartContainer] Updating chart with new option')
     chartInstance.setOption(newVal, true)
-    setTimeout(() => {
-      if (chartInstance) {
-        chartInstance.resize()
-      }
-    }, 50)
-  } else if (!chartInstance) {
-    console.warn('[ChartContainer] No chart instance to update')
+    nextTick(() => {
+      chartInstance?.resize()
+    })
   }
 }, { deep: true })
 

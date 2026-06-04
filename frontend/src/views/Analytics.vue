@@ -317,7 +317,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from '../components/ChartContainer.vue'
@@ -469,13 +469,6 @@ const filteredStats = computed(() => {
     ? source
     : source.filter(stat => selectedRepos.value.includes(stat.repoPath))
   
-  console.log('[filteredStats]', {
-    selectedRepos: selectedRepos.value,
-    statsCount: source.length,
-    filteredCount: result.length,
-    granularity: currentGranularity.value
-  })
-  
   return result
 })
 
@@ -487,9 +480,7 @@ const allDates = computed(() => {
       author.dailyData?.forEach(day => dateSet.add(day.date))
     })
   })
-  const result = Array.from(dateSet).sort()
-  console.log('[allDates]', result)
-  return result
+  return Array.from(dateSet).sort()
 })
 
 // 提取所有用户
@@ -506,9 +497,7 @@ const allAuthors = computed(() => {
       }
     })
   })
-  const result = Array.from(authorMap.values())
-  console.log('[allAuthors]', result.map(a => a.name))
-  return result
+  return Array.from(authorMap.values())
 })
 
 // 动态图表标题
@@ -541,12 +530,12 @@ const timePeriodLabel = computed(() => {
 
 const timePeriodPrefix = computed(() => {
   switch (loadedTimeRange.value) {
-    case 'week': return '本周'
-    case 'lastWeek': return '上周'
-    case 'month': return '本月'
-    case 'lastMonth': return '上月'
-    case 'year': return '本年'
-    case 'custom': return '统计周期'
+    case 'week': return t('analytics.thisWeek')
+    case 'lastWeek': return t('analytics.lastWeek')
+    case 'month': return t('analytics.thisMonth')
+    case 'lastMonth': return t('analytics.lastMonth')
+    case 'year': return t('analytics.thisYear')
+    case 'custom': return t('analytics.customPeriod')
     default: return ''
   }
 })
@@ -556,14 +545,11 @@ const commitTrendOption = computed(() => {
   const dates = allDates.value
   const authors = allAuthors.value
   
-  console.log('[commitTrendOption]', { datesCount: dates.length, authorsCount: authors.length })
-  
   if (dates.length === 0 || authors.length === 0) {
-    console.warn('[commitTrendOption] No data - returning empty state')
     return {
-      title: { 
-        text: '暂无数据', 
-        left: 'center', 
+      title: {
+        text: t('analytics.noData'),
+        left: 'center',
         top: 'center',
         textStyle: { color: '#64748b', fontSize: 16 }
       }
@@ -1199,7 +1185,6 @@ const loadData = async () => {
       getRepoComparison(selectedRepos.value, startDate, endDate)
     ])
     overviewStats.value = overview
-    console.log(`[loadData] ${granularity} API response:`, stats)
 
     if (granularity === 'day') {
       dailyStats.value = stats || []
@@ -1211,22 +1196,13 @@ const loadData = async () => {
     authorRank.value = authors || []
     activityHeatmap.value = heatmap || []
     repoComparison.value = comparison || []
-    console.log(`[loadData] ${granularity}Stats assigned, length:`, stats?.length || 0)
-    
-    // 等待 computed 重新计算
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
-    console.log('[loadData] After assignment:')
-    console.log('  - granularity:', currentGranularity.value)
-    console.log('  - filteredStats.length:', filteredStats.value.length)
-    console.log('  - allDates:', allDates.value)
-    console.log('  - allAuthors:', allAuthors.value.map(a => a.name))
-    
-    // 先关闭 loading，让图表容器显示
+
+    await nextTick()
+
     loadedTimeRange.value = selectedTimeRange.value
     loading.value = false
   } catch (error) {
-    console.error('加载数据失败:', error)
+    console.error('Failed to load analytics data:', error)
     loading.value = false
   }
 }

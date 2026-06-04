@@ -198,7 +198,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from '../i18n'
 import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, triggerAnalyze } from '../stores/data'
 import echarts from '../utils/echarts'
@@ -418,6 +418,12 @@ watch(() => detail.value?.analysis, val => {
 })
 
 onMounted(init)
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  langChart?.dispose()
+  langChart = null
+})
 </script>
 
 <style scoped>
