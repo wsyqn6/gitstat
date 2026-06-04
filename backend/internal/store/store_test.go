@@ -28,7 +28,8 @@ func TestStoreOperations(t *testing.T) {
 		},
 	}
 
-	s.SetRepositories(repos)
+	s.RegisterRepos(repos)
+	s.SetRepoCommits(repos[0].Path, repos[0].Commits)
 
 	if len(s.GetRepositories()) != 1 {
 		t.Errorf("Expected 1 repository, got %d", len(s.GetRepositories()))

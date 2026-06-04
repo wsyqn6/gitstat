@@ -19,17 +19,6 @@ type Commit struct {
 	Message   string    `json:"message"`
 	Additions int       `json:"additions"`
 	Deletions int       `json:"deletions"`
-	Files     []string  `json:"files"`
-}
-
-type ScanRequest struct {
-	Path      string `json:"path"`
-	TimeRange string `json:"timeRange"` // e.g., "7d", "30d", "90d", "all"
-}
-
-type ScanResponse struct {
-	Repositories []Repository `json:"repositories"`
-	TotalCommits int          `json:"totalCommits"`
 }
 
 type OverviewStats struct {
@@ -176,9 +165,6 @@ type RepoStats struct {
 	Contributors         []ContributorStat `json:"contributors"`
 	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
 }
-
-// 仓库详情（聚合数据）— 保留兼容
-type RepoDetail = RepoStats
 
 // 仓库对比数据
 type RepoComparison struct {

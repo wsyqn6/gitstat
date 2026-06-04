@@ -151,16 +151,3 @@ func TestAggregateOverview(t *testing.T) {
 	}
 }
 
-func TestAggregateByTime(t *testing.T) {
-	now := time.Now()
-	commits := []model.Commit{
-		{Date: now, Additions: 10},
-		{Date: now.AddDate(0, 0, 1), Additions: 20},
-	}
-
-	result := AggregateByTime(commits, "day")
-
-	if len(result) != 2 {
-		t.Errorf("Expected 2 days, got %d", len(result))
-	}
-}

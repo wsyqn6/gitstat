@@ -71,38 +71,6 @@ func AggregateOverview(repos []model.Repository, userEmail string, startDate, en
 	}
 }
 
-func AggregateByTime(commits []model.Commit, granularity string) []map[string]interface{} {
-	timeSeries := make(map[string]map[string]interface{})
-
-	for _, c := range commits {
-		dateKey := c.Date.Format("2006-01-02")
-		if _, exists := timeSeries[dateKey]; !exists {
-			timeSeries[dateKey] = map[string]interface{}{
-				"date":      dateKey,
-				"commits":   0,
-				"additions": 0,
-				"deletions": 0,
-			}
-		}
-
-		stats := timeSeries[dateKey]
-		stats["commits"] = stats["commits"].(int) + 1
-		stats["additions"] = stats["additions"].(int) + c.Additions
-		stats["deletions"] = stats["deletions"].(int) + c.Deletions
-	}
-
-	var result []map[string]interface{}
-	for _, v := range timeSeries {
-		result = append(result, v)
-	}
-
-	slices.SortFunc(result, func(a, b map[string]interface{}) int {
-		return cmp.Compare(a["date"].(string), b["date"].(string))
-	})
-
-	return result
-}
-
 func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.RepositoryDailyStats {
 	var result []model.RepositoryDailyStats
 

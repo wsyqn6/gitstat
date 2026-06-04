@@ -12,53 +12,6 @@ import (
 	"gitstat/internal/model"
 )
 
-func ScanDirectory(path string, timeRange string) ([]model.Repository, error) {
-	var startDate, endDate time.Time
-	now := time.Now()
-
-	switch timeRange {
-	case "1d":
-		startDate = now.AddDate(0, 0, -1)
-		endDate = now
-	case "7d":
-		startDate = now.AddDate(0, 0, -7)
-		endDate = now
-	case "30d":
-		startDate = now.AddDate(0, 0, -30)
-		endDate = now
-	case "90d":
-		startDate = now.AddDate(0, 0, -90)
-		endDate = now
-	default:
-		startDate = time.Time{}
-		endDate = now
-	}
-
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var repos []model.Repository
-
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		repoPath := filepath.Join(path, entry.Name())
-		if _, err := os.Stat(filepath.Join(repoPath, ".git")); os.IsNotExist(err) {
-			continue
-		}
-		repo, err := scanSingleRepo(repoPath, startDate, endDate)
-		if err != nil {
-			continue
-		}
-		repos = append(repos, repo)
-	}
-
-	return repos, nil
-}
-
 func gitExec(repoPath string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repoPath
@@ -197,22 +150,6 @@ func parseGitLog(text string) ([]model.Commit, error) {
 func ScanCommitsByRange(repoPath string, startDate, endDate time.Time) ([]model.Commit, error) {
 	return runGitLog(repoPath, startDate, endDate)
 }
-
-func calculateCutoffTime(timeRange string) time.Time {
-	switch timeRange {
-	case "1d":
-		return time.Now().AddDate(0, 0, -1)
-	case "7d":
-		return time.Now().AddDate(0, 0, -7)
-	case "30d":
-		return time.Now().AddDate(0, 0, -30)
-	case "90d":
-		return time.Now().AddDate(0, 0, -90)
-	default:
-		return time.Time{}
-	}
-}
-
 func DiscoverRepos(rootPath string) ([]model.Repository, error) {
 	var repos []model.Repository
 

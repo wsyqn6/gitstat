@@ -18,7 +18,6 @@ func NewServer() *chi.Mux {
 	r.Use(corsMiddleware)
 	r.Use(loggingMiddleware)
 
-	r.Post("/api/scan", handler.ScanHandler)
 	r.Post("/api/scan/path", handler.SetScanPathHandler)
 	r.Get("/api/scan/path", handler.GetScanPathHandler)
 	r.Get("/api/repositories", handler.GetRepositoriesHandler)

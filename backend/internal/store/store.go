@@ -44,24 +44,6 @@ var GlobalStore = &Store{
 	Repos: make(map[string]*RepoCache),
 }
 
-func (s *Store) SetRepositories(repos []model.Repository) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, repo := range repos {
-		s.Repos[repo.Path] = &RepoCache{
-			Path:           repo.Path,
-			Name:           repo.Name,
-			UserEmail:      repo.UserEmail,
-			CurrentBranch:  repo.CurrentBranch,
-			LastCommitTime: repo.LastCommitTime,
-			Commits:        repo.Commits,
-		}
-		if len(repo.Commits) > 0 {
-			s.updateDateRange(s.Repos[repo.Path], repo.Commits)
-		}
-	}
-}
-
 // MergeCommits 增量合并提交，并检查上限
 func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 	s.mu.Lock()
