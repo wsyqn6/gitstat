@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"slices"
+	"time"
 
+	"gitstat/internal/aggregator"
 	"gitstat/internal/model"
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
@@ -56,7 +58,10 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			branchCount = meta.BranchCount
 			fileCount = meta.FileCount
-			store.GlobalStore.UpdateRepoMeta(cache.Path, branchCount, fileCount)
+			store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
+				c.BranchCount = branchCount
+				c.FileCount = fileCount
+			})
 		}
 	}
 
@@ -83,15 +88,83 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats, ok := store.GlobalStore.GetRepoStats(path)
-	if !ok {
+	cache := store.GlobalStore.GetRepoCache(path)
+	if cache == nil {
 		http.Error(w, "repo not found", http.StatusNotFound)
 		return
 	}
 
-	if stats.RepoSize == 0 {
-		stats.RepoSize = scanner.GetRepoSize(path)
-		store.GlobalStore.CacheRepoSize(path, stats.RepoSize)
+	repos := []model.Repository{{
+		Path:    cache.Path,
+		Name:    cache.Name,
+		Commits: cache.Commits,
+	}}
+	rank := aggregator.AggregateAuthorRank(repos, "", time.Time{}, time.Time{})
+	contributors := make([]model.ContributorStat, len(rank))
+	for i, item := range rank {
+		contributors[i] = model.ContributorStat{
+			Author:         item.Author,
+			Email:          item.Email,
+			CommitCount:    item.Commits,
+			Additions:      item.Additions,
+			Deletions:      item.Deletions,
+			LastCommitDate: item.LastCommitDate,
+		}
+	}
+
+	recentCommits := cache.Commits
+	if len(recentCommits) > 20 {
+		recentCommits = recentCommits[len(recentCommits)-20:]
+	}
+	for i, j := 0, len(recentCommits)-1; i < j; i, j = i+1, j-1 {
+		recentCommits[i], recentCommits[j] = recentCommits[j], recentCommits[i]
+	}
+
+	var earliestDate string
+	var earliestAuthor string
+	if !cache.EarliestDate.IsZero() {
+		earliestDate = cache.EarliestDate.Format("2006-01-02 15:04:05")
+	}
+	if len(cache.Commits) > 0 {
+		earliest := cache.Commits[0]
+		for _, c := range cache.Commits {
+			if c.Date.Before(earliest.Date) {
+				earliest = c
+			}
+		}
+		earliestAuthor = earliest.Author
+	}
+
+	repoSize := cache.RepoSize
+	if repoSize == 0 {
+		repoSize = scanner.GetRepoSize(path)
+		store.GlobalStore.UpdateRepo(path, func(c *store.RepoCache) {
+			c.RepoSize = repoSize
+		})
+	}
+
+	stats := model.RepoStats{
+		Path:                 cache.Path,
+		Name:                 cache.Name,
+		CurrentBranch:        cache.CurrentBranch,
+		LastCommitTime:       cache.LastCommitTime,
+		EarliestDate:         earliestDate,
+		EarliestCommitAuthor: earliestAuthor,
+		RepoSize:             repoSize,
+		RecentCommits:        recentCommits,
+		Contributors:         contributors,
+	}
+
+	if cache.Analyzed {
+		stats.Analysis = &model.AnalyzeResult{
+			Name:        cache.Name,
+			Path:        cache.Path,
+			BranchCount: cache.BranchCount,
+			Branches:    cache.Branches,
+			FileCount:   cache.FileCount,
+			TotalLines:  cache.TotalLines,
+			Languages:   cache.Languages,
+		}
 	}
 
 	writeJSON(w, "RepoStats", stats)
@@ -120,6 +193,13 @@ func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	store.GlobalStore.SetAnalyzeCache(req.Path, result)
+	store.GlobalStore.UpdateRepo(req.Path, func(c *store.RepoCache) {
+		c.BranchCount = result.BranchCount
+		c.Branches = result.Branches
+		c.FileCount = result.FileCount
+		c.TotalLines = result.TotalLines
+		c.Languages = result.Languages
+		c.Analyzed = true
+	})
 	writeJSON(w, "RepoAnalyze", result)
 }

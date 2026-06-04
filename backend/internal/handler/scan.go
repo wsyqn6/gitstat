@@ -40,8 +40,7 @@ func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 	// 注册仓库（未初始化状态）
 	store.GlobalStore.RegisterRepos(repos)
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(model.ApiResponse{
+	writeJSON(w, "SetScanPath", model.ApiResponse{
 		Code: 200,
 		Data: map[string]interface{}{
 			"path": req.Path,
@@ -52,16 +51,13 @@ func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetRepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 	repos := store.GlobalStore.GetRepositories()
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(repos)
+	writeJSON(w, "Repositories", repos)
 }
 
 // GetScanPathHandler 获取当前扫描路径
 func GetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 	path := store.GlobalStore.GetScanPath()
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(model.ApiResponse{
+	writeJSON(w, "GetScanPath", model.ApiResponse{
 		Code: 200,
 		Data: map[string]string{
 			"path": path,

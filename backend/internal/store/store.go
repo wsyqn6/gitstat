@@ -4,7 +4,6 @@ import (
 	"sync"
 	"time"
 
-	"gitstat/internal/aggregator"
 	"gitstat/internal/model"
 )
 
@@ -138,6 +137,15 @@ func (s *Store) GetAllCommits() []model.Commit {
 	return allCommits
 }
 
+// UpdateRepo 线程安全更新仓库缓存的指定字段
+func (s *Store) UpdateRepo(path string, fn func(*RepoCache)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if cache, ok := s.Repos[path]; ok {
+		fn(cache)
+	}
+}
+
 func (s *Store) updateDateRange(cache *RepoCache, commits []model.Commit) {
 	for _, c := range commits {
 		if cache.EarliestDate.IsZero() || c.Date.Before(cache.EarliestDate) {
@@ -171,25 +179,6 @@ func (s *Store) RegisterRepos(repos []model.Repository) {
 			Initialized:    false,
 			Commits:        []model.Commit{},
 		}
-	}
-}
-
-// InitRepoCache 初始化仓库缓存（首次扫描后调用）
-func (s *Store) InitRepoCache(path string, meta model.Repository, commits []model.Commit) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	cache, ok := s.Repos[path]
-	if !ok {
-		return
-	}
-	cache.Name = meta.Name
-	cache.UserEmail = meta.UserEmail
-	cache.CurrentBranch = meta.CurrentBranch
-	cache.LastCommitTime = meta.LastCommitTime
-	cache.Commits = commits
-	cache.Initialized = true
-	if len(commits) > 0 {
-		s.updateDateRange(cache, commits)
 	}
 }
 
@@ -240,18 +229,6 @@ func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 	}
 }
 
-// UpdateRepoMeta 更新仓库快数据（分支数、文件数）
-func (s *Store) UpdateRepoMeta(path string, branchCount, fileCount int) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	cache, ok := s.Repos[path]
-	if !ok {
-		return
-	}
-	cache.BranchCount = branchCount
-	cache.FileCount = fileCount
-}
-
 // GetAnalyzeCache 获取缓存的深度分析结果
 func (s *Store) GetAnalyzeCache(path string) (model.AnalyzeResult, bool) {
 	s.mu.RLock()
@@ -269,109 +246,6 @@ func (s *Store) GetAnalyzeCache(path string) (model.AnalyzeResult, bool) {
 		TotalLines:  cache.TotalLines,
 		Languages:   cache.Languages,
 	}, true
-}
-
-// GetRepoStats 获取仓库统计（只含计算字段）
-func (s *Store) GetRepoStats(path string) (model.RepoStats, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	cache, ok := s.Repos[path]
-	if !ok {
-		return model.RepoStats{}, false
-	}
-
-	repos := []model.Repository{{
-		Path:    cache.Path,
-		Name:    cache.Name,
-		Commits: cache.Commits,
-	}}
-	rank := aggregator.AggregateAuthorRank(repos, "", time.Time{}, time.Time{})
-	contributors := make([]model.ContributorStat, len(rank))
-	for i, item := range rank {
-		contributors[i] = model.ContributorStat{
-			Author:         item.Author,
-			Email:          item.Email,
-			CommitCount:    item.Commits,
-			Additions:      item.Additions,
-			Deletions:      item.Deletions,
-			LastCommitDate: item.LastCommitDate,
-		}
-	}
-
-	recentCommits := cache.Commits
-	if len(recentCommits) > 20 {
-		recentCommits = recentCommits[len(recentCommits)-20:]
-	}
-	for i, j := 0, len(recentCommits)-1; i < j; i, j = i+1, j-1 {
-		recentCommits[i], recentCommits[j] = recentCommits[j], recentCommits[i]
-	}
-
-	var earliestDate string
-	var earliestAuthor string
-	if !cache.EarliestDate.IsZero() {
-		earliestDate = cache.EarliestDate.Format("2006-01-02 15:04:05")
-	}
-	if len(cache.Commits) > 0 {
-		earliest := cache.Commits[0]
-		for _, c := range cache.Commits {
-			if c.Date.Before(earliest.Date) {
-				earliest = c
-			}
-		}
-		earliestAuthor = earliest.Author
-	}
-
-	stats := model.RepoStats{
-		Path:                 cache.Path,
-		Name:                 cache.Name,
-		CurrentBranch:        cache.CurrentBranch,
-		LastCommitTime:       cache.LastCommitTime,
-		EarliestDate:         earliestDate,
-		EarliestCommitAuthor: earliestAuthor,
-		RepoSize:             cache.RepoSize,
-		RecentCommits:        recentCommits,
-		Contributors:         contributors,
-	}
-
-	if cache.Analyzed {
-		stats.Analysis = &model.AnalyzeResult{
-			Name:        cache.Name,
-			Path:        cache.Path,
-			BranchCount: cache.BranchCount,
-			Branches:    cache.Branches,
-			FileCount:   cache.FileCount,
-			TotalLines:  cache.TotalLines,
-			Languages:   cache.Languages,
-		}
-	}
-
-	return stats, true
-}
-
-// CacheRepoSize 写入仓库大小到缓存（由 handler 按需调用）
-func (s *Store) CacheRepoSize(path string, size int64) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if cache, ok := s.Repos[path]; ok {
-		cache.RepoSize = size
-	}
-}
-
-// SetAnalyzeCache 写入深度分析结果到缓存
-func (s *Store) SetAnalyzeCache(path string, result model.AnalyzeResult) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	cache, ok := s.Repos[path]
-	if !ok {
-		return
-	}
-	cache.BranchCount = result.BranchCount
-	cache.Branches = result.Branches
-	cache.FileCount = result.FileCount
-	cache.TotalLines = result.TotalLines
-	cache.Languages = result.Languages
-	cache.Analyzed = true
 }
 
 // SetScanPath 设置扫描目录
