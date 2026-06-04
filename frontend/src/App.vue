@@ -28,24 +28,27 @@
       </nav>
     </header>
     <main class="main-content">
-      <Dashboard v-if="currentView === 'dashboard'" />
-      <Analytics v-if="currentView === 'analytics'" />
-      <RepoSection v-if="currentView === 'repos'" />
-      <Settings v-if="currentView === 'settings'" />
+      <KeepAlive>
+        <component :is="currentComponent" />
+      </KeepAlive>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import { useI18n } from './i18n'
-import Dashboard from './views/Dashboard.vue'
-import Analytics from './views/Analytics.vue'
-import RepoSection from './views/RepoSection.vue'
-import Settings from './views/Settings.vue'
+
+const Dashboard = defineAsyncComponent(() => import('./views/Dashboard.vue'))
+const Analytics = defineAsyncComponent(() => import('./views/Analytics.vue'))
+const RepoSection = defineAsyncComponent(() => import('./views/RepoSection.vue'))
+const Settings = defineAsyncComponent(() => import('./views/Settings.vue'))
+
+const componentMap = { dashboard: Dashboard, analytics: Analytics, repos: RepoSection, settings: Settings }
 
 const { t, locale, setLocale } = useI18n()
 const currentView = ref(localStorage.getItem('currentView') || 'dashboard')
+const currentComponent = computed(() => componentMap[currentView.value])
 
 function setView(view) {
   currentView.value = view
