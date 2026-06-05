@@ -290,33 +290,25 @@
       line-height: 1.6;
     }
 
-    /* Screenshots (placeholder) */
+    /* Screenshots */
     .screenshots-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
       gap: 1.5rem;
     }
 
-    .screenshot-placeholder {
-      aspect-ratio: 16 / 10;
+    .screenshot-img {
+      width: 100%;
       border-radius: 12px;
       border: 1px solid rgba(0, 245, 255, 0.15);
-      background: rgba(20, 25, 50, 0.4);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      color: rgba(224, 230, 255, 0.3);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: block;
     }
 
-    .screenshot-placeholder .icon {
-      font-size: 2rem;
-      opacity: 0.3;
+    .screenshot-img:hover {
+      border-color: rgba(0, 245, 255, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 245, 255, 0.15);
+      transform: translateY(-3px);
     }
 
     /* Quick Start */
@@ -646,22 +638,10 @@
         <div class="accent-line"></div>
       </div>
       <div class="screenshots-grid">
-        <div class="screenshot-placeholder">
-          <div class="icon">&#128202;</div>
-          <span>Dashboard 看板 — 截图待补充</span>
-        </div>
-        <div class="screenshot-placeholder">
-          <div class="icon">&#128200;</div>
-          <span>Analytics 分析中心 — 截图待补充</span>
-        </div>
-        <div class="screenshot-placeholder">
-          <div class="icon">&#128295;</div>
-          <span>Settings 设置页 — 截图待补充</span>
-        </div>
-        <div class="screenshot-placeholder">
-          <div class="icon">&#127758;</div>
-          <span>仓库对比雷达图 — 截图待补充</span>
-        </div>
+        <img class="screenshot-img" src="assets/screenshots/dashboard.webp" alt="Dashboard 看板">
+        <img class="screenshot-img" src="assets/screenshots/dashboard2.webp" alt="Dashboard 看板 2">
+        <img class="screenshot-img" src="assets/screenshots/analy.webp" alt="Analytics 分析中心">
+        <img class="screenshot-img" src="assets/screenshots/analy2.webp" alt="Analytics 分析中心 2">
       </div>
     </div>
   </section>
