@@ -163,7 +163,8 @@ export async function triggerAnalyze(path) {
 
 export async function loadScanPath() {
   try {
-    state.scanPath = await api.getScanPath()
+    const info = await api.getScanPath()
+    state.scanPath = info.path
   } catch (err) {
     console.error('Failed to load scan path:', err)
   }

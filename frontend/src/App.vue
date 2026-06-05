@@ -1,9 +1,19 @@
 <template>
   <div class="app">
     <header class="header">
-      <div class="logo-container">
-        <h1 class="logo">GITSTAT</h1>
-        <div class="logo-glow"></div>
+      <div class="header-left">
+        <div class="logo-container">
+          <h1 class="logo">GITSTAT</h1>
+          <div class="logo-glow"></div>
+        </div>
+        <div class="header-meta" v-if="version || scanPath">
+          <svg class="git-icon" viewBox="0 0 78 78" width="14" height="14">
+            <path fill="currentColor" transform="translate(10 10) rotate(-45 29 29)" d="M5,58c-2.76142,0 -5,-2.23858 -5,-5v-48c0,-2.76142 2.23858,-5 5,-5h33v12.54404c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,0.73514 0.13221,1.43941 0.37415,2.09031l-15.28384,15.28384c-0.6509,-0.24194 -1.35517,-0.37415 -2.09031,-0.37415c-3.31371,0 -6,2.68629 -6,6c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-0.73514 -0.13221,-1.43941 -0.37415,-2.09031l14.87415,-14.87415l0,11.50851c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.08808c2.06553,-0.94801 3.5,-3.03446 3.5,-5.45596c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.54404h10c2.76142,0 5,2.23858 5,5v48c0,2.76142 -2.23858,5 -5,5z"/>
+          </svg>
+          <span class="meta-version">{{ version || 'dev' }}</span>
+          <span class="meta-sep">│</span>
+          <span class="meta-path" :title="scanPath">{{ scanPath || '—' }}</span>
+        </div>
       </div>
       <nav>
         <a @click="setView('dashboard')" :class="{ active: currentView === 'dashboard' }">
@@ -41,8 +51,10 @@
 </template>
 
 <script setup>
-import { ref, computed, defineAsyncComponent } from 'vue'
+import { ref, computed, defineAsyncComponent, onMounted } from 'vue'
 import { useI18n } from './i18n'
+import * as api from './api'
+import { loadScanPath } from './stores/data'
 
 const Dashboard = defineAsyncComponent(() => import('./views/Dashboard.vue'))
 const Analytics = defineAsyncComponent(() => import('./views/Analytics.vue'))
@@ -54,6 +66,24 @@ const componentMap = { dashboard: Dashboard, analytics: Analytics, repos: RepoSe
 const { t, locale, setLocale } = useI18n()
 const currentView = ref(localStorage.getItem('currentView') || 'dashboard')
 const currentComponent = computed(() => componentMap[currentView.value])
+const scanPath = ref('')
+const version = ref('')
+
+onMounted(async () => {
+  try {
+    const info = await api.getScanPath()
+    scanPath.value = info.path
+    version.value = info.version
+  } catch (err) {
+    console.error('Failed to load scan info:', err)
+    try {
+      await loadScanPath()
+      const info = await api.getScanPath()
+      scanPath.value = info.path
+      version.value = info.version
+    } catch {}
+  }
+})
 
 function setView(view) {
   currentView.value = view
@@ -84,8 +114,47 @@ function toggleLanguage() {
   position: relative;
 }
 
+.header-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .logo-container {
   position: relative;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.65rem;
+  font-family: 'Rajdhani', sans-serif;
+  color: #475569;
+  margin-top: 0.15rem;
+  max-width: 360px;
+}
+
+.git-icon {
+  color: #f05033;
+  flex-shrink: 0;
+}
+
+.meta-version {
+  font-family: 'Rajdhani', sans-serif;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.meta-sep {
+  color: rgba(148, 163, 184, 0.25);
+}
+
+.meta-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .logo {

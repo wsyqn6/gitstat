@@ -22,7 +22,10 @@ export async function getScanPath() {
   }
   
   const data = await response.json()
-  return data.data?.path || ''
+  return {
+    path: data.data?.path || '',
+    version: data.data?.version || ''
+  }
 }
 
 export async function getOverviewStats(startDate = null, endDate = null, repos = []) {

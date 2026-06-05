@@ -3,11 +3,37 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"os/exec"
+	"regexp"
+	"strings"
+	"sync"
 
 	"gitstat/internal/model"
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
 )
+
+var (
+	gitVerOnce sync.Once
+	gitVersion string
+	verRe      = regexp.MustCompile(`\d+\.\d+\.\d+`)
+)
+
+func getGitVersion() string {
+	gitVerOnce.Do(func() {
+		out, err := exec.Command("git", "--version").Output()
+		if err != nil {
+			gitVersion = "git not found"
+			return
+		}
+		if m := verRe.FindString(string(out)); m != "" {
+			gitVersion = "git " + m
+		} else {
+			gitVersion = strings.TrimSpace(string(out))
+		}
+	})
+	return gitVersion
+}
 
 // SetScanPathHandler 设置扫描路径，不立即扫描，等待懒加载
 func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,13 +80,14 @@ func GetRepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, "Repositories", repos)
 }
 
-// GetScanPathHandler 获取当前扫描路径
+// GetScanPathHandler 获取当前扫描路径和 Git 版本
 func GetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 	path := store.GlobalStore.GetScanPath()
 	writeJSON(w, "GetScanPath", model.ApiResponse{
 		Code: 200,
-		Data: map[string]string{
-			"path": path,
+		Data: map[string]interface{}{
+			"path":    path,
+			"version": getGitVersion(),
 		},
 	})
 }

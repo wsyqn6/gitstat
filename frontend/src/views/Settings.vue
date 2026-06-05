@@ -80,7 +80,8 @@ const version = ref('v0.1.0')
 
 onMounted(async () => {
   try {
-    version.value = await api.getVersion()
+    const scanInfo = await api.getScanPath()
+    version.value = scanInfo.version || 'dev'
   } catch (err) {
     console.error('Failed to fetch version:', err)
   }
