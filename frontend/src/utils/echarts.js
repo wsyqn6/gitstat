@@ -1,6 +1,7 @@
 import * as echarts from 'echarts/core'
 import { LineChart, BarChart, HeatmapChart, RadarChart, PieChart } from 'echarts/charts'
 import {
+  TitleComponent,
   TooltipComponent,
   LegendComponent,
   GridComponent,
@@ -15,6 +16,7 @@ echarts.use([
   HeatmapChart,
   RadarChart,
   PieChart,
+  TitleComponent,
   TooltipComponent,
   LegendComponent,
   GridComponent,

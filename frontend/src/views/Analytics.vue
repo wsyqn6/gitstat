@@ -14,15 +14,40 @@
           :customStartDate="customStartDate"
           :customEndDate="customEndDate"
           :loading="loading"
-          :viewMode="viewMode"
           @update:selectedRepos="selectedRepos = $event"
           @update:selectedTimeRange="selectedTimeRange = $event"
           @update:showCustomPicker="showCustomPicker = $event"
           @update:customStartDate="customStartDate = $event"
           @update:customEndDate="customEndDate = $event"
-          @update:viewMode="viewMode = $event"
           @analyze="loadData"
         />
+      </div>
+      <div class="view-toggle-bar">
+        <div class="view-toggle-inner">
+          <button
+            @click="viewMode = 'chart'"
+            class="view-toggle-btn"
+            :class="{ active: viewMode === 'chart' }"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            <span>{{ t('calendar.chartView') }}</span>
+          </button>
+          <button
+            @click="viewMode = 'calendar'"
+            class="view-toggle-btn"
+            :class="{ active: viewMode === 'calendar' }"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>{{ t('calendar.calendarView') }}</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -75,6 +100,7 @@ import OverviewCards from '../components/OverviewCards.vue'
 import AnalyticsPanels from '../components/AnalyticsPanels.vue'
 import AnalyticsCharts from '../components/AnalyticsCharts.vue'
 import CalendarView from '../components/CalendarView.vue'
+import { useI18n } from '../i18n'
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -293,6 +319,52 @@ onMounted(async () => {
   letter-spacing: 4px;
   text-transform: uppercase;
   margin: 0;
+}
+
+.view-toggle-bar {
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.view-toggle-inner {
+  display: inline-flex;
+  background: rgba(10, 14, 39, 0.6);
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1.2rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.view-toggle-btn:hover {
+  color: #94a3b8;
+}
+
+.view-toggle-btn.active {
+  background: rgba(0, 245, 255, 0.15);
+  color: #00f5ff;
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+}
+
+.toggle-icon {
+  width: 16px;
+  height: 16px;
 }
 
 @media (max-width: 1200px) {

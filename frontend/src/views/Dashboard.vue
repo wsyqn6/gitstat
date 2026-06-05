@@ -253,7 +253,7 @@ const weeklyTotal = computed(() =>
 )
 
 const repoColors = computed(() =>
-  state.repoDailyTrend.map((_, i) => CHART_CHART_COLORS[i % CHART_COLORS.length])
+  state.repoDailyTrend.map((_, i) => CHART_COLORS[i % CHART_COLORS.length])
 )
 
 const authorRankWithRepos = computed(() => {
@@ -263,7 +263,7 @@ const authorRankWithRepos = computed(() => {
     for (const author of repo.authors || []) {
       if (!repoOf[author.email]) repoOf[author.email] = []
       const total = author.dailyData ? author.dailyData.reduce((s, d) => s + d.commits, 0) : 0
-      repoOf[author.email].push({ name: repo.repoName, commits: total, color: CHART_COLORS[state.repoDailyTrend.indexOf(repo) % COLORS.length] })
+      repoOf[author.email].push({ name: repo.repoName, commits: total, color: CHART_COLORS[state.repoDailyTrend.indexOf(repo) % CHART_COLORS.length] })
     }
   }
   return state.authorRank.map(a => ({
@@ -290,14 +290,14 @@ function renderTrendChart() {
       stack: 'total',
       smooth: true,
       symbol: 'none',
-      lineStyle: { width: 1.5, color: CHART_COLORS[i % COLORS.length] },
+      lineStyle: { width: 1.5, color: CHART_COLORS[i % CHART_COLORS.length] },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: CHART_COLORS[i % COLORS.length] + '60' },
-          { offset: 1, color: CHART_COLORS[i % COLORS.length] + '05' }
+          { offset: 0, color: CHART_COLORS[i % CHART_COLORS.length] + '60' },
+          { offset: 1, color: CHART_COLORS[i % CHART_COLORS.length] + '05' }
         ])
       },
-      itemStyle: { color: CHART_COLORS[i % COLORS.length] },
+      itemStyle: { color: CHART_COLORS[i % CHART_COLORS.length] },
       data: allDates.map(d => dateMap[d] || 0)
     }
   })
