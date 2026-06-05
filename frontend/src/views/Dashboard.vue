@@ -85,27 +85,25 @@
           </div>
           <template v-else-if="authorRankWithRepos.length > 0">
             <div class="rank-list">
-              <div
-                v-for="(author, index) in authorRankWithRepos.slice(0, 5)"
-                :key="author.email"
-                class="rank-row rank-row-compact"
-              >
-                <div class="rank-num" :class="{ gold: index === 0, silver: index === 1, bronze: index === 2 }">
-                  {{ index + 1 }}
+              <template v-for="(author, index) in authorRankWithRepos.slice(0, 5)" :key="author.email">
+                <div class="rank-row rank-row-compact">
+                  <div class="rank-num" :class="{ gold: index === 0, silver: index === 1, bronze: index === 2 }">
+                    {{ index + 1 }}
+                  </div>
+                  <div class="rank-info">
+                    <span class="rank-name">{{ author.author }}</span>
+                    <span v-if="author.isMe" class="me-badge-small">{{ t('dashboard.me') }}</span>
+                  </div>
+                  <div class="rank-stats">
+                    <span class="rank-commits">{{ author.commits }}</span>
+                  </div>
                 </div>
-                <div class="rank-info">
-                  <span class="rank-name">{{ author.author }}</span>
-                  <span v-if="author.isMe" class="me-badge-small">{{ t('dashboard.me') }}</span>
+                <div class="rank-repo-dist">
+                  <span v-for="r in author.repos" :key="r.name" class="repo-tag" :style="{ borderColor: r.color, color: r.color }">
+                    {{ r.name }} {{ r.commits }}
+                  </span>
                 </div>
-                <div class="rank-stats">
-                  <span class="rank-commits">{{ author.commits }}</span>
-                </div>
-              </div>
-              <div class="rank-repo-dist" v-for="author in authorRankWithRepos.slice(0, 5)" :key="'dist-'+author.email">
-                <span v-for="r in author.repos" :key="r.name" class="repo-tag" :style="{ borderColor: r.color, color: r.color }">
-                  {{ r.name }} {{ r.commits }}
-                </span>
-              </div>
+              </template>
             </div>
           </template>
           <div v-else class="insight-empty">{{ t('analytics.noData') }}</div>

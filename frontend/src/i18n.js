@@ -6,7 +6,8 @@ const messages = {
       dashboard: '仪表盘',
       analytics: '数据分析',
       repos: '仓库信息',
-      settings: '设置'
+      settings: '设置',
+      github: 'GitHub'
     },
     dashboard: {
       switchDirectory: '切换目录',
@@ -152,7 +153,8 @@ const messages = {
       dashboard: 'Dashboard',
       analytics: 'Analytics',
       repos: 'Repositories',
-      settings: 'Settings'
+      settings: 'Settings',
+      github: 'GitHub'
     },
     dashboard: {
       switchDirectory: 'Switch Directory',
