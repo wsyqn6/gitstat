@@ -303,12 +303,99 @@
       border: 1px solid rgba(0, 245, 255, 0.15);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: block;
+      cursor: pointer;
     }
 
     .screenshot-img:hover {
       border-color: rgba(0, 245, 255, 0.4);
       box-shadow: 0 8px 32px rgba(0, 245, 255, 0.15);
       transform: translateY(-3px);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(5, 8, 22, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: lbFadeIn 0.25s ease;
+    }
+
+    .lightbox.hide {
+      animation: lbFadeOut 0.2s ease forwards;
+    }
+
+    @keyframes lbFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes lbFadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 245, 255, 0.25);
+      box-shadow: 0 0 60px rgba(0, 245, 255, 0.2), 0 0 120px rgba(255, 0, 255, 0.1);
+      animation: lbZoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .lightbox.hide img {
+      animation: lbZoomOut 0.2s ease forwards;
+    }
+
+    @keyframes lbZoomIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes lbZoomOut {
+      from { transform: scale(1); opacity: 1; }
+      to { transform: scale(0.85); opacity: 0; }
+    }
+
+    .lightbox-close {
+      position: fixed;
+      top: 1rem;
+      right: 1.5rem;
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(0, 245, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(10, 14, 39, 0.8);
+      color: #00f5ff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 1000;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .lightbox-close:hover {
+      border-color: #00f5ff;
+      background: rgba(0, 245, 255, 0.15);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+    }
+
+    .lightbox-counter {
+      position: fixed;
+      bottom: 1.5rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      color: rgba(0, 245, 255, 0.6);
+      letter-spacing: 2px;
+      z-index: 1000;
     }
 
     /* Quick Start */
@@ -637,11 +724,11 @@
         <p>赛博朋克风格的可视化界面</p>
         <div class="accent-line"></div>
       </div>
-      <div class="screenshots-grid">
-        <img class="screenshot-img" src="assets/screenshots/dashboard.webp" alt="Dashboard 看板">
-        <img class="screenshot-img" src="assets/screenshots/dashboard2.webp" alt="Dashboard 看板 2">
-        <img class="screenshot-img" src="assets/screenshots/analy.webp" alt="Analytics 分析中心">
-        <img class="screenshot-img" src="assets/screenshots/analy2.webp" alt="Analytics 分析中心 2">
+      <div class="screenshots-grid" id="screenshotsGrid">
+        <img class="screenshot-img" src="assets/screenshots/dashboard.webp" alt="Dashboard 看板" onclick="openLightbox(this)">
+        <img class="screenshot-img" src="assets/screenshots/dashboard2.webp" alt="Dashboard 看板 2" onclick="openLightbox(this)">
+        <img class="screenshot-img" src="assets/screenshots/analy.webp" alt="Analytics 分析中心" onclick="openLightbox(this)">
+        <img class="screenshot-img" src="assets/screenshots/analy2.webp" alt="Analytics 分析中心 2" onclick="openLightbox(this)">
       </div>
     </div>
   </section>
@@ -726,6 +813,68 @@
     els.forEach(function(el) { if (el) el.textContent = ver })
   } catch(e) {}
 })()
+</script>
+<script>
+var lbImgs = []
+document.querySelectorAll('.screenshot-img').forEach(function(el, i) {
+  lbImgs.push(el)
+  el.setAttribute('data-lb-idx', i)
+})
+
+function openLightbox(el) {
+  var idx = parseInt(el.getAttribute('data-lb-idx'))
+  var lb = document.createElement('div')
+  lb.className = 'lightbox'
+
+  var img = document.createElement('img')
+  img.src = el.src
+  img.alt = el.alt
+
+  var closeBtn = document.createElement('button')
+  closeBtn.className = 'lightbox-close'
+  closeBtn.innerHTML = '&#10005;'
+  closeBtn.onclick = function(e) { e.stopPropagation(); closeLightbox(lb) }
+
+  var counter = document.createElement('div')
+  counter.className = 'lightbox-counter'
+  counter.textContent = (idx + 1) + ' / ' + lbImgs.length
+
+  lb.appendChild(img)
+  lb.appendChild(closeBtn)
+  lb.appendChild(counter)
+
+  function onKey(e) {
+    if (e.key === 'Escape') { closeLightbox(lb) }
+    else if (e.key === 'ArrowLeft' && idx > 0) { navigate(--idx) }
+    else if (e.key === 'ArrowRight' && idx < lbImgs.length - 1) { navigate(++idx) }
+  }
+
+  function navigate(newIdx) {
+    idx = newIdx
+    var src = lbImgs[idx].src
+    var alt = lbImgs[idx].alt
+    img.style.animation = 'none'
+    img.offsetHeight
+    img.src = src
+    img.alt = alt
+    counter.textContent = (idx + 1) + ' / ' + lbImgs.length
+  }
+
+  lb.onclick = function(e) { if (e.target === lb) closeLightbox(lb) }
+  document.addEventListener('keydown', onKey)
+
+  lb.close = function() {
+    document.removeEventListener('keydown', onKey)
+    lb.remove()
+  }
+
+  document.body.appendChild(lb)
+}
+
+function closeLightbox(lb) {
+  lb.classList.add('hide')
+  setTimeout(function() { lb.close() }, 200)
+}
 </script>
 </body>
 </html>
