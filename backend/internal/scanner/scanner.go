@@ -22,41 +22,6 @@ func gitExec(repoPath string, args ...string) (string, error) {
 	return strings.TrimRight(string(out), "\n\r "), nil
 }
 
-func scanSingleRepo(path string, startDate, endDate time.Time) (model.Repository, error) {
-	currentBranch, _ := gitExec(path, "rev-parse", "--abbrev-ref", "HEAD")
-	userEmail, _ := gitExec(path, "config", "user.email")
-
-	commits, err := runGitLog(path, startDate, endDate)
-	if err != nil {
-		return model.Repository{}, err
-	}
-
-	var lastCommitTime string
-	for _, c := range commits {
-		if !c.Date.IsZero() {
-			lastCommitTime = c.Date.Format("2006-01-02 15:04:05")
-			break
-		}
-	}
-	if lastCommitTime == "" {
-		out, err := gitExec(path, "log", "-1", "--format=%ci")
-		if err == nil {
-			if t, e := time.Parse("2006-01-02 15:04:05 -0700", out); e == nil {
-				lastCommitTime = t.Format("2006-01-02 15:04:05")
-			}
-		}
-	}
-
-	return model.Repository{
-		Path:           path,
-		Name:           filepath.Base(path),
-		CurrentBranch:  currentBranch,
-		LastCommitTime: lastCommitTime,
-		UserEmail:      userEmail,
-		Commits:        commits,
-	}, nil
-}
-
 func runGitLog(repoPath string, since, until time.Time) ([]model.Commit, error) {
 	args := []string{"log", "--format=---GITSTAT_COMMIT---%n%H%n%an%n%ae%n%ci%n%s", "--numstat"}
 	if !since.IsZero() {
