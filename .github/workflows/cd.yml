@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Update version in docs
         run: |
-          sed -i "s/v0\.2\.0/${{ github.ref_name }}/g" docs/index.html
+          sed -i "s/__VERSION__/${{ github.ref_name }}/g" docs/index.html
       - uses: actions/setup-go@v6
         with:
           go-version-file: backend/go.mod
@@ -49,6 +49,7 @@ jobs:
           node-version: 22
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: node frontend/scripts/sync-version.mjs
       - run: |
           cd frontend && pnpm install --frozen-lockfile && pnpm build
           mkdir -p ../backend/web/dist
@@ -63,7 +64,7 @@ jobs:
         run: |
           git config user.name "GitStat CD"
           git config user.email "cd@gitstat.dev"
-          git add docs/index.html
+          git add docs/index.html frontend/package.json
           git diff --staged --quiet || git commit -m "chore: update version to ${{ github.ref_name }}"
           git push
       - uses: softprops/action-gh-release@v2
