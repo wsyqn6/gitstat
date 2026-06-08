@@ -13,7 +13,7 @@
               :class="{ active: selectedTimeRange === option.value }"
             >
               <span class="btn-glow"></span>
-              <span class="btn-text-cyber">{{ option.label }}</span>
+              <span class="btn-text-cyber">{{ t(option.labelKey) }}</span>
             </button>
             <button
               @click.stop="emit('update:showCustomPicker', !showCustomPicker)"
@@ -129,9 +129,9 @@ const emit = defineEmits([
 const showDropdown = ref(false)
 
 const timeOptions = [
-  { label: computed(() => t('analytics.thisWeek')), value: 'week' },
-  { label: computed(() => t('analytics.thisMonth')), value: 'month' },
-  { label: computed(() => t('analytics.thisYear')), value: 'year' }
+  { labelKey: 'analytics.thisWeek', value: 'week' },
+  { labelKey: 'analytics.thisMonth', value: 'month' },
+  { labelKey: 'analytics.thisYear', value: 'year' }
 ]
 
 const allReposSelected = computed(() => {
