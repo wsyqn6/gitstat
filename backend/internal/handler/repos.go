@@ -39,13 +39,13 @@ func GetReposListHandler(w http.ResponseWriter, r *http.Request) {
 func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	if path == "" {
-		http.Error(w, "path is required", http.StatusBadRequest)
+		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
 		return
 	}
 
 	cache := store.GlobalStore.GetRepoCache(path)
 	if cache == nil {
-		http.Error(w, "repo not found", http.StatusNotFound)
+		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
 
@@ -84,13 +84,13 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	if path == "" {
-		http.Error(w, "path is required", http.StatusBadRequest)
+		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
 		return
 	}
 
 	cache := store.GlobalStore.GetRepoCache(path)
 	if cache == nil {
-		http.Error(w, "repo not found", http.StatusNotFound)
+		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
 
@@ -173,12 +173,12 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 	var req model.AnalyzeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		writeError(w, ErrCodeInvalidRequest, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	if req.Path == "" {
-		http.Error(w, "Path is required", http.StatusBadRequest)
+		writeError(w, ErrCodePathRequired, "Path is required", http.StatusBadRequest)
 		return
 	}
 
@@ -189,7 +189,7 @@ func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 
 	result, err := scanner.AnalyzeRepoDeep(req.Path)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, ErrCodeInternalError, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

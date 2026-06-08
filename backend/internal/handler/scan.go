@@ -41,12 +41,12 @@ func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 		Path string `json:"path"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		writeError(w, ErrCodeInvalidRequest, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	if req.Path == "" {
-		http.Error(w, "Path is required", http.StatusBadRequest)
+		writeError(w, ErrCodePathRequired, "Path is required", http.StatusBadRequest)
 		return
 	}
 
@@ -59,7 +59,7 @@ func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 	// 扫描新路径下的仓库元数据（不获取提交）
 	repos, err := scanner.DiscoverRepos(req.Path)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, ErrCodeInternalError, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
