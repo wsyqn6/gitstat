@@ -66,7 +66,7 @@ jobs:
           git config user.email "cd@gitstat.dev"
           git add docs/index.html frontend/package.json
           git diff --staged --quiet || git commit -m "chore: update version to ${{ github.ref_name }}"
-          git push
+          git push origin HEAD:main
       - uses: softprops/action-gh-release@v2
         with:
           files: backend/gitstat-*
