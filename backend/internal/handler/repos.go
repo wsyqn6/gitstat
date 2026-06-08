@@ -3,6 +3,7 @@ package handler
 import (
 	"cmp"
 	"encoding/json"
+	"log"
 	"net/http"
 	"slices"
 	"time"
@@ -68,6 +69,8 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 				c.BranchCount = branchCount
 				c.FileCount = fileCount
 			})
+		} else {
+			log.Printf("warning: failed to get repo meta for %s: %v", cache.Path, err)
 		}
 	}
 

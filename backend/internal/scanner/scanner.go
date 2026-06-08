@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -149,8 +150,14 @@ func DiscoverRepos(rootPath string) ([]model.Repository, error) {
 }
 
 func ScanMetadata(repoPath string) (model.Repository, error) {
-	currentBranch, _ := gitExec(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
-	userEmail, _ := gitExec(repoPath, "config", "user.email")
+	currentBranch, err := gitExec(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil {
+		log.Printf("warning: failed to get current branch for %s: %v", repoPath, err)
+	}
+	userEmail, err := gitExec(repoPath, "config", "user.email")
+	if err != nil {
+		log.Printf("warning: failed to get user email for %s: %v", repoPath, err)
+	}
 
 	var lastCommitTime string
 	out, err := gitExec(repoPath, "log", "-1", "--format=%ci")
@@ -159,7 +166,7 @@ func ScanMetadata(repoPath string) (model.Repository, error) {
 			lastCommitTime = t.Format("2006-01-02 15:04:05")
 		}
 	} else {
-		_ = err
+		log.Printf("warning: failed to get last commit time for %s: %v", repoPath, err)
 	}
 
 	return model.Repository{
