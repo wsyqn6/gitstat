@@ -43,6 +43,12 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	path, err := validatePath(path)
+	if err != nil {
+		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	cache := store.GlobalStore.GetRepoCache(path)
 	if cache == nil {
 		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
@@ -85,6 +91,12 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	if path == "" {
 		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
+		return
+	}
+
+	path, err := validatePath(path)
+	if err != nil {
+		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -179,6 +191,13 @@ func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 
 	if req.Path == "" {
 		writeError(w, ErrCodePathRequired, "Path is required", http.StatusBadRequest)
+		return
+	}
+
+	var err error
+	req.Path, err = validatePath(req.Path)
+	if err != nil {
+		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
 		return
 	}
 

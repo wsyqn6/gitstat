@@ -3,21 +3,46 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"gitstat/internal/model"
 	"gitstat/internal/store"
 )
 
+func validatePath(p string) (string, error) {
+	clean := filepath.Clean(p)
+	if strings.Contains(clean, "..") {
+		return "", fmt.Errorf("invalid path: traversal not allowed")
+	}
+	if !filepath.IsAbs(clean) {
+		abs, err := filepath.Abs(clean)
+		if err != nil {
+			return "", fmt.Errorf("invalid path: %w", err)
+		}
+		return abs, nil
+	}
+	return clean, nil
+}
+
 func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate time.Time) {
 	startDateStr := r.URL.Query().Get("startDate")
 	endDateStr := r.URL.Query().Get("endDate")
 
 	if startDateStr != "" && endDateStr != "" {
-		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
-		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		var parseErr error
+		startDate, parseErr = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		if parseErr != nil {
+			log.Printf("warning: invalid startDate %q: %v", startDateStr, parseErr)
+		}
+		endDate, parseErr = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		if parseErr != nil {
+			log.Printf("warning: invalid endDate %q: %v", endDateStr, parseErr)
+		}
 		endDate = endDate.Add(24*time.Hour - time.Second)
 	} else {
 		timeRange := r.URL.Query().Get("range")
@@ -31,6 +56,9 @@ func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate t
 }
 
 func loadRepos(repoPaths []string) []model.Repository {
+	if len(repoPaths) > 50 {
+		repoPaths = repoPaths[:50]
+	}
 	repos := store.GlobalStore.GetRepositories()
 
 	if len(repoPaths) > 0 {

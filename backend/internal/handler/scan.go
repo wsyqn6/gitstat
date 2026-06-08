@@ -50,6 +50,13 @@ func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var err error
+	req.Path, err = validatePath(req.Path)
+	if err != nil {
+		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	// 清空旧缓存
 	store.GlobalStore.ClearAll()
 

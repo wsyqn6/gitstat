@@ -331,6 +331,9 @@ func AggregateActivityHeatmap(repos []model.Repository, userEmail string, startD
 	var result []model.ActivityHeatmapPoint
 	for key, count := range heatmap {
 		parts := strings.Split(key, "-")
+		if len(parts) < 2 {
+			continue
+		}
 		dayOfWeek, _ := strconv.Atoi(parts[0])
 		hour, _ := strconv.Atoi(parts[1])
 		result = append(result, model.ActivityHeatmapPoint{
