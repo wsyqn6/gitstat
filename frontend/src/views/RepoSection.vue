@@ -103,26 +103,26 @@
             </div>
           </div>
 
-          <template v-if="statsLoaded">
-            <div class="card-row l2-row">
-              <div class="info-card dim" :class="{ 'has-data': detail.repoSize > 0 }">
-                <span class="info-value">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</span>
-                <span class="info-label">{{ t('repo.diskSize') }}</span>
-              </div>
-              <div class="info-card clickable dim" :class="{ expanded: expandedContributor, 'has-data': hasCommits }" @click="toggleContributor">
-                <span class="info-value">{{ hasCommits ? detail.contributors.length : '--' }}</span>
-                <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
-              </div>
-              <div class="info-card dim" :class="{ 'has-data': detail.earliestCommitAuthor }">
-                <span class="info-value">{{ formatDate(detail.earliestDate) }}</span>
-                <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
-              </div>
-              <div class="info-card dim" :class="{ 'has-data': detail.lastCommitTime }">
-                <span class="info-value">{{ formatTimeAgo(detail.lastCommitTime) }}</span>
-                <span class="info-label">{{ t('repo.lastCommit') }}</span>
-              </div>
+          <div class="card-row l2-row">
+            <div class="info-card dim" :class="{ 'has-data': detail.repoSize > 0 }">
+              <span class="info-value">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</span>
+              <span class="info-label">{{ t('repo.diskSize') }}</span>
             </div>
+            <div class="info-card clickable dim" :class="{ expanded: expandedContributor, 'has-data': hasCommits }" @click="toggleContributor">
+              <span class="info-value">{{ hasCommits ? detail.contributors.length : '--' }}</span>
+              <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
+            </div>
+            <div class="info-card dim" :class="{ 'has-data': detail.earliestCommitAuthor }">
+              <span class="info-value">{{ formatDate(detail.earliestDate) }}</span>
+              <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
+            </div>
+            <div class="info-card dim" :class="{ 'has-data': detail.lastCommitTime }">
+              <span class="info-value">{{ formatTimeAgo(detail.lastCommitTime) }}</span>
+              <span class="info-label">{{ t('repo.lastCommit') }}</span>
+            </div>
+          </div>
 
+          <template v-if="statsLoaded">
             <div v-if="expandedContributor" class="expand-panel card">
               <h4>{{ t('repo.contributors') }}</h4>
               <div class="contrib-table">
@@ -142,6 +142,7 @@
                 </div>
               </div>
             </div>
+            <RepoCharts :data="chartData" :loading="chartLoading" />
           </template>
 
           <div class="section-group">
@@ -212,7 +213,6 @@
             </template>
           </div>
 
-          <RepoCharts :data="chartData" :loading="chartLoading" />
         </template>
       </div>
     </template>

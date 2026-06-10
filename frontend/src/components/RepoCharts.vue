@@ -1,5 +1,5 @@
 <template>
-  <div class="charts-section" v-if="hasData || loading">
+  <div class="charts-section">
     <div class="section-header">
       <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
       <div v-if="availableYears.length > 1" class="year-tabs">
@@ -13,8 +13,8 @@
     </div>
     <div v-else-if="activeYear" class="cal-container">
       <div class="cal-months">
-        <span v-for="m in activeYear.monthLabels" :key="m.label"
-              class="cal-month-label" :style="{ width: m.span + 'fr' }">{{ m.label }}</span>
+    <span v-for="m in activeYear.monthLabels" :key="m.label"
+          class="cal-month-label" :style="{ gridColumn: 'span ' + m.span }">{{ m.label }}</span>
       </div>
       <div class="cal-body">
         <div class="cal-days">
@@ -98,21 +98,6 @@ const monthNames = computed(() => {
 
 const selectedYear = ref('')
 
-const availableYears = computed(() =>
-  calYears.value.map(y => y.year)
-)
-
-const activeYear = computed(() =>
-  calYears.value.find(y => y.year === selectedYear.value) || null
-)
-
-watch(() => props.data, () => {
-  const years = availableYears.value
-  if (years.length > 0 && !years.includes(selectedYear.value)) {
-    selectedYear.value = years[years.length - 1]
-  }
-}, { immediate: true })
-
 const CAL_LEVELS = [
   'rgba(0, 212, 255, 0.04)',
   'rgba(0, 212, 255, 0.18)',
@@ -141,6 +126,10 @@ const calYears = computed(() => {
     years.add(d.date.slice(0, 4))
   }
 
+  const today = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  const todayStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate())
+
   return Array.from(years).sort().map(yearStr => {
     const year = parseInt(yearStr)
     const jan1 = new Date(year, 0, 1)
@@ -154,10 +143,9 @@ const calYears = computed(() => {
       for (let d = 0; d < 7; d++) {
         const date = new Date(monday)
         date.setDate(monday.getDate() + w * 7 + d)
-        const pad = (n) => String(n).padStart(2, '0')
         const dateStr = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
         const count = dayMap.get(dateStr) || 0
-        const outOfYear = date.getFullYear() !== year
+        const outOfYear = date.getFullYear() !== year || dateStr > todayStr
         cells.push({
           date: dateStr,
           count,
@@ -186,6 +174,22 @@ const calYears = computed(() => {
     return { year: yearStr, cells, monthLabels }
   })
 })
+
+const availableYears = computed(() =>
+  calYears.value.map(y => y.year)
+)
+
+const activeYear = computed(() =>
+  calYears.value.find(y => y.year === selectedYear.value) || null
+)
+
+watch(() => props.data, () => {
+  const years = availableYears.value
+  if (years.length > 0 && !years.includes(selectedYear.value)) {
+    selectedYear.value = years[years.length - 1]
+  }
+}, { immediate: true })
+
 
 function emptyOption() {
   return {
@@ -335,11 +339,12 @@ const hourlyOption = computed(() => {
 
 /* Calendar */
 .cal-container {
-  max-width: 900px;
   margin-bottom: 2rem;
 }
 .cal-months {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(53, 1fr);
+  gap: 2px;
   padding-left: 32px;
   margin-bottom: 2px;
 }
@@ -371,7 +376,8 @@ const hourlyOption = computed(() => {
 }
 .cal-grid {
   display: grid;
-  grid-template-columns: repeat(53, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;
   gap: 2px;
   width: 100%;
 }
