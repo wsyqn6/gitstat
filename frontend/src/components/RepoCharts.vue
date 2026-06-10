@@ -1,35 +1,38 @@
 <template>
   <div class="charts-section" v-if="hasData || loading">
-    <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
+    <div class="section-header">
+      <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
+      <div v-if="availableYears.length > 1" class="year-tabs">
+        <button v-for="y in availableYears" :key="y"
+                :class="['year-tab', { active: y === selectedYear }]"
+                @click="selectedYear = y">{{ y }}</button>
+      </div>
+    </div>
     <div v-if="loading" class="chart-placeholder">
       <span class="spinner"></span>
     </div>
-    <div v-else-if="calYears.length > 0" class="cal-container">
-      <div v-for="(yr, yi) in calYears" :key="yr.year" class="cal-year">
-        <div class="cal-months">
-          <span v-for="m in yr.monthLabels" :key="m.label"
-                :style="{ width: m.span * (cellSize + cellGap) + 'px' }"
-                class="cal-month-label">{{ m.label }}</span>
+    <div v-else-if="activeYear" class="cal-container">
+      <div class="cal-months">
+        <span v-for="m in activeYear.monthLabels" :key="m.label"
+              class="cal-month-label" :style="{ width: m.span + 'fr' }">{{ m.label }}</span>
+      </div>
+      <div class="cal-body">
+        <div class="cal-days">
+          <span v-for="d in dayLabels" :key="d" class="cal-day-label">{{ d }}</span>
         </div>
-        <div class="cal-body">
-          <div class="cal-days">
-            <span v-for="d in dayLabels" :key="d" class="cal-day-label">{{ d }}</span>
-          </div>
-          <div class="cal-grid"
-               :style="{ gridTemplateColumns: `repeat(53, ${cellSize}px)`, gridTemplateRows: `repeat(7, ${cellSize}px)`, gap: cellGap + 'px' }">
-            <div v-for="cell in yr.cells" :key="cell.date"
-                 class="cal-cell"
-                 :style="{ backgroundColor: cell.outOfYear ? 'transparent' : cell.color }"
-                 :title="cell.outOfYear ? '' : cell.date + ' · ' + cell.count + ' ' + commitsLabel">
-            </div>
+        <div class="cal-grid">
+          <div v-for="cell in activeYear.cells" :key="cell.date"
+               class="cal-cell"
+               :style="{ backgroundColor: cell.outOfYear ? 'transparent' : cell.color }"
+               :title="cell.outOfYear ? '' : cell.date + ' · ' + cell.count + ' ' + commitsLabel">
           </div>
         </div>
-        <div v-if="yi === calYears.length - 1" class="cal-footer">
-          <span class="cal-legend-label">{{ lessLabel }}</span>
-          <span v-for="l in 5" :key="l" class="cal-legend-cell"
-                :style="{ backgroundColor: getCalColor(l - 1) }"></span>
-          <span class="cal-legend-label">{{ moreLabel }}</span>
-        </div>
+      </div>
+      <div class="cal-footer">
+        <span class="cal-legend-label">{{ lessLabel }}</span>
+        <span v-for="l in 5" :key="l" class="cal-legend-cell"
+              :style="{ backgroundColor: getCalColor(l - 1) }"></span>
+        <span class="cal-legend-label">{{ moreLabel }}</span>
       </div>
     </div>
     <p v-else class="empty-hint">{{ t('repo.noChartData') }}</p>
@@ -52,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from './ChartContainer.vue'
@@ -92,6 +95,23 @@ const monthNames = computed(() => {
   }
   return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 })
+
+const selectedYear = ref('')
+
+const availableYears = computed(() =>
+  calYears.value.map(y => y.year)
+)
+
+const activeYear = computed(() =>
+  calYears.value.find(y => y.year === selectedYear.value) || null
+)
+
+watch(() => props.data, () => {
+  const years = availableYears.value
+  if (years.length > 0 && !years.includes(selectedYear.value)) {
+    selectedYear.value = years[years.length - 1]
+  }
+}, { immediate: true })
 
 const CAL_LEVELS = [
   'rgba(0, 212, 255, 0.04)',
@@ -267,12 +287,42 @@ const hourlyOption = computed(() => {
 .charts-section {
   margin-top: 2rem;
 }
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
 .section-title {
   font-family: 'Orbitron', sans-serif;
   font-size: 0.95rem;
   color: #00d4ff;
   letter-spacing: 1px;
-  margin: 0 0 1rem 0;
+  margin: 0;
+}
+.year-tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+.year-tab {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 4px;
+  background: transparent;
+  color: #64748b;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.year-tab:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  color: #94a3b8;
+}
+.year-tab.active {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: #00d4ff;
+  color: #00d4ff;
 }
 
 /* Loading */
@@ -285,13 +335,8 @@ const hourlyOption = computed(() => {
 
 /* Calendar */
 .cal-container {
+  max-width: 900px;
   margin-bottom: 2rem;
-}
-.cal-year {
-  margin-bottom: 0.5rem;
-}
-.cal-year:last-child {
-  margin-bottom: 0;
 }
 .cal-months {
   display: flex;
@@ -310,29 +355,32 @@ const hourlyOption = computed(() => {
   gap: 4px;
 }
 .cal-days {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 2px;
   padding-top: 0;
 }
 .cal-day-label {
-  height: 11px;
-  line-height: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   font-size: 0.6rem;
   color: #64748b;
   font-family: 'Rajdhani', sans-serif;
-  text-align: right;
   padding-right: 2px;
 }
 .cal-grid {
   display: grid;
+  grid-template-columns: repeat(53, 1fr);
+  gap: 2px;
+  width: 100%;
 }
 .cal-cell {
-  width: 11px;
-  height: 11px;
+  aspect-ratio: 1;
   border-radius: 2px;
   transition: all 0.15s;
   cursor: default;
+  min-width: 0;
 }
 .cal-cell:hover {
   transform: scale(1.3);
