@@ -211,6 +211,8 @@
               </div>
             </template>
           </div>
+
+          <RepoCharts :data="chartData" :loading="chartLoading" />
         </template>
       </div>
     </template>
@@ -220,8 +222,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from '../i18n'
-import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, triggerAnalyze } from '../stores/data'
+import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, triggerAnalyze } from '../stores/data'
 import echarts from '../utils/echarts'
+import RepoCharts from '../components/RepoCharts.vue'
 
 const { t } = useI18n()
 
@@ -235,6 +238,8 @@ const expandedTags = ref(false)
 const expandedContributor = ref(false)
 const expandedCommit = ref(null)
 const analysisLoading = ref(false)
+const chartData = ref(null)
+const chartLoading = ref(false)
 const langChartRef = ref(null)
 let langChart = null
 
@@ -370,10 +375,23 @@ async function loadStats() {
     statsLoaded.value = true
     await nextTick()
     renderChart()
+    fetchChartData()
   } catch (err) {
     console.error('Failed to load stats:', err)
   } finally {
     loadingStats.value = false
+  }
+}
+
+async function fetchChartData() {
+  chartLoading.value = true
+  try {
+    const data = await fetchRepoChart(activePath.value)
+    chartData.value = data
+  } catch (err) {
+    console.error('Failed to load chart data:', err)
+  } finally {
+    chartLoading.value = false
   }
 }
 

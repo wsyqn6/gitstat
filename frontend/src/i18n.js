@@ -138,7 +138,12 @@ const messages = {
       statsTitle: '加载统计信息',
       statsDesc: '获取提交统计、磁盘占用、贡献者排行等数据（首次加载可能需要数秒）',
       statsBtn: '加载统计信息',
-      statsLoading: '加载中...'
+      statsLoading: '加载中...',
+      commitCalendar: '提交日历',
+      cumulativeGrowth: '项目成长曲线',
+      hourlyDistribution: '提交时段分布',
+      weekLabel: '周',
+      noChartData: '暂无提交数据'
     },
     settings: {
       title: '设置',
@@ -291,7 +296,12 @@ const messages = {
       statsTitle: 'Load Statistics',
       statsDesc: 'Fetch commit stats, disk usage, contributor rankings (first load may take seconds)',
       statsBtn: 'Load Statistics',
-      statsLoading: 'Loading...'
+      statsLoading: 'Loading...',
+      commitCalendar: 'Commit Calendar',
+      cumulativeGrowth: 'Cumulative Growth',
+      hourlyDistribution: 'Hourly Distribution',
+      weekLabel: 'W',
+      noChartData: 'No commit data'
     },
     settings: {
       title: 'Settings',

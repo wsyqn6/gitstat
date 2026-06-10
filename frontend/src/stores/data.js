@@ -144,6 +144,15 @@ export async function fetchRepoStats(path) {
   }
 }
 
+export async function fetchRepoChart(path) {
+  try {
+    return await api.getRepoChart(path)
+  } catch (err) {
+    console.error('Failed to fetch repo chart:', err)
+    throw err
+  }
+}
+
 export async function triggerAnalyze(path) {
   if (state.analyzeCache[path]) {
     return state.analyzeCache[path]

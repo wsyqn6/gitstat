@@ -258,6 +258,17 @@ export async function analyzeRepo(path) {
   return response.json()
 }
 
+export async function getRepoChart(path) {
+  const params = new URLSearchParams({ path })
+  const response = await fetch(`${API_BASE}/repos/chart?${params}`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch repo chart')
+  }
+
+  return response.json()
+}
+
 export async function getVersion() {
   const response = await fetch(`${API_BASE}/version`)
   
