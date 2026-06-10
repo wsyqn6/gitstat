@@ -109,13 +109,17 @@ type ActivityHeatmapPoint struct {
 
 // 仓库列表项（快数据）
 type RepoInfo struct {
-	Path           string `json:"path"`
-	Name           string `json:"name"`
-	CurrentBranch  string `json:"currentBranch"`
-	BranchCount    int    `json:"branchCount"`
-	FileCount      int    `json:"fileCount"`
-	LastCommitTime string `json:"lastCommitTime"`
-	RemoteUrl      string `json:"remoteUrl"`
+	Path              string   `json:"path"`
+	Name              string   `json:"name"`
+	CurrentBranch     string   `json:"currentBranch"`
+	BranchCount       int      `json:"branchCount"`
+	RemoteBranchCount int      `json:"remoteBranchCount"`
+	FileCount         int      `json:"fileCount"`
+	LastCommitTime    string   `json:"lastCommitTime"`
+	RemoteUrl         string   `json:"remoteUrl"`
+	Branches          []string `json:"branches"`
+	Tags              []string `json:"tags"`
+	RemoteBranches    []string `json:"remoteBranches"`
 }
 
 // 语言统计
@@ -128,13 +132,15 @@ type LanguageStat struct {
 
 // 深度分析结果
 type AnalyzeResult struct {
-	Name          string        `json:"name"`
-	Path          string        `json:"path"`
-	BranchCount   int           `json:"branchCount"`
-	Branches      []string      `json:"branches"`
-	FileCount     int           `json:"fileCount"`
-	TotalLines    int           `json:"totalLines"`
-	Languages     []LanguageStat `json:"languages"`
+	Name            string        `json:"name"`
+	Path            string        `json:"path"`
+	BranchCount     int           `json:"branchCount"`
+	Branches        []string      `json:"branches"`
+	RemoteBranches  []string      `json:"remoteBranches"`
+	FileCount       int           `json:"fileCount"`
+	TotalLines      int           `json:"totalLines"`
+	Languages       []LanguageStat `json:"languages"`
+	Tags            []string      `json:"tags"`
 }
 
 // 深度分析请求
@@ -163,6 +169,8 @@ type RepoStats struct {
 	RepoSize             int64             `json:"repoSize"`
 	RecentCommits        []Commit          `json:"recentCommits"`
 	Contributors         []ContributorStat `json:"contributors"`
+	Tags                 []string          `json:"tags"`
+	RemoteBranches       []string          `json:"remoteBranches"`
 	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
 }
 

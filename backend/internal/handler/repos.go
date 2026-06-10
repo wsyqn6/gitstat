@@ -58,16 +58,19 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	branchCount := cache.BranchCount
 	fileCount := cache.FileCount
+	branches := cache.Branches
 	remoteUrl := cache.RemoteUrl
 
-	if branchCount == 0 {
+	if branchCount == 0 || len(branches) == 0 {
 		meta, err := scanner.GetRepoMeta(cache.Path)
 		if err == nil {
 			branchCount = meta.BranchCount
 			fileCount = meta.FileCount
+			branches = meta.Branches
 			store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
 				c.BranchCount = branchCount
 				c.FileCount = fileCount
+				c.Branches = branches
 			})
 		} else {
 			log.Printf("warning: failed to get repo meta for %s: %v", cache.Path, err)
@@ -79,14 +82,26 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 		cache.RemoteUrl = remoteUrl
 	}
 
+	remoteBranches, remoteBranchCount := scanner.GetRemoteBranches(cache.Path)
+	tags := scanner.GetTags(cache.Path)
+
+	store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
+		c.RemoteBranches = remoteBranches
+		c.Tags = tags
+	})
+
 	writeJSON(w, "RepoInfo", model.RepoInfo{
-		Path:           cache.Path,
-		Name:           cache.Name,
-		CurrentBranch:  cache.CurrentBranch,
-		BranchCount:    branchCount,
-		FileCount:      fileCount,
-		LastCommitTime: cache.LastCommitTime,
-		RemoteUrl:      remoteUrl,
+		Path:              cache.Path,
+		Name:              cache.Name,
+		CurrentBranch:     cache.CurrentBranch,
+		BranchCount:       branchCount,
+		RemoteBranchCount: remoteBranchCount,
+		FileCount:         fileCount,
+		LastCommitTime:    cache.LastCommitTime,
+		RemoteUrl:         remoteUrl,
+		Branches:          branches,
+		Tags:              tags,
+		RemoteBranches:    remoteBranches,
 	})
 }
 
@@ -108,6 +123,8 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
+
+	ensureRepoLoaded(path, time.Time{}, time.Now())
 
 	repos := []model.Repository{{
 		Path:    cache.Path,
@@ -158,6 +175,9 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	remoteBranches, _ := scanner.GetRemoteBranches(path)
+	tags := scanner.GetTags(path)
+
 	stats := model.RepoStats{
 		Path:                 cache.Path,
 		Name:                 cache.Name,
@@ -168,6 +188,8 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		RepoSize:             repoSize,
 		RecentCommits:        recentCommits,
 		Contributors:         contributors,
+		Tags:                 tags,
+		RemoteBranches:       remoteBranches,
 	}
 
 	if cache.Analyzed {
@@ -218,9 +240,11 @@ func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 	store.GlobalStore.UpdateRepo(req.Path, func(c *store.RepoCache) {
 		c.BranchCount = result.BranchCount
 		c.Branches = result.Branches
+		c.RemoteBranches = result.RemoteBranches
 		c.FileCount = result.FileCount
 		c.TotalLines = result.TotalLines
 		c.Languages = result.Languages
+		c.Tags = result.Tags
 		c.Analyzed = true
 	})
 	writeJSON(w, "RepoAnalyze", result)

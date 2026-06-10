@@ -29,7 +29,8 @@
             <span class="repo-path">{{ detail.path }}</span>
           </div>
 
-          <div class="card-row fast-row">
+          <!-- L1: Fast data from RepoInfo -->
+          <div class="card-row l1-row">
             <div class="info-card">
               <span class="info-icon" style="color:#00d4ff">⑂</span>
               <span class="info-value">{{ detail.currentBranch }}</span>
@@ -37,34 +38,57 @@
             </div>
             <div class="info-card clickable" :class="{ expanded: expandedBranch }" @click="toggleBranch">
               <span class="info-icon" style="color:#a78bfa">⑂</span>
-              <span class="info-value">{{ detail.branchCount }}</span>
+              <span class="info-value">{{ localBranchCount }}</span>
               <span class="info-label">{{ t('repo.branchCount') }} <span class="expand-icon">{{ expandedBranch ? '▼' : '▶' }}</span></span>
             </div>
             <div class="info-card">
               <span class="info-icon" style="color:#fbbf24">◈</span>
-              <span class="info-value">{{ formatDate(detail.earliestDate) }}</span>
-              <span class="info-label">{{ t('repo.createDate') }}</span>
+              <span class="info-value">{{ detail.fileCount ?? '--' }}</span>
+              <span class="info-label">{{ t('repo.fileCount') }}</span>
             </div>
-            <div class="info-card">
-              <span class="info-icon" style="color:#f472b6">◉</span>
-              <span class="info-value">{{ formatTimeAgo(detail.lastCommitTime) }}</span>
-              <span class="info-label">{{ t('repo.lastCommit') }} · {{ timeSpan }}</span>
+            <div class="info-card clickable" :class="{ expanded: expandedTags }" @click="toggleTags">
+              <span class="info-icon" style="color:#34d399">◉</span>
+              <span class="info-value">{{ tagCount }}</span>
+              <span class="info-label">{{ t('repo.tags') }} <span class="expand-icon">{{ expandedTags ? '▼' : '▶' }}</span></span>
             </div>
           </div>
 
           <div v-if="expandedBranch" class="expand-panel card">
-            <h4>{{ t('repo.branchList') }}</h4>
-            <div v-if="detail.analysis && detail.analysis.branches" class="branch-tags">
-              <span
-                v-for="b in detail.analysis.branches"
-                :key="b"
-                class="branch-tag"
-                :class="{ current: b.includes('(current)') }"
-              >{{ b }}</span>
+            <h4>{{ t('repo.allBranches') }}</h4>
+            <div class="branch-groups">
+              <div v-if="detail.branchCount > 0" class="branch-group">
+                <span class="branch-group-label">{{ t('repo.localBranch') }}</span>
+                <div class="branch-tags">
+                  <span
+                    v-for="b in localBranches"
+                    :key="b"
+                    class="branch-tag"
+                    :class="{ current: b === detail.currentBranch }"
+                  >{{ b }}<span v-if="b === detail.currentBranch" class="current-badge">{{ t('repo.currentBranch') }}</span></span>
+                </div>
+              </div>
+              <div v-if="remoteBranchCount > 0" class="branch-group">
+                <span class="branch-group-label">{{ t('repo.remoteBranch') }}</span>
+                <div class="branch-tags">
+                  <span
+                    v-for="b in detail.remoteBranches || []"
+                    :key="b"
+                    class="branch-tag remote"
+                  >{{ b }}</span>
+                </div>
+              </div>
             </div>
-            <p v-else class="expand-hint">{{ t('repo.analyzeToSee') }}</p>
           </div>
 
+          <div v-if="expandedTags" class="expand-panel card">
+            <h4>{{ t('repo.tags') }}</h4>
+            <div v-if="detail.tags && detail.tags.length > 0" class="tag-cloud">
+              <span v-for="t in detail.tags" :key="t" class="tag-item">{{ t }}</span>
+            </div>
+            <p v-else class="expand-hint">--</p>
+          </div>
+
+          <!-- L2: Click to load stats -->
           <div v-if="!statsLoaded" class="stats-cta card" @click="loadStats">
             <div class="stats-cta-content">
               <span class="stats-cta-icon">▦</span>
@@ -80,26 +104,22 @@
           </div>
 
           <template v-if="statsLoaded">
-            <div class="card-row stats-row">
-              <div class="info-card dim" :class="{ 'has-data': hasCommits }">
-                <span class="info-value">{{ hasCommits ? totalCommitCount : '--' }}</span>
-                <span class="info-label">{{ t('repo.commits') }}</span>
+            <div class="card-row l2-row">
+              <div class="info-card dim" :class="{ 'has-data': detail.repoSize > 0 }">
+                <span class="info-value">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</span>
+                <span class="info-label">{{ t('repo.diskSize') }}</span>
               </div>
               <div class="info-card clickable dim" :class="{ expanded: expandedContributor, 'has-data': hasCommits }" @click="toggleContributor">
                 <span class="info-value">{{ hasCommits ? detail.contributors.length : '--' }}</span>
                 <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
               </div>
-              <div class="info-card dim" :class="{ 'has-data': detail.repoSize > 0 }">
-                <span class="info-value">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</span>
-                <span class="info-label">{{ t('repo.diskSize') }}</span>
-              </div>
               <div class="info-card dim" :class="{ 'has-data': detail.earliestCommitAuthor }">
-                <span class="info-value">{{ detail.earliestCommitAuthor || '--' }}</span>
-                <span class="info-label">{{ t('repo.creator') }}</span>
+                <span class="info-value">{{ formatDate(detail.earliestDate) }}</span>
+                <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
               </div>
-              <div class="info-card dim" :class="{ 'has-data': detail.analysis }">
-                <span class="info-value">{{ mainLangName }}</span>
-                <span class="info-label">{{ t('repo.mainLang') }}</span>
+              <div class="info-card dim" :class="{ 'has-data': detail.lastCommitTime }">
+                <span class="info-value">{{ formatTimeAgo(detail.lastCommitTime) }}</span>
+                <span class="info-label">{{ t('repo.lastCommit') }}</span>
               </div>
             </div>
 
@@ -144,9 +164,9 @@
                     <span class="lang-name">{{ lang.name }}</span>
                     <span>{{ lang.fileCount }}</span>
                     <span>{{ formatNumber(lang.lines) }}</span>
-                      <span class="lang-pct">
-                        <span class="pct-track"><span class="pct-bar" :style="{ width: lang.percentage + '%' }"></span></span>
-                        <span class="pct-text">{{ lang.percentage.toFixed(1) }}%</span>
+                    <span class="lang-pct">
+                      <span class="pct-track"><span class="pct-bar" :style="{ width: lang.percentage + '%' }"></span></span>
+                      <span class="pct-text">{{ lang.percentage.toFixed(1) }}%</span>
                     </span>
                   </div>
                   <div class="lang-total">
@@ -211,11 +231,34 @@ const detail = ref(null)
 const statsLoaded = ref(false)
 const loadingStats = ref(false)
 const expandedBranch = ref(false)
+const expandedTags = ref(false)
 const expandedContributor = ref(false)
 const expandedCommit = ref(null)
 const analysisLoading = ref(false)
 const langChartRef = ref(null)
 let langChart = null
+
+const localBranchCount = computed(() => {
+  const local = detail.value?.branchCount ?? 0
+  const remote = Array.isArray(detail.value?.remoteBranches) ? detail.value.remoteBranches.length : 0
+  if (local === 0 && remote === 0) return '--'
+  return remote > 0 ? `${local}+${remote}` : String(local)
+})
+
+const remoteBranchCount = computed(() => {
+  const v = detail.value?.remoteBranches
+  return Array.isArray(v) ? v.length : '--'
+})
+
+const tagCount = computed(() => {
+  const v = detail.value?.tags
+  return Array.isArray(v) ? v.length : '--'
+})
+
+const localBranches = computed(() => {
+  if (detail.value?.branches) return detail.value.branches
+  return []
+})
 
 const totalCommitCount = computed(() =>
   detail.value?.contributors?.reduce((s, c) => s + c.commitCount, 0) || 0
@@ -280,6 +323,10 @@ function toggleBranch() {
   expandedBranch.value = !expandedBranch.value
 }
 
+function toggleTags() {
+  expandedTags.value = !expandedTags.value
+}
+
 function toggleContributor() {
   expandedContributor.value = !expandedContributor.value
 }
@@ -292,12 +339,21 @@ async function loadDetail(path) {
   loading.value = true
   statsLoaded.value = false
   expandedBranch.value = false
+  expandedTags.value = false
   expandedContributor.value = false
   expandedCommit.value = null
   langChart = null
   try {
     const info = await fetchRepoInfo(path)
-    detail.value = { contributors: [], recentCommits: [], repoSize: 0, earliestDate: '', earliestCommitAuthor: '', ...info }
+    detail.value = {
+      contributors: [], recentCommits: [], repoSize: 0,
+      earliestDate: '', earliestCommitAuthor: '',
+      tags: [], remoteBranches: [],
+      ...info,
+      tags: info.tags || [],
+      remoteBranches: info.remoteBranches || [],
+      branches: info.branches || []
+    }
   } catch (err) {
     console.error('Failed to load info:', err)
   } finally {
@@ -526,8 +582,8 @@ onUnmounted(() => {
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
-.fast-row { grid-template-columns: repeat(4, 1fr); }
-.stats-row { grid-template-columns: repeat(5, 1fr); }
+.l1-row { grid-template-columns: repeat(4, 1fr); }
+.l2-row { grid-template-columns: repeat(4, 1fr); }
 
 .info-card {
   background: rgba(20, 25, 50, 0.6);
@@ -581,7 +637,24 @@ onUnmounted(() => {
 }
 .expand-hint { color: #64748b; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; }
 
-/* Branch tags */
+/* Branch groups */
+.branch-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.branch-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.branch-group-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  color: #a0aec0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
 .branch-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .branch-tag {
   padding: 0.3rem 0.8rem;
@@ -597,6 +670,38 @@ onUnmounted(() => {
   border-color: rgba(0, 255, 136, 0.4);
   color: #00ff88;
   font-weight: 600;
+}
+.current-badge {
+  font-size: 0.6rem;
+  margin-left: 0.3rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  font-family: 'Rajdhani', sans-serif;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+}
+.branch-tag.remote {
+  background: rgba(167, 139, 250, 0.08);
+  border-color: rgba(167, 139, 250, 0.2);
+  color: #a78bfa;
+}
+
+/* Tag cloud */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.tag-item {
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-family: 'Rajdhani', monospace;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: #34d399;
 }
 
 /* Contributor table */

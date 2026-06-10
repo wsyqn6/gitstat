@@ -29,8 +29,10 @@ type RepoCache struct {
 	RepoSize       int64
 	Analyzed       bool
 	Branches       []string
+	RemoteBranches []string
 	TotalLines     int
 	Languages      []model.LanguageStat
+	Tags           []string
 }
 
 type Store struct {
@@ -238,13 +240,15 @@ func (s *Store) GetAnalyzeCache(path string) (model.AnalyzeResult, bool) {
 		return model.AnalyzeResult{}, false
 	}
 	return model.AnalyzeResult{
-		Name:        cache.Name,
-		Path:        cache.Path,
-		BranchCount: cache.BranchCount,
-		Branches:    cache.Branches,
-		FileCount:   cache.FileCount,
-		TotalLines:  cache.TotalLines,
-		Languages:   cache.Languages,
+		Name:           cache.Name,
+		Path:           cache.Path,
+		BranchCount:    cache.BranchCount,
+		Branches:       cache.Branches,
+		RemoteBranches: cache.RemoteBranches,
+		FileCount:      cache.FileCount,
+		TotalLines:     cache.TotalLines,
+		Languages:      cache.Languages,
+		Tags:           cache.Tags,
 	}, true
 }
 

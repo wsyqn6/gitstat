@@ -87,10 +87,19 @@ var exactNameMap = map[string]string{
 func GetRepoMeta(repoPath string) (model.RepoInfo, error) {
 	currentBranch, _ := gitExec(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
 
+	var branches []string
 	branchCount := 0
 	out, err := gitExec(repoPath, "for-each-ref", "refs/heads", "--format=%(refname:short)")
 	if err == nil && out != "" {
-		branchCount = len(strings.Split(out, "\n"))
+		parts := strings.Split(out, "\n")
+		for _, b := range parts {
+			b = strings.TrimSpace(b)
+			if b == "" {
+				continue
+			}
+			branches = append(branches, b)
+			branchCount++
+		}
 	}
 
 	fileCount := 0
@@ -112,6 +121,7 @@ func GetRepoMeta(repoPath string) (model.RepoInfo, error) {
 		Name:           filepath.Base(repoPath),
 		CurrentBranch:  currentBranch,
 		BranchCount:    branchCount,
+		Branches:       branches,
 		FileCount:      fileCount,
 		LastCommitTime: lastCommitTime,
 	}, nil
@@ -133,7 +143,7 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 				continue
 			}
 			if b == currentBranch {
-				branchNames = append(branchNames, b+" (current)")
+				branchNames = append(branchNames, b)
 			} else {
 				others = append(others, b)
 			}
@@ -142,7 +152,7 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 		branchNames = append(branchNames, others...)
 	}
 	if len(branchNames) == 0 {
-		branchNames = []string{currentBranch + " (current)"}
+		branchNames = []string{currentBranch}
 	}
 
 	type fileInfo struct {
@@ -208,15 +218,53 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 		return languages[i].Lines > languages[j].Lines
 	})
 
+	remoteBranches, _ := GetRemoteBranches(repoPath)
+	tags := GetTags(repoPath)
+
 	return model.AnalyzeResult{
-		Name:        filepath.Base(repoPath),
-		Path:        repoPath,
-		BranchCount: branchCount,
-		Branches:    branchNames,
-		FileCount:   len(files),
-		TotalLines:  totalLines,
-		Languages:   languages,
+		Name:           filepath.Base(repoPath),
+		Path:           repoPath,
+		BranchCount:    branchCount,
+		Branches:       branchNames,
+		RemoteBranches: remoteBranches,
+		FileCount:      len(files),
+		TotalLines:     totalLines,
+		Languages:      languages,
+		Tags:           tags,
 	}, nil
+}
+
+func GetTags(repoPath string) []string {
+	out, err := gitExec(repoPath, "for-each-ref", "refs/tags", "--format=%(refname:short)")
+	if err != nil || out == "" {
+		return nil
+	}
+	tags := strings.Split(out, "\n")
+	var result []string
+	for _, t := range tags {
+		t = strings.TrimSpace(t)
+		if t != "" {
+			result = append(result, t)
+		}
+	}
+	return result
+}
+
+func GetRemoteBranches(repoPath string) ([]string, int) {
+	out, err := gitExec(repoPath, "for-each-ref", "refs/remotes", "--format=%(refname:short)")
+	if err != nil || out == "" {
+		return nil, 0
+	}
+	branches := strings.Split(out, "\n")
+	var result []string
+	for _, b := range branches {
+		b = strings.TrimSpace(b)
+		if b == "" || strings.HasSuffix(b, "/HEAD") || !strings.Contains(b, "/") {
+			continue
+		}
+		result = append(result, b)
+	}
+	return result, len(result)
 }
 
 func GetRemoteUrl(repoPath string) string {
