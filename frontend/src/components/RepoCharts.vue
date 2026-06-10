@@ -4,30 +4,32 @@
     <div v-if="loading" class="chart-placeholder">
       <span class="spinner"></span>
     </div>
-    <div v-else-if="calendarCells.length > 0" class="cal-container">
-      <div class="cal-months">
-        <span v-for="m in monthLabels" :key="m.label"
-              :style="{ width: m.span * (cellSize + cellGap) + 'px' }"
-              class="cal-month-label">{{ m.label }}</span>
-      </div>
-      <div class="cal-body">
-        <div class="cal-days">
-          <span v-for="d in dayLabels" :key="d" class="cal-day-label">{{ d }}</span>
+    <div v-else-if="calYears.length > 0" class="cal-container">
+      <div v-for="(yr, yi) in calYears" :key="yr.year" class="cal-year">
+        <div class="cal-months">
+          <span v-for="m in yr.monthLabels" :key="m.label"
+                :style="{ width: m.span * (cellSize + cellGap) + 'px' }"
+                class="cal-month-label">{{ m.label }}</span>
         </div>
-        <div class="cal-grid"
-             :style="{ gridTemplateColumns: `repeat(${gridCols}, ${cellSize}px)`, gridTemplateRows: `repeat(7, ${cellSize}px)`, gap: cellGap + 'px' }">
-          <div v-for="cell in calendarCells" :key="cell.date"
-               class="cal-cell"
-               :style="{ backgroundColor: cell.color }"
-               :title="cell.date + ' · ' + cell.count + ' ' + commitsLabel">
+        <div class="cal-body">
+          <div class="cal-days">
+            <span v-for="d in dayLabels" :key="d" class="cal-day-label">{{ d }}</span>
+          </div>
+          <div class="cal-grid"
+               :style="{ gridTemplateColumns: `repeat(53, ${cellSize}px)`, gridTemplateRows: `repeat(7, ${cellSize}px)`, gap: cellGap + 'px' }">
+            <div v-for="cell in yr.cells" :key="cell.date"
+                 class="cal-cell"
+                 :style="{ backgroundColor: cell.outOfYear ? 'transparent' : cell.color }"
+                 :title="cell.outOfYear ? '' : cell.date + ' · ' + cell.count + ' ' + commitsLabel">
+            </div>
           </div>
         </div>
-      </div>
-      <div class="cal-footer">
-        <span class="cal-legend-label">{{ lessLabel }}</span>
-        <span v-for="l in 5" :key="l" class="cal-legend-cell"
-              :style="{ backgroundColor: getCalColor(l - 1) }"></span>
-        <span class="cal-legend-label">{{ moreLabel }}</span>
+        <div v-if="yi === calYears.length - 1" class="cal-footer">
+          <span class="cal-legend-label">{{ lessLabel }}</span>
+          <span v-for="l in 5" :key="l" class="cal-legend-cell"
+                :style="{ backgroundColor: getCalColor(l - 1) }"></span>
+          <span class="cal-legend-label">{{ moreLabel }}</span>
+        </div>
       </div>
     </div>
     <p v-else class="empty-hint">{{ t('repo.noChartData') }}</p>
@@ -50,7 +52,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from './ChartContainer.vue'
@@ -68,11 +70,6 @@ const cellGap = 3
 const hasData = computed(() =>
   props.data?.calendar?.length > 0 || props.data?.hourly?.length > 0
 )
-
-const gridCols = computed(() => {
-  if (!props.data?.calendar?.length) return 53
-  return Math.ceil(props.data.calendar.length / 7)
-})
 
 const commitsLabel = computed(() =>
   locale.value === 'zh' ? '次提交' : 'commits'
@@ -112,59 +109,62 @@ function getCalColor(count) {
   return CAL_LEVELS[4]
 }
 
-function getCalendarStart() {
-  if (!props.data?.calendar?.length) return new Date()
-  const first = new Date(props.data.calendar[0].date)
-  const day = first.getDay()
-  const offset = day === 0 ? -6 : 1 - day
-  first.setDate(first.getDate() + offset)
-  return first
-}
-
-const calendarCells = computed(() => {
+const calYears = computed(() => {
   if (!props.data?.calendar?.length) return []
   const dayMap = new Map()
   for (const d of props.data.calendar) {
     dayMap.set(d.date, d.count)
   }
-  const start = getCalendarStart()
-  const cells = []
-  for (let w = 0; w < 53; w++) {
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(start)
-      date.setDate(start.getDate() + w * 7 + d)
-      const pad = (n) => String(n).padStart(2, '0')
-      const dateStr = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
-      const count = dayMap.get(dateStr) || 0
-      cells.push({
-        date: dateStr,
-        count,
-        color: getCalColor(count)
-      })
-    }
-  }
-  return cells
-})
 
-const monthLabels = computed(() => {
-  if (!props.data?.calendar?.length) return []
-  const start = getCalendarStart()
-  const labels = []
-  let currentMonth = -1
-  for (let w = 0; w < 53; w++) {
-    const d = new Date(start)
-    d.setDate(start.getDate() + w * 7)
-    const m = d.getMonth()
-    if (m !== currentMonth) {
-      currentMonth = m
-      labels.push({ label: monthNames.value[m], week: w })
+  const years = new Set()
+  for (const d of props.data.calendar) {
+    years.add(d.date.slice(0, 4))
+  }
+
+  return Array.from(years).sort().map(yearStr => {
+    const year = parseInt(yearStr)
+    const jan1 = new Date(year, 0, 1)
+    const dayOfWeek = jan1.getDay()
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+    const monday = new Date(jan1)
+    monday.setDate(jan1.getDate() + mondayOffset)
+
+    const cells = []
+    for (let w = 0; w < 53; w++) {
+      for (let d = 0; d < 7; d++) {
+        const date = new Date(monday)
+        date.setDate(monday.getDate() + w * 7 + d)
+        const pad = (n) => String(n).padStart(2, '0')
+        const dateStr = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+        const count = dayMap.get(dateStr) || 0
+        const outOfYear = date.getFullYear() !== year
+        cells.push({
+          date: dateStr,
+          count,
+          outOfYear,
+          color: getCalColor(count)
+        })
+      }
     }
-  }
-  for (let i = 0; i < labels.length; i++) {
-    const nextWeek = i + 1 < labels.length ? labels[i + 1].week : 53
-    labels[i].span = nextWeek - labels[i].week
-  }
-  return labels
+
+    const monthLabels = []
+    let currentMonth = -1
+    for (let w = 0; w < 53; w++) {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + w * 7 + 3)
+      const m = d.getMonth()
+      if (m !== currentMonth) {
+        currentMonth = m
+        monthLabels.push({ label: monthNames.value[m], week: w })
+      }
+    }
+    for (let i = 0; i < monthLabels.length; i++) {
+      const nextWeek = i + 1 < monthLabels.length ? monthLabels[i + 1].week : 53
+      monthLabels[i].span = nextWeek - monthLabels[i].week
+    }
+
+    return { year: yearStr, cells, monthLabels }
+  })
 })
 
 function emptyOption() {
@@ -286,6 +286,12 @@ const hourlyOption = computed(() => {
 /* Calendar */
 .cal-container {
   margin-bottom: 2rem;
+}
+.cal-year {
+  margin-bottom: 0.5rem;
+}
+.cal-year:last-child {
+  margin-bottom: 0;
 }
 .cal-months {
   display: flex;
