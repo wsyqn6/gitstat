@@ -34,6 +34,7 @@ func NewServer() *chi.Mux {
 	r.Get("/api/repos/info", handler.GetRepoInfoHandler)
 	r.Get("/api/repos/stats", handler.GetRepoStatsHandler)
 	r.Post("/api/repos/analyze", handler.GetRepoAnalyzeHandler)
+	r.Get("/api/repos/chart", handler.GetRepoChartHandler)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))

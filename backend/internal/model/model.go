@@ -186,3 +186,28 @@ type RepoComparison struct {
 	ActiveDays       int     `json:"activeDays"`       // 活跃天数
 	AvgCommitsPerDay float64 `json:"avgCommitsPerDay"` // 日均提交数
 }
+
+// 提交日历数据点
+type CalendarPoint struct {
+	Date  string `json:"date"`  // "2006-01-02"
+	Count int    `json:"count"` // 当日提交数
+}
+
+// 累计提交数据点
+type CumulativePoint struct {
+	Date  string `json:"date"`  // "2006-01-02"
+	Total int    `json:"total"` // 累计提交数(含当天)
+}
+
+// 提交时段数据点
+type HourlyPoint struct {
+	Hour  int `json:"hour"`  // 0-23
+	Count int `json:"count"` // 该时段提交数
+}
+
+// Repo 图表数据集
+type RepoChartData struct {
+	Calendar   []CalendarPoint   `json:"calendar"`
+	Cumulative []CumulativePoint `json:"cumulative"`
+	Hourly     []HourlyPoint     `json:"hourly"`
+}
