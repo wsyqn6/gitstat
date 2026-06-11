@@ -18,12 +18,56 @@
       </div>
 
       <div class="content">
-        <div v-if="loading" class="loading-state">
-          <span class="spinner large"></span>
-          <p>{{ t('repo.loading') }}</p>
-        </div>
+          <div v-if="loading" class="loading-state">
+            <span class="spinner large"></span>
+            <p>{{ t('repo.loading') }}</p>
+          </div>
 
-        <template v-else-if="detail">
+          <div v-else-if="!detail" class="skeleton-page">
+            <div class="title-row">
+              <div class="skeleton-line w40" style="height:32px;border-radius:6px"></div>
+            </div>
+            <div class="card-row l1-row">
+              <div v-for="i in 4" :key="i" class="info-card">
+                <div class="skeleton-circle" style="width:36px;height:36px;margin:0 auto 0.5rem"></div>
+                <div class="skeleton-line w35" style="margin:0 auto 0.4rem;height:22px;border-radius:6px"></div>
+                <div class="skeleton-line w55" style="margin:0 auto"></div>
+              </div>
+            </div>
+            <div class="card stats-cta">
+              <div class="stats-cta-content">
+                <div class="skeleton-circle" style="width:40px;height:40px;flex-shrink:0"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:0.3rem">
+                  <div class="skeleton-line w45" style="height:18px;border-radius:6px"></div>
+                  <div class="skeleton-line w70"></div>
+                </div>
+                <div class="skeleton-line w20" style="height:38px;border-radius:8px"></div>
+              </div>
+            </div>
+            <div class="card-row l2-row">
+              <div v-for="i in 4" :key="i" class="info-card dim">
+                <div class="skeleton-line w40" style="margin:0 auto 0.3rem;height:22px;border-radius:6px"></div>
+                <div class="skeleton-line w65" style="margin:0 auto"></div>
+              </div>
+            </div>
+            <div class="section-group">
+              <div class="section card">
+                <div class="skeleton-line w50" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
+                <div class="lang-body">
+                  <div class="skeleton-chart-area" style="height:200px"></div>
+                  <div style="display:flex;flex-direction:column;gap:0.5rem;padding-top:0.3rem">
+                    <div v-for="i in 4" :key="i" class="skeleton-line w90"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="section card">
+                <div class="skeleton-line w50" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
+                <div v-for="i in 5" :key="i" class="skeleton-line w85" style="margin-bottom:0.5rem;height:12px"></div>
+              </div>
+            </div>
+          </div>
+
+          <template v-else-if="detail">
           <div class="title-row">
             <h2 class="repo-title">{{ detail.name }}</h2>
             <span class="repo-path">{{ detail.path }}</span>
@@ -88,62 +132,90 @@
             <p v-else class="expand-hint">--</p>
           </div>
 
-          <!-- L2: Click to load stats -->
-          <div v-if="!statsLoaded" class="stats-cta card" @click="loadStats">
-            <div class="stats-cta-content">
-              <span class="stats-cta-icon">▦</span>
-              <div>
-                <h4>{{ t('repo.statsTitle') }}</h4>
-                <p>{{ t('repo.statsDesc') }}</p>
-              </div>
-              <button class="btn" :disabled="loadingStats" @click.stop="loadStats">
-                <span v-if="loadingStats" class="spinner"></span>
-                {{ loadingStats ? t('repo.statsLoading') : t('repo.statsBtn') }}
-              </button>
-            </div>
-          </div>
-
-          <div class="card-row l2-row">
-            <div class="info-card dim" :class="{ 'has-data': detail.repoSize > 0 }">
-              <span class="info-value">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</span>
+          <div class="stats-group">
+            <div class="card-row l2-row">
+            <div class="info-card dim" :class="{ 'has-data': statsLoaded && detail.repoSize > 0 }">
+              <span class="info-value">
+                <template v-if="statsLoaded">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</template>
+                <span v-else class="skeleton-line w40" style="margin:0 auto;height:22px;border-radius:6px"></span>
+              </span>
               <span class="info-label">{{ t('repo.diskSize') }}</span>
             </div>
-            <div class="info-card clickable dim" :class="{ expanded: expandedContributor, 'has-data': hasCommits }" @click="toggleContributor">
-              <span class="info-value">{{ hasCommits ? detail.contributors.length : '--' }}</span>
+            <div class="info-card clickable dim" :class="statsLoaded ? { expanded: expandedContributor, 'has-data': hasCommits } : {}" @click="toggleContributor">
+              <span class="info-value">
+                <template v-if="statsLoaded">{{ hasCommits ? detail.contributors.length : '--' }}</template>
+                <span v-else class="skeleton-line w30" style="margin:0 auto;height:22px;border-radius:6px"></span>
+              </span>
               <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
             </div>
-            <div class="info-card dim" :class="{ 'has-data': detail.earliestCommitAuthor }">
-              <span class="info-value">{{ formatDate(detail.earliestDate) }}</span>
+            <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.earliestCommitAuthor }">
+              <span class="info-value">
+                <template v-if="statsLoaded">{{ formatDate(detail.earliestDate) }}</template>
+                <span v-else class="skeleton-line w55" style="margin:0 auto;height:22px;border-radius:6px"></span>
+              </span>
               <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
             </div>
-            <div class="info-card dim" :class="{ 'has-data': detail.lastCommitTime }">
-              <span class="info-value">{{ formatTimeAgo(detail.lastCommitTime) }}</span>
+            <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.lastCommitTime }">
+              <span class="info-value">
+                <template v-if="statsLoaded">{{ formatTimeAgo(detail.lastCommitTime) }}</template>
+                <span v-else class="skeleton-line w45" style="margin:0 auto;height:22px;border-radius:6px"></span>
+              </span>
               <span class="info-label">{{ t('repo.lastCommit') }}</span>
             </div>
           </div>
 
-          <template v-if="statsLoaded">
-            <div v-if="expandedContributor" class="expand-panel card">
-              <h4>{{ t('repo.contributors') }}</h4>
-              <div class="contrib-table">
-                <div class="contrib-header">
-                  <span>{{ t('repo.author') }}</span>
-                  <span>{{ t('repo.commits') }}</span>
-                  <span class="add">{{ t('repo.additions') }}</span>
-                  <span class="del">{{ t('repo.deletions') }}</span>
-                  <span>{{ t('repo.lastCommit') }}</span>
+            <template v-if="statsLoaded">
+              <div v-if="expandedContributor" class="expand-panel card">
+                <h4>{{ t('repo.contributors') }}</h4>
+                <div class="contrib-table">
+                  <div class="contrib-header">
+                    <span>{{ t('repo.author') }}</span>
+                    <span>{{ t('repo.commits') }}</span>
+                    <span class="add">{{ t('repo.additions') }}</span>
+                    <span class="del">{{ t('repo.deletions') }}</span>
+                    <span>{{ t('repo.lastCommit') }}</span>
+                  </div>
+                  <div v-for="ct in detail.contributors" :key="ct.email" class="contrib-row">
+                    <span class="contrib-name">{{ ct.author }}</span>
+                    <span>{{ ct.commitCount }}</span>
+                    <span class="add">+{{ ct.additions }}</span>
+                    <span class="del">-{{ ct.deletions }}</span>
+                    <span class="contrib-time">{{ ct.lastCommitDate?.slice(0, 10) }}</span>
+                  </div>
                 </div>
-                <div v-for="ct in detail.contributors" :key="ct.email" class="contrib-row">
-                  <span class="contrib-name">{{ ct.author }}</span>
-                  <span>{{ ct.commitCount }}</span>
-                  <span class="add">+{{ ct.additions }}</span>
-                  <span class="del">-{{ ct.deletions }}</span>
-                  <span class="contrib-time">{{ ct.lastCommitDate?.slice(0, 10) }}</span>
+              </div>
+              <RepoCharts :data="chartData" :loading="chartLoading" />
+            </template>
+
+            <div v-if="!statsLoaded" class="charts-section-skel">
+              <div class="section-header">
+                <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
+              </div>
+              <div class="skeleton-chart-area" style="height:160px;margin-bottom:2rem;border-radius:12px"></div>
+              <div class="chart-row-skel">
+                <div class="card" style="flex:1;padding:1rem;min-height:300px">
+                  <div class="skeleton-line w40" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
+                  <div class="skeleton-chart-area" style="height:240px"></div>
+                </div>
+                <div class="card" style="flex:1;padding:1rem;min-height:300px">
+                  <div class="skeleton-line w40" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
+                  <div class="skeleton-chart-area" style="height:240px"></div>
                 </div>
               </div>
             </div>
-            <RepoCharts :data="chartData" :loading="chartLoading" />
-          </template>
+
+            <div v-if="!statsLoaded" class="stats-group-overlay" @click="loadStats">
+              <div class="stats-group-overlay-content">
+                <span class="stats-cta-icon">▦</span>
+                <h4>{{ t('repo.statsTitle') }}</h4>
+                <p>{{ t('repo.statsDesc') }}</p>
+                <button class="btn" :disabled="loadingStats" @click.stop="loadStats">
+                  <span v-if="loadingStats" class="spinner"></span>
+                  {{ loadingStats ? t('repo.statsLoading') : t('repo.statsBtn') }}
+                </button>
+              </div>
+            </div>
+          </div>
 
           <div class="section-group">
             <div class="section card">
@@ -186,6 +258,19 @@
                   <span v-if="state.analyzing" class="spinner"></span>
                   {{ state.analyzing ? t('repo.analyzing') : t('repo.analyzeBtn') }}
                 </button>
+              </div>
+            </div>
+
+            <div v-if="!statsLoaded" class="section card">
+              <h3 class="section-title">{{ t('repo.recentCommits') }}</h3>
+              <div class="commit-list">
+                <div v-for="i in 5" :key="i" class="commit-main">
+                  <span class="skeleton-line w15" style="height:12px"></span>
+                  <span class="skeleton-line w45" style="height:12px"></span>
+                  <span class="skeleton-line w12" style="height:12px"></span>
+                  <span class="skeleton-line w12" style="height:12px"></span>
+                  <span class="skeleton-line w18" style="height:12px"></span>
+                </div>
               </div>
             </div>
 
@@ -802,7 +887,7 @@ onUnmounted(() => {
 .lang-total span { text-align: center; }
 .lang-total span:first-child { text-align: left; }
 
-/* Stats CTA */
+/* Stats CTA (blank state skeleton) */
 .stats-cta {
   cursor: pointer;
   margin-bottom: 1.5rem;
@@ -818,12 +903,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 1.5rem;
 }
-.stats-cta-icon {
-  font-size: 2.5rem;
-  color: #00d4ff;
-  opacity: 0.6;
-  flex-shrink: 0;
-}
 .stats-cta-content div { flex: 1; }
 .stats-cta-content h4 {
   font-family: 'Orbitron', sans-serif;
@@ -837,6 +916,53 @@ onUnmounted(() => {
   font-size: 0.85rem;
   margin: 0;
   font-family: 'Rajdhani', sans-serif;
+}
+
+/* Stats group */
+.stats-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+.stats-group-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 14, 39, 0.55);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.3s;
+}
+.stats-group-overlay:hover {
+  background: rgba(10, 14, 39, 0.65);
+  backdrop-filter: blur(6px);
+}
+.stats-group-overlay-content {
+  text-align: center;
+  padding: 1.5rem;
+}
+.stats-group-overlay-content h4 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: #00d4ff;
+  letter-spacing: 1px;
+  margin: 0.5rem 0 0.3rem 0;
+}
+.stats-group-overlay-content p {
+  color: #a0aec0;
+  font-size: 0.85rem;
+  margin: 0 0 1rem 0;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.stats-cta-icon {
+  display: block;
+  font-size: 2.5rem;
+  color: #00d4ff;
+  opacity: 0.6;
 }
 
 /* Analyze CTA */
@@ -874,5 +1000,27 @@ onUnmounted(() => {
   color: #a0aec0;
   border-bottom: 1px solid rgba(0, 212, 255, 0.06);
   white-space: pre-wrap;
+}
+
+/* Skeleton page */
+.skeleton-page {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Charts skeleton */
+.charts-section-skel {
+  margin-top: 2rem;
+}
+.charts-section-skel .section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.chart-row-skel {
+  display: flex;
+  gap: 1.5rem;
+}
+.chart-row-skel .card {
+  border-radius: 16px;
 }
 </style>
