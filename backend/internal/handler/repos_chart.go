@@ -31,6 +31,7 @@ func GetRepoChartHandler(w http.ResponseWriter, r *http.Request) {
 	ensureRepoLoaded(path, time.Time{}, time.Now())
 
 	now := time.Now()
+	loc := now.Location()
 
 	dayMap := make(map[string]int)
 	hourCount := make(map[int]int)
@@ -39,7 +40,7 @@ func GetRepoChartHandler(w http.ResponseWriter, r *http.Request) {
 	for _, c := range cache.Commits {
 		dateKey := c.Date.Format("2006-01-02")
 		dayMap[dateKey]++
-		hourCount[c.Date.Hour()]++
+		hourCount[c.Date.In(loc).Hour()]++
 		if earliestDate.IsZero() || c.Date.Before(earliestDate) {
 			earliestDate = c.Date
 		}

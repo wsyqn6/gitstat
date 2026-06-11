@@ -307,6 +307,7 @@ func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate t
 // 活动热力图聚合
 func AggregateActivityHeatmap(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.ActivityHeatmapPoint {
 	heatmap := make(map[string]int) // "dayOfWeek-hour" -> count
+	loc := time.Now().Location()
 
 	for _, repo := range repos {
 		for _, commit := range repo.Commits {
@@ -322,7 +323,7 @@ func AggregateActivityHeatmap(repos []model.Repository, userEmail string, startD
 				continue
 			}
 
-			key := fmt.Sprintf("%d-%d", commit.Date.Weekday(), commit.Date.Hour())
+			key := fmt.Sprintf("%d-%d", commit.Date.In(loc).Weekday(), commit.Date.In(loc).Hour())
 			heatmap[key]++
 		}
 	}
