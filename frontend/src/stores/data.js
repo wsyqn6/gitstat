@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
-import * as api from '../api'
+import { setScanPath, getScanPath, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo } from '../api'
+import LRUCache from '../utils/lruCache'
 
 export const state = reactive({
   overviewStats: null,
@@ -12,10 +13,10 @@ export const state = reactive({
   error: null,
   reposInfo: [],
   analyzing: false,
-  analyzeCache: {},
-  repoInfoCache: {},
-  repoStatsCache: {},
-  repoChartCache: {}
+  analyzeCache: new LRUCache(50),
+  repoInfoCache: new LRUCache(50),
+  repoStatsCache: new LRUCache(50),
+  repoChartCache: new LRUCache(50)
 })
 
 export async function performScan(path) {
@@ -23,10 +24,10 @@ export async function performScan(path) {
   state.error = null
   
   try {
-    await api.setScanPath(path)
+    await setScanPath(path)
     const [overview, daily] = await Promise.all([
-      api.getOverviewStats(null, null, ['all']),
-      api.getDailyStats('', 'today', ['all'])
+      getOverviewStats(null, null, ['all']),
+      getDailyStats('', 'today', ['all'])
     ])
     state.overviewStats = overview
     state.dailyStats = daily
@@ -39,7 +40,7 @@ export async function performScan(path) {
 
 export async function fetchOverviewStats() {
   try {
-    state.overviewStats = await api.getOverviewStats(null, null, ['all'])
+    state.overviewStats = await getOverviewStats(null, null, ['all'])
   } catch (err) {
     console.error('Failed to fetch overview stats:', err)
   }
@@ -47,7 +48,7 @@ export async function fetchOverviewStats() {
 
 export async function fetchDailyStatsToday() {
   try {
-    state.dailyStats = await api.getDailyStats('', 'today', ['all'])
+    state.dailyStats = await getDailyStats('', 'today', ['all'])
   } catch (err) {
     console.error('Failed to fetch daily stats:', err)
   }
@@ -70,7 +71,7 @@ export async function loadDashboardS2() {
 
 export async function fetchRepoDailyTrend() {
   try {
-    const daily = await api.getDailyStats('', 'week', ['all'])
+    const daily = await getDailyStats('', 'week', ['all'])
     const result = []
     for (const repo of daily) {
       const dateMap = {}
@@ -95,7 +96,7 @@ export async function fetchRepoDailyTrend() {
 
 export async function fetchRepoComparison() {
   try {
-    state.repoComparison = await api.getRepoComparison(['all'], null, null, 'week')
+    state.repoComparison = await getRepoComparison(['all'], null, null, 'week')
   } catch (err) {
     console.error('Failed to fetch repo comparison:', err)
   }
@@ -103,7 +104,7 @@ export async function fetchRepoComparison() {
 
 export async function fetchAuthorRank() {
   try {
-    state.authorRank = await api.getAuthorRank(['all'], null, null, 'week')
+    state.authorRank = await getAuthorRank(['all'], null, null, 'week')
   } catch (err) {
     console.error('Failed to fetch author rank:', err)
   }
@@ -111,19 +112,19 @@ export async function fetchAuthorRank() {
 
 export async function fetchReposInfo() {
   try {
-    state.reposInfo = await api.getReposList()
+    state.reposInfo = await getReposList()
   } catch (err) {
     console.error('Failed to fetch repos info:', err)
   }
 }
 
 export async function fetchRepoInfo(path) {
-  if (state.repoInfoCache[path]) {
-    return state.repoInfoCache[path]
+  if (state.repoInfoCache.has(path)) {
+    return state.repoInfoCache.get(path)
   }
   try {
-    const result = await api.getRepoInfo(path)
-    state.repoInfoCache[path] = result
+    const result = await getRepoInfo(path)
+    state.repoInfoCache.set(path, result)
     return result
   } catch (err) {
     console.error('Failed to fetch repo info:', err)
@@ -132,12 +133,12 @@ export async function fetchRepoInfo(path) {
 }
 
 export async function fetchRepoStats(path) {
-  if (state.repoStatsCache[path]) {
-    return state.repoStatsCache[path]
+  if (state.repoStatsCache.has(path)) {
+    return state.repoStatsCache.get(path)
   }
   try {
-    const result = await api.getRepoStats(path)
-    state.repoStatsCache[path] = result
+    const result = await getRepoStats(path)
+    state.repoStatsCache.set(path, result)
     return result
   } catch (err) {
     console.error('Failed to fetch repo stats:', err)
@@ -146,12 +147,12 @@ export async function fetchRepoStats(path) {
 }
 
 export async function fetchRepoChart(path) {
-  if (state.repoChartCache[path]) {
-    return state.repoChartCache[path]
+  if (state.repoChartCache.has(path)) {
+    return state.repoChartCache.get(path)
   }
   try {
-    const result = await api.getRepoChart(path)
-    state.repoChartCache[path] = result
+    const result = await getRepoChart(path)
+    state.repoChartCache.set(path, result)
     return result
   } catch (err) {
     console.error('Failed to fetch repo chart:', err)
@@ -160,13 +161,13 @@ export async function fetchRepoChart(path) {
 }
 
 export async function triggerAnalyze(path) {
-  if (state.analyzeCache[path]) {
-    return state.analyzeCache[path]
+  if (state.analyzeCache.has(path)) {
+    return state.analyzeCache.get(path)
   }
   state.analyzing = true
   try {
-    const result = await api.analyzeRepo(path)
-    state.analyzeCache[path] = result
+    const result = await analyzeRepo(path)
+    state.analyzeCache.set(path, result)
     return result
   } catch (err) {
     console.error('Failed to analyze repo:', err)
@@ -178,7 +179,7 @@ export async function triggerAnalyze(path) {
 
 export async function loadScanPath() {
   try {
-    const info = await api.getScanPath()
+    const info = await getScanPath()
     state.scanPath = info.path
   } catch (err) {
     console.error('Failed to load scan path:', err)

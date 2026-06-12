@@ -54,7 +54,7 @@
 <script setup>
 import { ref, computed, defineAsyncComponent, onMounted } from 'vue'
 import { useI18n } from './i18n'
-import * as api from './api'
+import { getScanPath } from './api'
 import { loadScanPath } from './stores/data'
 import ToastContainer from './components/ToastContainer.vue'
 
@@ -73,14 +73,14 @@ const version = ref('')
 
 onMounted(async () => {
   try {
-    const info = await api.getScanPath()
+    const info = await getScanPath()
     scanPath.value = info.path
     version.value = info.version
   } catch (err) {
     console.error('Failed to load scan info:', err)
     try {
       await loadScanPath()
-      const info = await api.getScanPath()
+      const info = await getScanPath()
       scanPath.value = info.path
       version.value = info.version
     } catch {}

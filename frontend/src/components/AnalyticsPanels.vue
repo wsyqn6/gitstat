@@ -27,7 +27,7 @@
     <div v-if="insights.length > 0" class="insights-grid">
       <div
         v-for="(insight, idx) in insights"
-        :key="idx"
+        :key="insight.section"
         class="insight-card"
         :class="{ clickable: insight.clickable, expanded: insight.clickable && expandedSection === insight.section }"
         @click="insight.clickable && emit('toggle-section', insight.section)"

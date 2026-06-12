@@ -66,7 +66,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../i18n'
 import { performScan, state, loadScanPath } from '../stores/data'
-import * as api from '../api'
+import { getScanPath, exportData } from '../api'
 import { useToast } from '../composables/useToast'
 
 const { t } = useI18n()
@@ -82,7 +82,7 @@ const version = ref('v0.1.0')
 
 onMounted(async () => {
   try {
-    const scanInfo = await api.getScanPath()
+    const scanInfo = await getScanPath()
     version.value = scanInfo.version || 'dev'
   } catch (err) {
     console.error('Failed to fetch version:', err)
@@ -108,7 +108,7 @@ async function handleScan() {
 
 async function handleExport() {
   try {
-    const blob = await api.exportData()
+    const blob = await exportData()
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url

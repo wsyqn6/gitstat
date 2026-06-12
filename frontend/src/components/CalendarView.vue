@@ -121,7 +121,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, idx) in dateDetail" :key="idx" :style="{ animationDelay: idx * 0.04 + 's' }">
+              <tr v-for="(item, idx) in dateDetail" :key="item.repoName + '-' + item.author" :style="{ animationDelay: idx * 0.04 + 's' }">
                 <td class="cell-repo">{{ item.repoName }}</td>
                 <td class="cell-author">{{ item.author }}</td>
                 <td class="num-col">{{ item.commits }}</td>
@@ -189,7 +189,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, idx) in monthDetail" :key="idx" :style="{ animationDelay: idx * 0.04 + 's' }">
+            <tr v-for="(item, idx) in monthDetail" :key="item.repoName + '-' + item.author" :style="{ animationDelay: idx * 0.04 + 's' }">
               <td class="cell-repo">{{ item.repoName }}</td>
               <td class="cell-author">{{ item.author }}</td>
               <td class="num-col">{{ item.commits }}</td>
