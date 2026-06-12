@@ -45,8 +45,8 @@ cd backend && go build -ldflags="-s -w" -o gitstat.exe .
 
 <table>
   <tr>
-    <td><img src="docs/assets/screenshots/dashboard.webp" alt="Dashboard 看板"></td>
-    <td><img src="docs/assets/screenshots/dashboard2.webp" alt="Dashboard 看板 2"></td>
+    <td><img src="docs/assets/screenshots/dash1.webp" alt="Dashboard 看板"></td>
+    <td><img src="docs/assets/screenshots/dash2.webp" alt="Dashboard 看板 2"></td>
   </tr>
   <tr>
     <td><img src="docs/assets/screenshots/analy.webp" alt="Analytics 分析中心"></td>
