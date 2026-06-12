@@ -278,7 +278,7 @@ const codeChangeOption = computed(() => {
       }
     })
 
-      series.push({
+    series.push({
       name: `${author.name} - ${t('analytics.charts.deletions')}`,
       type: 'bar',
       stack: 'total',

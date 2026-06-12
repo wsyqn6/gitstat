@@ -3,8 +3,7 @@ import { BASE, buildParams, request } from './client'
 export async function setScanPath(path) {
   return request(`${BASE}/scan/path`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path }),
+    body: { path },
     errorMsg: 'Set path failed'
   })
 }
@@ -79,8 +78,7 @@ export async function getRepoStats(path) {
 export async function analyzeRepo(path) {
   return request(`${BASE}/repos/analyze`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path }),
+    body: { path },
     errorMsg: 'Failed to analyze repo'
   })
 }

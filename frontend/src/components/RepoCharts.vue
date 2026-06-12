@@ -78,7 +78,7 @@ const commitsLabel = computed(() => t('repo.charts.commitsUnit'))
 const lessLabel = computed(() => t('repo.charts.less'))
 const moreLabel = computed(() => t('repo.charts.more'))
 
-const dayLabels = computed(() => t('calendar.dayNamesShort'))
+const dayLabels = computed(() => t('calendar.dayNamesShort').map((d, i) => i % 2 === 1 ? d : ''))
 
 const monthNames = computed(() => t('calendar.monthNames'))
 

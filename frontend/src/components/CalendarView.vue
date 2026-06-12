@@ -334,7 +334,7 @@ const monthYearLabel = computed(() => {
   const m = d.getMonth() + 1
   return t('calendar.dateFormat')
     .replace('{y}', y).replace('{m}', m).replace('{d}', '')
-    .replace(/\s*周?\{\w\}.*$/, '').trim()
+    .replace(/\s*周?\{\w\}.*$/, '').replace(/日$/, '').trim()
     .replace(/,$/, '') || `${monthNames.value[m-1]} ${y}`
 })
 
