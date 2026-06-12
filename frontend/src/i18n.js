@@ -32,6 +32,13 @@ const messages = {
       changes: '变更',
       me: '我'
     },
+    datePicker: {
+      range: '范围',
+      clear: '清除',
+      placeholder: '选择日期范围',
+      monthFormat: '{y}年{m}月',
+      dayNames: ['一', '二', '三', '四', '五', '六', '日']
+    },
     scan: {
       title: '扫描Git仓库',
       directoryPath: '目录路径',
@@ -73,17 +80,60 @@ const messages = {
       additions: '新增',
       deletions: '删除',
       developer: '开发者',
-      repoName: '仓库'
+      repoName: '仓库',
+      charts: {
+        devRank: { title: '开发者贡献榜', subtitle: 'Top 10 按提交数排序' },
+        heatmap: { title: '提交时间热力图', subtitle: '星期 × 小时维度' },
+        repoCompare: { title: '仓库活跃度对比', subtitle: '多维度雷达分析' },
+        additions: '新增',
+        deletions: '删除',
+        netChange: '净变化',
+        commits: '提交数',
+        codeVolume: '代码量',
+        authorCount: '作者数',
+        activeDays: '活跃天数',
+        dailyAvg: '日均提交',
+        weekLabel: '第{0}周',
+        monthLabel: '{0}月',
+        yearLabel: '{0}年',
+        dayNames: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+        hours: ['0时', '1时', '2时', '3时', '4时', '5时', '6时', '7时', '8时', '9时', '10时', '11时', '12时', '13时', '14时', '15时', '16时', '17时', '18时', '19时', '20时', '21时', '22时', '23时'],
+        tooltipCommits: '提交数: {0}',
+        tooltipAdditions: '新增: <span style="color:#00ff88">{0}</span>',
+        tooltipDeletions: '删除: <span style="color:#ff6b6b">{0}</span>',
+        tooltipNetChange: '净变化: {0}'
+      },
+      panels: {
+        starTitle: '{prefix}之星',
+        starDesc: '{0} 次提交 · {1} 行新增',
+        avgSizeTitle: '平均提交规模',
+        avgSizeValue: '{0} 行',
+        avgSizeDesc: '{prefix}每次提交平均变更 {0} 行',
+        netGrowthTitle: '代码净增长',
+        netGrowthDesc: '{prefix}代码净增 {0} 行',
+        activeReposTitle: '活跃仓库',
+        activeReposValue: '{0} 个',
+        activeReposDesc: '{prefix}{0} 个仓库有提交活动'
+      }
     },
     calendar: {
       chartView: '图表视图',
       calendarView: '日历视图',
       total: '合计',
       commitsUnit: '次提交',
-      noDetail: '暂无详细信息'
+      noDetail: '暂无详细信息',
+      dayNamesShort: ['一', '二', '三', '四', '五', '六', '日'],
+      monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+      dateFormat: '{y}年{m}月{d}日 周{w}',
+      yearSuffix: '年'
     },
     repo: {
       empty: '暂无仓库信息，请先在设置页面扫描目录',
+      charts: {
+        commitsUnit: '次提交',
+        less: '少',
+        more: '多'
+      },
       currentBranch: '当前分支',
       branchCount: '分支总数',
       branchList: '分支列表',
@@ -196,6 +246,13 @@ const messages = {
       startScan: 'Start Scan',
       scanning: 'Scanning...'
     },
+    datePicker: {
+      range: 'Range',
+      clear: 'Clear',
+      placeholder: 'Select date range',
+      monthFormat: '{m}/{y}',
+      dayNames: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+    },
     analytics: {
       title: 'Data Analytics Center',
       subtitle: 'Real-time Monitoring · Multi-dimensional Insights',
@@ -231,17 +288,60 @@ const messages = {
       additions: 'Additions',
       deletions: 'Deletions',
       developer: 'Developer',
-      repoName: 'Repository'
+      repoName: 'Repository',
+      charts: {
+        devRank: { title: 'Developer Leaderboard', subtitle: 'Top 10 by commits' },
+        heatmap: { title: 'Commit Heatmap', subtitle: 'Weekday × Hour' },
+        repoCompare: { title: 'Repo Activity', subtitle: 'Multi-dimension Radar' },
+        additions: 'Additions',
+        deletions: 'Deletions',
+        netChange: 'Net Change',
+        commits: 'Commits',
+        codeVolume: 'Code Vol.',
+        authorCount: 'Authors',
+        activeDays: 'Active Days',
+        dailyAvg: 'Daily Avg',
+        weekLabel: 'W{0}',
+        monthLabel: '{0}',
+        yearLabel: '{0}',
+        dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        hours: ['0h','1h','2h','3h','4h','5h','6h','7h','8h','9h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h'],
+        tooltipCommits: 'Commits: {0}',
+        tooltipAdditions: 'Additions: <span style="color:#00ff88">{0}</span>',
+        tooltipDeletions: 'Deletions: <span style="color:#ff6b6b">{0}</span>',
+        tooltipNetChange: 'Net Change: {0}'
+      },
+      panels: {
+        starTitle: '{prefix} Star',
+        starDesc: '{0} commits · {1} additions',
+        avgSizeTitle: 'Avg Commit Size',
+        avgSizeValue: '{0} lines',
+        avgSizeDesc: '{prefix}{0} lines/commit',
+        netGrowthTitle: 'Net Code Growth',
+        netGrowthDesc: '{prefix}+{0} lines',
+        activeReposTitle: 'Active Repos',
+        activeReposValue: '{0}',
+        activeReposDesc: '{prefix}{0} repos with activity'
+      }
     },
     calendar: {
       chartView: 'Charts',
       calendarView: 'Calendar',
       total: 'Total',
       commitsUnit: 'commits',
-      noDetail: 'No details available'
+      noDetail: 'No details available',
+      dayNamesShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      monthNames: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      dateFormat: '{w} {m}/{d}/{y}',
+      yearSuffix: ''
     },
     repo: {
       empty: 'No repo info available. Please scan a directory in Settings first.',
+      charts: {
+        commitsUnit: 'commits',
+        less: 'Less',
+        more: 'More'
+      },
       currentBranch: 'Current Branch',
       branchCount: 'Branches',
       branchList: 'Branches',
