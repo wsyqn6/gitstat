@@ -444,6 +444,21 @@ async function loadDetail(path) {
       remoteBranches: info.remoteBranches || [],
       branches: info.branches || []
     }
+    if (state.repoStatsCache[path]) {
+      detail.value = { ...detail.value, ...state.repoStatsCache[path] }
+      statsLoaded.value = true
+      await nextTick()
+      renderChart()
+      fetchChartData()
+    }
+    if (state.analyzeCache[path]) {
+      detail.value.analysis = state.analyzeCache[path]
+      await nextTick()
+      renderChart()
+    }
+    if (state.repoChartCache[path]) {
+      chartData.value = state.repoChartCache[path]
+    }
   } catch (err) {
     console.error('Failed to load info:', err)
   } finally {

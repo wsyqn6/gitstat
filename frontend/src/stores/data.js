@@ -14,7 +14,8 @@ export const state = reactive({
   analyzing: false,
   analyzeCache: {},
   repoInfoCache: {},
-  repoStatsCache: {}
+  repoStatsCache: {},
+  repoChartCache: {}
 })
 
 export async function performScan(path, timeRange) {
@@ -145,8 +146,13 @@ export async function fetchRepoStats(path) {
 }
 
 export async function fetchRepoChart(path) {
+  if (state.repoChartCache[path]) {
+    return state.repoChartCache[path]
+  }
   try {
-    return await api.getRepoChart(path)
+    const result = await api.getRepoChart(path)
+    state.repoChartCache[path] = result
+    return result
   } catch (err) {
     console.error('Failed to fetch repo chart:', err)
     throw err
