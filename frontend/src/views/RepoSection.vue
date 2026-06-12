@@ -692,7 +692,6 @@ onUnmounted(() => {
   vertical-align: middle;
 }
 .spinner.large { width: 32px; height: 32px; border-width: 3px; border-color: rgba(0,212,255,0.2); border-top-color: #00d4ff; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Card rows */
 .card-row {

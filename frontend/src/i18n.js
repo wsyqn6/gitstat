@@ -205,6 +205,7 @@ const messages = {
       scanSuccess: '扫描完成',
       dataManagement: '数据管理',
       exportData: '导出数据 (JSON)',
+      exportError: '导出失败',
       about: '关于',
       platformName: 'Git提交统计平台'
     }
@@ -413,6 +414,7 @@ const messages = {
       scanSuccess: 'Scan completed',
       dataManagement: 'Data Management',
       exportData: 'Export Data (JSON)',
+      exportError: 'Export failed',
       about: 'About',
       platformName: 'Git Commit Statistics Platform'
     }
@@ -437,7 +439,11 @@ export function useI18n() {
     for (const k of keys) {
       value = value?.[k]
     }
-    return value || key
+    if (value === undefined) {
+      if (import.meta.env.DEV) console.warn('[i18n] Missing key:', key)
+      return key
+    }
+    return value
   }
 
   const setLocale = (locale) => {

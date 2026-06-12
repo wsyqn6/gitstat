@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { getDailyStats, getWeeklyStats, getMonthlyStats, getYearlyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
@@ -278,11 +278,6 @@ onMounted(async () => {
   }
 })
 
-const resizeHandler = () => {
-  // charts will auto-resize via ECharts' built-in resizer
-}
-onMounted(() => window.addEventListener('resize', resizeHandler))
-onUnmounted(() => window.removeEventListener('resize', resizeHandler))
 </script>
 
 <style scoped>

@@ -18,7 +18,7 @@ export const state = reactive({
   repoChartCache: {}
 })
 
-export async function performScan(path, timeRange) {
+export async function performScan(path) {
   state.loading = true
   state.error = null
   

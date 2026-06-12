@@ -209,17 +209,6 @@ const insights = computed(() => {
   color: #ff6b6b;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .insights-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

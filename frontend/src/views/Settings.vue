@@ -67,8 +67,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../i18n'
 import { performScan, state, loadScanPath } from '../stores/data'
 import * as api from '../api'
+import { useToast } from '../composables/useToast'
 
 const { t } = useI18n()
+const { show } = useToast()
 const scanPath = computed({
   get: () => state.scanPath,
   set: (v) => { state.scanPath = v }
@@ -94,7 +96,7 @@ async function handleScan() {
   scanSuccess.value = ''
   
   try {
-    await performScan(scanPath.value, '1d')
+    await performScan(scanPath.value)
     scanSuccess.value = t('settings.scanSuccess')
     setTimeout(() => scanSuccess.value = '', 3000)
   } catch (err) {
@@ -114,7 +116,7 @@ async function handleExport() {
     a.click()
     window.URL.revokeObjectURL(url)
   } catch (err) {
-    alert('导出失败: ' + err.message)
+    show(t('settings.exportError'), 'error')
   }
 }
 </script>

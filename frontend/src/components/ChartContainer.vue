@@ -133,10 +133,6 @@ function handleResize() {
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 .chart {
   height: 400px;
   width: 100%;

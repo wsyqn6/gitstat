@@ -821,24 +821,6 @@ onUnmounted(() => {
   color: #ff6b9d;
 }
 
-.skeleton-line {
-  height: 14px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-.skeleton-circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
 .skeleton-chart-area {
   height: 220px;
   display: flex;
@@ -940,8 +922,4 @@ onUnmounted(() => {
 .w80 { width: 80%; }
 .w90 { width: 90%; }
 
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
 </style>

@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
@@ -80,6 +80,11 @@ const hoverDate = ref('')
 const viewYear = ref(new Date().getFullYear())
 const viewMonth = ref(new Date().getMonth())
 const dropdownStyle = ref({})
+let positionTimer = null
+
+onUnmounted(() => {
+  if (positionTimer) clearTimeout(positionTimer)
+})
 
 watch(open, (v) => {
   if (v) {
@@ -95,7 +100,7 @@ watch(open, (v) => {
 })
 
 function positionDropdown() {
-  setTimeout(() => {
+  positionTimer = setTimeout(() => {
     const el = document.querySelector('.dp-dropdown')
     const trigger = document.querySelector('.dp-trigger')
     if (el && trigger) {

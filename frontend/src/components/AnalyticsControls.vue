@@ -286,10 +286,6 @@ onUnmounted(() => {
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 .time-selector-cyber {
   position: relative;
   display: flex;
@@ -394,17 +390,6 @@ onUnmounted(() => {
   margin-top: 0.5rem;
   padding: 0.25rem;
   animation: slideDown 0.2s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .repo-dropdown {
