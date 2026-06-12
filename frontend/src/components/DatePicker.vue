@@ -3,7 +3,7 @@
     <div class="dp-trigger" @click.stop="open = !open">
       <span class="dp-label">{{ label }}</span>
       <span class="dp-value" :class="{ empty: !start }">
-        {{ start ? `${start} ~ ${end}` : placeholder }}
+        {{ start ? `${start} ~ ${end}` : placeholder || t('datePicker.placeholder') }}
       </span>
       <span class="dp-arrow">▾</span>
     </div>
@@ -46,11 +46,11 @@
             </div>
           </div>
           <div class="dp-range-info">
-            <span class="dp-info-label">范围</span>
+            <span class="dp-info-label">{{ t('datePicker.range') }}</span>
             <span class="dp-info-dates">{{ localStart || '____-__-__' }} ~ {{ localEnd || '____-__-__' }}</span>
           </div>
           <div class="dp-actions">
-            <button class="dp-clear-btn" @click="clearRange">清除</button>
+            <button class="dp-clear-btn" @click="clearRange">{{ t('datePicker.clear') }}</button>
           </div>
         </div>
       </div>
@@ -60,11 +60,14 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   start: String,
   end: String,
-  placeholder: { type: String, default: '选择日期范围' },
+  placeholder: { type: String, default: '' },
   label: { type: String, default: '' }
 })
 const emit = defineEmits(['update:start', 'update:end'])
@@ -118,12 +121,13 @@ function navMonth(delta) {
 function rightYear() { return viewMonth.value === 11 ? viewYear.value + 1 : viewYear.value }
 function rightMonth() { return viewMonth.value === 11 ? 0 : viewMonth.value + 1 }
 
-const dayNames = ['一', '二', '三', '四', '五', '六', '日']
+const dayNames = computed(() => t('datePicker.dayNames'))
 
-const leftLabel = computed(() => `${viewYear.value}年${viewMonth.value + 1}月`)
-const rightLabel = computed(() => `${rightYear()}年${rightMonth() + 1}月`)
-const leftMonthLabel = computed(() => `${viewYear.value}年${viewMonth.value + 1}月`)
-const rightMonthLabel = computed(() => `${rightYear()}年${rightMonth() + 1}月`)
+const fmtMonth = (y, m) => t('datePicker.monthFormat').replace('{y}', y).replace('{m}', m + 1)
+const leftLabel = computed(() => fmtMonth(viewYear.value, viewMonth.value))
+const rightLabel = computed(() => fmtMonth(rightYear(), rightMonth()))
+const leftMonthLabel = computed(() => fmtMonth(viewYear.value, viewMonth.value))
+const rightMonthLabel = computed(() => fmtMonth(rightYear(), rightMonth()))
 
 function buildGrid(year, month) {
   const first = new Date(year, month, 1)

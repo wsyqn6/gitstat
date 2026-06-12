@@ -15,22 +15,22 @@
       class="chart-card secondary"
     />
     <ChartContainer
-      title="开发者贡献榜"
-      subtitle="Top 10 按提交数排序"
+      :title="t('analytics.charts.devRank.title')"
+      :subtitle="t('analytics.charts.devRank.subtitle')"
       :option="authorRankOption"
       :loading="loading"
       class="chart-card tertiary"
     />
     <ChartContainer
-      title="提交时间热力图"
-      subtitle="星期 × 小时维度"
+      :title="t('analytics.charts.heatmap.title')"
+      :subtitle="t('analytics.charts.heatmap.subtitle')"
       :option="heatmapOption"
       :loading="loading"
       class="chart-card quaternary"
     />
     <ChartContainer
-      title="仓库活跃度对比"
-      subtitle="多维度雷达分析"
+      :title="t('analytics.charts.repoCompare.title')"
+      :subtitle="t('analytics.charts.repoCompare.subtitle')"
       :option="repoComparisonOption"
       :loading="loading"
       class="chart-card quinary"
@@ -60,14 +60,12 @@ const props = defineProps({
 function formatPeriodLabel(period, granularity) {
   if (granularity === 'week') {
     const match = period.match(/-W(\d+)/)
-    return match ? `第${match[1]}周` : period
+    return match ? t('analytics.charts.weekLabel').replace('{0}', match[1]) : period
   }
-  if (granularity === 'month') {
-    return period.slice(5) + '月'
-  }
-  if (granularity === 'year') {
-    return period + '年'
-  }
+  if (granularity === 'month')
+    return t('analytics.charts.monthLabel').replace('{0}', period.slice(5))
+  if (granularity === 'year')
+    return t('analytics.charts.yearLabel').replace('{0}', period)
   return period
 }
 
@@ -280,8 +278,8 @@ const codeChangeOption = computed(() => {
       }
     })
 
-    series.push({
-      name: `${author.name} - 删除`,
+      series.push({
+      name: `${author.name} - ${t('analytics.charts.deletions')}`,
       type: 'bar',
       stack: 'total',
       barWidth: '40%',
@@ -311,7 +309,7 @@ const codeChangeOption = computed(() => {
         let result = `<div style="font-weight:bold;margin-bottom:5px">${params[0].axisValue}</div>`
         params.forEach(param => {
           const value = Math.abs(param.value)
-          const type = param.value >= 0 ? '新增' : '删除'
+          const type = param.value >= 0 ? t('analytics.charts.additions') : t('analytics.charts.deletions')
           result += `<div>${param.seriesName}: <span style="color:${param.color}">${value}</span> (${type})</div>`
         })
         return result
@@ -384,10 +382,10 @@ const authorRankOption = computed(() => {
         const author = topAuthors[item.dataIndex]
         return `
           <div style="font-weight:bold;margin-bottom:5px">${author.author}</div>
-          <div>提交数: ${author.commits}</div>
-          <div>新增: <span style="color:#00ff88">${author.additions}</span></div>
-          <div>删除: <span style="color:#ff6b6b">${author.deletions}</span></div>
-          <div>净变化: ${author.netChange > 0 ? '+' : ''}${author.netChange}</div>
+          <div>${t('analytics.charts.tooltipCommits').replace('{0}', author.commits)}</div>
+          <div>${t('analytics.charts.tooltipAdditions').replace('{0}', author.additions)}</div>
+          <div>${t('analytics.charts.tooltipDeletions').replace('{0}', author.deletions)}</div>
+          <div>${t('analytics.charts.tooltipNetChange').replace('{0}', (author.netChange > 0 ? '+' : '') + author.netChange)}</div>
         `
       }
     },
@@ -444,8 +442,8 @@ const heatmapOption = computed(() => {
     }
   }
 
-  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`)
-  const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const hours = t('analytics.charts.hours')
+  const days = t('analytics.charts.dayNames')
 
   const data = props.activityHeatmap.map(item => [
     item.dayOfWeek,
@@ -461,7 +459,7 @@ const heatmapOption = computed(() => {
       borderColor: '#00f5ff',
       textStyle: { color: '#fff' },
       formatter: (params) => {
-        return `<div>${days[params.value[0]]} ${hours[params.value[1]]}</div><div>提交数: ${params.value[2]}</div>`
+        return `<div>${days[params.value[0]]} ${hours[params.value[1]]}</div><div>${t('analytics.charts.tooltipCommits').replace('{0}', params.value[2])}</div>`
       }
     },
     grid: {
@@ -548,11 +546,11 @@ const repoComparisonOption = computed(() => {
     },
     radar: {
       indicator: [
-        { name: '提交数', max: 100 },
-        { name: '代码量', max: 100 },
-        { name: '作者数', max: 100 },
-        { name: '活跃天数', max: 100 },
-        { name: '日均提交', max: 100 }
+        { name: t('analytics.charts.commits'), max: 100 },
+        { name: t('analytics.charts.codeVolume'), max: 100 },
+        { name: t('analytics.charts.authorCount'), max: 100 },
+        { name: t('analytics.charts.activeDays'), max: 100 },
+        { name: t('analytics.charts.dailyAvg'), max: 100 }
       ],
       shape: 'polygon',
       splitNumber: 4,

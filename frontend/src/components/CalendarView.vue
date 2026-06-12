@@ -231,18 +231,8 @@ function toggleExpandAuthor(email) {
 
 // ====== Helpers ======
 
-const dayNames = computed(() => {
-  return locale.value === 'zh'
-    ? ['一', '二', '三', '四', '五', '六', '日']
-    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-})
-
-const monthNames = computed(() => {
-  if (locale.value === 'zh') {
-    return ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月']
-  }
-  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-})
+const dayNames = computed(() => t('calendar.dayNamesShort'))
+const monthNames = computed(() => t('calendar.monthNames'))
 
 function pad(n) {
   return String(n).padStart(2, '0')
@@ -342,7 +332,10 @@ const monthYearLabel = computed(() => {
   const d = new Date(props.startDate + 'T00:00:00')
   const y = d.getFullYear()
   const m = d.getMonth() + 1
-  return locale.value === 'zh' ? `${y}年${m}月` : `${monthNames.value[m-1]} ${y}`
+  return t('calendar.dateFormat')
+    .replace('{y}', y).replace('{m}', m).replace('{d}', '')
+    .replace(/\s*周?\{\w\}.*$/, '').trim()
+    .replace(/,$/, '') || `${monthNames.value[m-1]} ${y}`
 })
 
 const monthGrid = computed(() => {
@@ -432,13 +425,15 @@ const dateDetail = computed(() => {
 const formattedDate = computed(() => {
   if (!selectedCell.value) return ''
   const d = new Date(selectedCell.value.dateStr + 'T00:00:00')
-  if (locale.value === 'zh') {
-    const wd = ['日', '一', '二', '三', '四', '五', '六']
-    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${wd[d.getDay()]}`
-  }
-  const ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-  return `${wd[d.getDay()]}, ${ms[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+  const wdZh = ['日','一','二','三','四','五','六']
+  const ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const fmt = t('calendar.dateFormat')
+  return fmt
+    .replace('{y}', d.getFullYear())
+    .replace('{m}', d.getMonth() + 1)
+    .replace('{d}', d.getDate())
+    .replace('{w}', locale.value === 'zh' ? wdZh[d.getDay()] : wd[d.getDay()])
 })
 
 const netChange = computed(() => {
@@ -450,7 +445,7 @@ const netChange = computed(() => {
 
 const yearLabel = computed(() => {
   if (!props.startDate) return ''
-  return props.startDate.slice(0, 4) + (locale.value === 'zh' ? '年' : '')
+  return props.startDate.slice(0, 4) + (locale.value === 'zh' ? t('calendar.yearSuffix') : '')
 })
 
 const yearData = computed(() => {

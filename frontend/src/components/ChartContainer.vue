@@ -8,7 +8,7 @@
     </div>
     <div v-show="loading" class="chart-loading">
       <div class="loading-spinner"></div>
-      <p>加载中...</p>
+      <p>{{ t('repo.loading') }}</p>
     </div>
     <div v-show="!loading" ref="chartRef" class="chart"></div>
   </div>
@@ -16,7 +16,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
+
+const { t } = useI18n()
 
 const props = defineProps({
   title: String,

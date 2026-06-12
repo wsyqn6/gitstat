@@ -21,7 +21,7 @@
               :class="{ active: selectedTimeRange === 'custom' }"
             >
               <span class="btn-glow"></span>
-              <span class="btn-text-cyber">自定义</span>
+              <span class="btn-text-cyber">{{ t('analytics.customPeriod') }}</span>
             </button>
           </div>
 

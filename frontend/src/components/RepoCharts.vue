@@ -74,27 +74,13 @@ const hasData = computed(() =>
   props.data?.calendar?.length > 0 || props.data?.hourly?.length > 0
 )
 
-const commitsLabel = computed(() =>
-  locale.value === 'zh' ? '次提交' : 'commits'
-)
-const lessLabel = computed(() =>
-  locale.value === 'zh' ? '少' : 'Less'
-)
-const moreLabel = computed(() =>
-  locale.value === 'zh' ? '多' : 'More'
-)
+const commitsLabel = computed(() => t('repo.charts.commitsUnit'))
+const lessLabel = computed(() => t('repo.charts.less'))
+const moreLabel = computed(() => t('repo.charts.more'))
 
-const dayLabels = computed(() => {
-  if (locale.value === 'zh') return ['', '一', '', '三', '', '五', '']
-  return ['', 'Mon', '', 'Wed', '', 'Fri', '']
-})
+const dayLabels = computed(() => t('calendar.dayNamesShort'))
 
-const monthNames = computed(() => {
-  if (locale.value === 'zh') {
-    return ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
-  }
-  return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-})
+const monthNames = computed(() => t('calendar.monthNames'))
 
 const selectedYear = ref('')
 

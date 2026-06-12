@@ -1,16 +1,15 @@
 <template>
   <div>
-    <!-- 活跃作者展开面板 -->
     <div v-if="expandedSection === 'authors' && overviewStats?.authors" class="expand-panel">
-      <div class="expand-panel-header">{{ timePeriodPrefix }}活跃作者 · 共 {{ overviewStats.authors.length }} 人</div>
+      <div class="expand-panel-header">{{ timePeriodPrefix }}{{ t('dashboard.authorRank') }} · {{ t('calendar.total') }} {{ overviewStats.authors.length }} </div>
       <table class="expand-table">
         <thead>
           <tr>
-            <th>作者</th>
-            <th>提交数</th>
-            <th>新增</th>
-            <th>删除</th>
-            <th>净变更</th>
+            <th>{{ t('dashboard.author') }}</th>
+            <th>{{ t('dashboard.commits') }}</th>
+            <th>{{ t('analytics.charts.additions') }}</th>
+            <th>{{ t('analytics.charts.deletions') }}</th>
+            <th>{{ t('analytics.charts.netChange') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -25,7 +24,6 @@
       </table>
     </div>
 
-    <!-- 洞察卡片 -->
     <div v-if="insights.length > 0" class="insights-grid">
       <div
         v-for="(insight, idx) in insights"
@@ -34,7 +32,7 @@
         :class="{ clickable: insight.clickable, expanded: insight.clickable && expandedSection === insight.section }"
         @click="insight.clickable && emit('toggle-section', insight.section)"
       >
-        <div class="insight-icon" v-html="insight.iconSvg"></div>
+        <div class="insight-icon"><span :class="'icon-' + insight.icon"></span></div>
         <div class="insight-content">
           <div class="insight-title">{{ insight.title }}</div>
           <div class="insight-value">{{ insight.value }}</div>
@@ -43,18 +41,17 @@
       </div>
     </div>
 
-    <!-- 活跃仓库展开面板 -->
     <div v-if="expandedSection === 'repos' && repoComparison.length > 0" class="expand-panel">
-      <div class="expand-panel-header">{{ timePeriodPrefix }}活跃仓库 · 共 {{ repoComparison.filter(r => r.commits > 0).length }} 个</div>
+      <div class="expand-panel-header">{{ timePeriodPrefix }}{{ t('analytics.panels.activeReposTitle') }} · {{ t('calendar.total') }} {{ repoComparison.filter(r => r.commits > 0).length }} </div>
       <table class="expand-table">
         <thead>
           <tr>
-            <th>仓库名</th>
-            <th>提交数</th>
-            <th>作者数</th>
-            <th>新增行数</th>
-            <th>活跃天数</th>
-            <th>日均提交</th>
+            <th>{{ t('analytics.repoName') }}</th>
+            <th>{{ t('dashboard.commits') }}</th>
+            <th>{{ t('analytics.charts.authorCount') }}</th>
+            <th>{{ t('analytics.charts.additions') }}</th>
+            <th>{{ t('analytics.charts.activeDays') }}</th>
+            <th>{{ t('analytics.charts.dailyAvg') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -107,40 +104,40 @@ const insights = computed(() => {
   if (props.authorRank && props.authorRank.length > 0) {
     const topAuthor = props.authorRank[0]
     result.push({
-      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-      title: `${prefix}之星`,
+      icon: 'star',
+      title: t('analytics.panels.starTitle').replace('{prefix}', prefix),
       value: topAuthor.author,
-      description: `${topAuthor.commits} 次提交 · ${topAuthor.additions} 行新增`
+      description: t('analytics.panels.starDesc').replace('{0}', topAuthor.commits).replace('{1}', topAuthor.additions)
     })
   }
 
   if (props.overviewStats && props.overviewStats.totalCommits > 0) {
     const avgSize = Math.round((props.overviewStats.totalAdditions + props.overviewStats.totalDeletions) / props.overviewStats.totalCommits)
     result.push({
-      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
-      title: '平均提交规模',
-      value: `${avgSize} 行`,
-      description: `${prefix}每次提交平均变更 ${avgSize} 行`
+      icon: 'grid',
+      title: t('analytics.panels.avgSizeTitle'),
+      value: t('analytics.panels.avgSizeValue').replace('{0}', avgSize),
+      description: t('analytics.panels.avgSizeDesc').replace('{prefix}', prefix).replace('{0}', avgSize)
     })
   }
 
   if (props.overviewStats) {
     const netChange = props.overviewStats.totalAdditions - props.overviewStats.totalDeletions
     result.push({
-      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
-      title: '代码净增长',
+      icon: 'growth',
+      title: t('analytics.panels.netGrowthTitle'),
       value: `${netChange > 0 ? '+' : ''}${netChange}`,
-      description: `${prefix}代码净增 ${netChange} 行`
+      description: t('analytics.panels.netGrowthDesc').replace('{prefix}', prefix).replace('{0}', netChange)
     })
   }
 
   if (props.repoComparison && props.repoComparison.length > 0) {
     const activeRepos = props.repoComparison.filter(r => r.commits > 0).length
     result.push({
-      iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
-      title: '活跃仓库',
-      value: `${activeRepos} 个`,
-      description: `${prefix}${activeRepos} 个仓库有提交活动`,
+      icon: 'folder',
+      title: t('analytics.panels.activeReposTitle'),
+      value: t('analytics.panels.activeReposValue').replace('{0}', activeRepos),
+      description: t('analytics.panels.activeReposDesc').replace('{prefix}', prefix).replace('{0}', activeRepos),
       clickable: true,
       section: 'repos'
     })
@@ -275,10 +272,10 @@ const insights = computed(() => {
   filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.4));
 }
 
-.insight-icon svg {
-  width: 24px;
-  height: 24px;
-}
+.icon-star::after  { content: '★'; font-size: 20px; }
+.icon-grid::after  { content: '▦'; font-size: 18px; }
+.icon-growth::after { content: '↗'; font-size: 20px; }
+.icon-folder::after { content: '📁'; font-size: 18px; }
 
 .insight-content {
   flex: 1;
