@@ -33,10 +33,10 @@ gitstat serve D:/work --port 8080  # 自定义端口
 
 ## 从源码构建
 
-前置要求：Go 1.26+、Node.js 22+、pnpm
+前置要求：Go 1.26+、Bun
 
 ```bash
-cd frontend && pnpm install && pnpm build
+cd frontend && bun install && bun run build
 mkdir -p backend/web/dist && cp -r frontend/dist/* backend/web/dist/
 cd backend && go build -ldflags="-s -w" -o gitstat.exe .
 ```
@@ -89,10 +89,10 @@ Browser opens automatically. Visit `http://localhost:12580` to view the dashboar
 
 ## Build from Source
 
-Prerequisites: Go 1.26+, Node.js 22+, pnpm
+Prerequisites: Go 1.26+, Bun
 
 ```bash
-cd frontend && pnpm install && pnpm build
+cd frontend && bun install && bun run build
 mkdir -p backend/web/dist && cp -r frontend/dist/* backend/web/dist/
 cd backend && go build -ldflags="-s -w" -o gitstat.exe .
 ```
