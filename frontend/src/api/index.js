@@ -1,281 +1,91 @@
-const API_BASE = import.meta.env.VITE_API_BASE || '/api'
+import { BASE, buildParams, request } from './client'
 
 export async function setScanPath(path) {
-  const response = await fetch(`${API_BASE}/scan/path`, {
+  return request(`${BASE}/scan/path`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path })
+    body: JSON.stringify({ path }),
+    errorMsg: 'Set path failed'
   })
-  
-  if (!response.ok) {
-    throw new Error('Set path failed')
-  }
-  
-  return response.json()
 }
 
 export async function getScanPath() {
-  const response = await fetch(`${API_BASE}/scan/path`)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch scan path')
-  }
-  
-  const data = await response.json()
-  return {
-    path: data.data?.path || '',
-    version: data.data?.version || ''
-  }
+  const data = await request(`${BASE}/scan/path`, { errorMsg: 'Failed to fetch scan path' })
+  return { path: data.data?.path || '', version: data.data?.version || '' }
 }
 
-export async function getOverviewStats(startDate = null, endDate = null, repos = []) {
-  const params = new URLSearchParams()
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-  
-  // repos为空或包含'all'时不传repo参数（后端返回所有仓库）
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-  
-  const url = `${API_BASE}/stats/overview?${params.toString()}`
-  const response = await fetch(url)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch stats')
-  }
-  
-  return response.json()
+export async function getOverviewStats(startDate, endDate, repos = []) {
+  const params = buildParams({ startDate, endDate, repos })
+  return request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats' })
 }
 
 export async function getRepositories() {
-  const response = await fetch(`${API_BASE}/repositories`)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch repositories')
-  }
-  
-  return response.json()
+  return request(`${BASE}/repositories`, { errorMsg: 'Failed to fetch repositories' })
 }
 
 export async function exportData() {
-  const response = await fetch(`${API_BASE}/export/json`)
-  
-  if (!response.ok) {
-    throw new Error('Export failed')
-  }
-  
-  return response.blob()
+  return request(`${BASE}/export/json`, { errorMsg: 'Export failed', blob: true })
 }
 
-export async function getDailyStats(email, timeRange = 'week', repos = [], startDate = null, endDate = null) {
-  const params = new URLSearchParams()
-  if (email) params.append('email', email)
-  if (timeRange) params.append('range', timeRange)
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-  
-  // repos为空或包含'all'时不传repo参数（后端返回所有仓库）
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-  
-  const url = `${API_BASE}/stats/daily?${params.toString()}`
-  const response = await fetch(url)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch daily stats')
-  }
-  
-  return response.json()
+export async function getDailyStats(email, timeRange = 'week', repos = [], startDate, endDate) {
+  const params = buildParams({ email, timeRange, repos, startDate, endDate })
+  return request(`${BASE}/stats/daily?${params}`, { errorMsg: 'Failed to fetch daily stats' })
 }
 
-export async function getAuthorRank(repos = [], startDate = null, endDate = null, timeRange = 'week') {
-  const params = new URLSearchParams()
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-  if (timeRange) params.append('range', timeRange)
-  
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-  
-  const url = `${API_BASE}/stats/authors?${params.toString()}`
-  const response = await fetch(url)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch author rank')
-  }
-  
-  return response.json()
+export async function getAuthorRank(repos = [], startDate, endDate, timeRange = 'week') {
+  const params = buildParams({ repos, startDate, endDate, timeRange })
+  return request(`${BASE}/stats/authors?${params}`, { errorMsg: 'Failed to fetch author rank' })
 }
 
-export async function getWeeklyStats(email, timeRange = 'week', repos = [], startDate = null, endDate = null) {
-  const params = new URLSearchParams()
-  if (email) params.append('email', email)
-  if (timeRange) params.append('range', timeRange)
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-
-  const url = `${API_BASE}/stats/weekly?${params.toString()}`
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch weekly stats')
-  }
-
-  return response.json()
+export async function getWeeklyStats(email, timeRange = 'week', repos = [], startDate, endDate) {
+  const params = buildParams({ email, timeRange, repos, startDate, endDate })
+  return request(`${BASE}/stats/weekly?${params}`, { errorMsg: 'Failed to fetch weekly stats' })
 }
 
-export async function getMonthlyStats(email, timeRange = 'month', repos = [], startDate = null, endDate = null) {
-  const params = new URLSearchParams()
-  if (email) params.append('email', email)
-  if (timeRange) params.append('range', timeRange)
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-
-  const url = `${API_BASE}/stats/monthly?${params.toString()}`
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch monthly stats')
-  }
-
-  return response.json()
+export async function getMonthlyStats(email, timeRange = 'month', repos = [], startDate, endDate) {
+  const params = buildParams({ email, timeRange, repos, startDate, endDate })
+  return request(`${BASE}/stats/monthly?${params}`, { errorMsg: 'Failed to fetch monthly stats' })
 }
 
-export async function getYearlyStats(email, timeRange = 'year', repos = [], startDate = null, endDate = null) {
-  const params = new URLSearchParams()
-  if (email) params.append('email', email)
-  if (timeRange) params.append('range', timeRange)
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-
-  const url = `${API_BASE}/stats/yearly?${params.toString()}`
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch yearly stats')
-  }
-
-  return response.json()
+export async function getYearlyStats(email, timeRange = 'year', repos = [], startDate, endDate) {
+  const params = buildParams({ email, timeRange, repos, startDate, endDate })
+  return request(`${BASE}/stats/yearly?${params}`, { errorMsg: 'Failed to fetch yearly stats' })
 }
 
-export async function getActivityHeatmap(repos = [], startDate = null, endDate = null) {
-  const params = new URLSearchParams()
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-  
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-  
-  const url = `${API_BASE}/stats/activity-heatmap?${params.toString()}`
-  const response = await fetch(url)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch activity heatmap')
-  }
-  
-  return response.json()
+export async function getActivityHeatmap(repos = [], startDate, endDate) {
+  const params = buildParams({ repos, startDate, endDate })
+  return request(`${BASE}/stats/activity-heatmap?${params}`, { errorMsg: 'Failed to fetch activity heatmap' })
 }
 
-export async function getRepoComparison(repos = [], startDate = null, endDate = null, timeRange = 'week') {
-  const params = new URLSearchParams()
-  if (startDate) params.append('startDate', startDate)
-  if (endDate) params.append('endDate', endDate)
-  if (timeRange) params.append('range', timeRange)
-  
-  if (repos.length > 0 && !repos.includes('all')) {
-    repos.forEach(repo => params.append('repo', repo))
-  }
-  
-  const url = `${API_BASE}/stats/repo-comparison?${params.toString()}`
-  const response = await fetch(url)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch repo comparison')
-  }
-  
-  return response.json()
+export async function getRepoComparison(repos = [], startDate, endDate, timeRange = 'week') {
+  const params = buildParams({ repos, startDate, endDate, timeRange })
+  return request(`${BASE}/stats/repo-comparison?${params}`, { errorMsg: 'Failed to fetch repo comparison' })
 }
 
 export async function getReposList() {
-  const response = await fetch(`${API_BASE}/repos/list`)
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch repos list')
-  }
-
-  return response.json()
+  return request(`${BASE}/repos/list`, { errorMsg: 'Failed to fetch repos list' })
 }
 
 export async function getRepoInfo(path) {
-  const params = new URLSearchParams({ path })
-  const response = await fetch(`${API_BASE}/repos/info?${params}`)
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch repo info')
-  }
-
-  return response.json()
+  const params = buildParams({ path })
+  return request(`${BASE}/repos/info?${params}`, { errorMsg: 'Failed to fetch repo info' })
 }
 
 export async function getRepoStats(path) {
-  const params = new URLSearchParams({ path })
-  const response = await fetch(`${API_BASE}/repos/stats?${params}`)
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch repo stats')
-  }
-
-  return response.json()
+  const params = buildParams({ path })
+  return request(`${BASE}/repos/stats?${params}`, { errorMsg: 'Failed to fetch repo stats' })
 }
 
 export async function analyzeRepo(path) {
-  const response = await fetch(`${API_BASE}/repos/analyze`, {
+  return request(`${BASE}/repos/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path })
+    body: JSON.stringify({ path }),
+    errorMsg: 'Failed to analyze repo'
   })
-
-  if (!response.ok) {
-    throw new Error('Failed to analyze repo')
-  }
-
-  return response.json()
 }
 
 export async function getRepoChart(path) {
-  const params = new URLSearchParams({ path })
-  const response = await fetch(`${API_BASE}/repos/chart?${params}`)
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch repo chart')
-  }
-
-  return response.json()
-}
-
-export async function getVersion() {
-  const response = await fetch(`${API_BASE}/version`)
-  
-  if (!response.ok) {
-    throw new Error('Failed to fetch version')
-  }
-  
-  const data = await response.json()
-  return data.version
+  const params = buildParams({ path })
+  return request(`${BASE}/repos/chart?${params}`, { errorMsg: 'Failed to fetch repo chart' })
 }
