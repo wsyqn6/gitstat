@@ -15,14 +15,8 @@ jobs:
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
-      - uses: pnpm/action-setup@v6
-        with: { version: 10 }
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - run: cd frontend && pnpm install --frozen-lockfile && pnpm build
+      - uses: oven-sh/setup-bun@v2
+      - run: cd frontend && bun install --frozen-lockfile && bun run build
       - run: |
           mkdir -p backend/web/dist
           cp -r frontend/dist/* backend/web/dist/
@@ -42,16 +36,10 @@ jobs:
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
-      - uses: pnpm/action-setup@v6
-        with: { version: 10 }
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - run: node frontend/scripts/sync-version.mjs
+      - uses: oven-sh/setup-bun@v2
+      - run: bun frontend/scripts/sync-version.mjs
       - run: |
-          cd frontend && pnpm install --frozen-lockfile && pnpm build
+          cd frontend && bun install --frozen-lockfile && bun run build
           mkdir -p ../backend/web/dist
           cp -r dist/* ../backend/web/dist/
       - run: |
