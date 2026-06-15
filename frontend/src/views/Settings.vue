@@ -78,7 +78,7 @@ const scanPath = computed({
 const scanning = ref(false)
 const scanError = ref('')
 const scanSuccess = ref('')
-const version = ref('v0.1.0')
+const version = ref('dev')
 
 onMounted(async () => {
   try {

@@ -70,10 +70,6 @@ const props = defineProps({
 const cellSize = 11
 const cellGap = 3
 
-const hasData = computed(() =>
-  props.data?.calendar?.length > 0 || props.data?.hourly?.length > 0
-)
-
 const commitsLabel = computed(() => t('repo.charts.commitsUnit'))
 const lessLabel = computed(() => t('repo.charts.less'))
 const moreLabel = computed(() => t('repo.charts.more'))

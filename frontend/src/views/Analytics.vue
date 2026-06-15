@@ -3,8 +3,8 @@
     <div class="header-section">
       <div class="title-row">
         <div>
-          <h2 class="page-title">数据分析中心</h2>
-          <p class="subtitle">实时监控 · 多维度洞察</p>
+          <h2 class="page-title">{{ t('analytics.title') }}</h2>
+          <p class="subtitle">{{ t('analytics.subtitle') }}</p>
         </div>
         <AnalyticsControls
           :repositories="repositories"
