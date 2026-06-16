@@ -1,0 +1,308 @@
+<template>
+  <div class="cal-year-view card">
+    <div class="cal-header">
+      <span class="cal-title">{{ yearLabel }}</span>
+    </div>
+    <div v-if="yearData.length === 0" class="cal-empty">{{ t('analytics.noData') }}</div>
+    <div v-else class="year-grid">
+      <div v-for="month in yearData" :key="month.month"
+        class="year-month-card"
+        :class="{ 'future-month': month.isFuture, 'selected': selectedMonth?.key === month.key }"
+        :style="{ '--bg-alpha': month.commits ? (0.05 + Math.min(month.commits / yearMaxCommits, 1) * 0.55).toFixed(2) : '0' }"
+        @click="!month.isFuture && (selectedMonth = selectedMonth?.key === month.key ? null : month)"
+      >
+        <div class="ym-header">{{ month.name }}</div>
+        <div class="ym-commits">{{ month.commits }}</div>
+        <div class="ym-changes">
+          <span class="ym-add">+{{ month.additions }}</span>
+          <span class="ym-del">-{{ month.deletions }}</span>
+          <span class="ym-net">{{ (month.additions || 0) - (month.deletions || 0) >= 0 ? '+' : '' }}{{ (month.additions || 0) - (month.deletions || 0) }}</span>
+        </div>
+      </div>
+    </div>
+    <div v-if="selectedMonth" class="detail-panel expand-panel">
+      <div class="detail-hero">
+        <div class="hero-date">{{ selectedMonth.name }} {{ startDate?.slice(0, 4) }}</div>
+        <div class="hero-stats">
+          <div class="hero-commits">
+            <span class="hero-number">{{ selectedMonth.commits }}</span>
+            <span class="hero-label">{{ t('calendar.commitsUnit') }}</span>
+          </div>
+          <div class="hero-changes">
+            <span class="hero-add">+{{ selectedMonth.additions }}</span>
+            <span class="hero-del">-{{ selectedMonth.deletions }}</span>
+            <span class="hero-net" :class="(selectedMonth.additions - selectedMonth.deletions) >= 0 ? 'pos' : 'neg'">
+              {{ (selectedMonth.additions - selectedMonth.deletions) >= 0 ? '+' : '' }}{{ selectedMonth.additions - selectedMonth.deletions }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-divider"></div>
+      <table v-if="monthDetail.length > 0" class="detail-table">
+        <thead>
+          <tr>
+            <th>{{ t('analytics.repoName') }}</th>
+            <th>{{ t('analytics.developer') }}</th>
+            <th class="num-col">{{ t('dashboard.commits') }}</th>
+            <th class="num-col">{{ t('analytics.additions') }}</th>
+            <th class="num-col">{{ t('analytics.deletions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item, idx) in monthDetail" :key="item.repoName + '-' + item.author" :style="{ animationDelay: idx * 0.04 + 's' }">
+            <td class="cell-repo">{{ item.repoName }}</td>
+            <td class="cell-author">{{ item.author }}</td>
+            <td class="num-col">{{ item.commits }}</td>
+            <td class="num-col cell-additions">+{{ item.additions }}</td>
+            <td class="num-col cell-deletions">-{{ item.deletions }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="detail-empty">
+        <span class="empty-icon">⌧</span>
+        {{ t('calendar.noDetail') }}
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { useI18n } from '../i18n'
+
+const props = defineProps({
+  periodStats: { type: Array, default: () => [] },
+  startDate: { type: String, default: '' }
+})
+
+const { t, locale } = useI18n()
+
+const selectedMonth = ref(null)
+
+function pad(n) {
+  return String(n).padStart(2, '0')
+}
+
+const monthNames = computed(() => t('calendar.monthNames'))
+
+const yearLabel = computed(() => {
+  if (!props.startDate) return ''
+  return props.startDate.slice(0, 4) + (locale.value === 'zh' ? t('calendar.yearSuffix') : '')
+})
+
+const yearData = computed(() => {
+  if (!props.startDate) return []
+  const year = parseInt(props.startDate.slice(0, 4))
+  const now = new Date()
+  const currentMonth = now.getMonth() + 1
+  const currentYear = now.getFullYear()
+
+  const monthMap = new Map()
+  for (let m = 1; m <= 12; m++) {
+    const key = `${year}-${pad(m)}`
+    monthMap.set(key, { month: m, key, commits: 0, additions: 0, deletions: 0 })
+  }
+
+  for (const repo of props.periodStats) {
+    for (const author of repo.authors) {
+      for (const period of author.dailyData) {
+        if (monthMap.has(period.date)) {
+          const data = monthMap.get(period.date)
+          data.commits += period.commits
+          data.additions += period.additions
+          data.deletions += period.deletions
+        }
+      }
+    }
+  }
+
+  let maxC = 0
+  const result = []
+  for (let m = 1; m <= 12; m++) {
+    const key = `${year}-${pad(m)}`
+    const data = monthMap.get(key)
+    data.isFuture = (year > currentYear) || (year === currentYear && m > currentMonth)
+    data.name = monthNames.value[m - 1]
+    if (data.commits > maxC) maxC = data.commits
+    result.push(data)
+  }
+
+  result.forEach(d => d.maxCommits = maxC)
+  return result
+})
+
+const yearMaxCommits = computed(() => {
+  let m = 0
+  for (const month of yearData.value) {
+    if (month.commits > m) m = month.commits
+  }
+  return m
+})
+
+const monthDetail = computed(() => {
+  if (!selectedMonth.value) return []
+  const key = selectedMonth.value.key
+  const items = []
+  for (const repo of props.periodStats) {
+    for (const author of repo.authors) {
+      for (const period of author.dailyData) {
+        if (period.date === key && period.commits > 0) {
+          items.push({
+            repoName: repo.repoName,
+            author: author.author,
+            commits: period.commits,
+            additions: period.additions,
+            deletions: period.deletions
+          })
+        }
+      }
+    }
+  }
+  return items.sort((a, b) => b.commits - a.commits)
+})
+</script>
+
+<style scoped>
+.cal-year-view.card {
+  position: relative;
+}
+.cal-year-view.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  border-radius: 2px;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.cal-header {
+  margin-bottom: 1.25rem;
+}
+.cal-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: #00f5ff;
+  letter-spacing: 2px;
+}
+
+.cal-empty {
+  text-align: center;
+  padding: 3rem 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.year-month-card {
+  position: relative;
+  background: rgba(10, 14, 39, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.year-month-card:hover:not(.future-month) {
+  border-color: rgba(0, 245, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 245, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
+}
+.year-month-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  border-radius: 2px;
+  opacity: 0.4;
+  transition: all 0.4s ease;
+  pointer-events: none;
+}
+.year-month-card:hover::before {
+  left: 5%;
+  right: 5%;
+  opacity: 0.8;
+}
+.year-month-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(160, 100, 200, calc(var(--bg-alpha, 0)));
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.year-month-card.selected {
+  border-color: #00f5ff;
+  box-shadow: 0 0 25px rgba(0, 245, 255, 0.3), inset 0 0 20px rgba(0, 245, 255, 0.05);
+}
+.year-month-card.selected::before {
+  left: 5%;
+  right: 5%;
+  opacity: 1;
+}
+.year-month-card.future-month {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+.ym-header {
+  position: relative;
+  z-index: 1;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.ym-commits {
+  position: relative;
+  z-index: 1;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1.15;
+  margin-bottom: 0.4rem;
+}
+.ym-changes {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.ym-changes .ym-add { color: #00ff88; }
+.ym-changes .ym-del { color: #ff6b6b; }
+.ym-changes .ym-net { color: #64748b; }
+
+@media (max-width: 900px) {
+  .year-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .year-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
