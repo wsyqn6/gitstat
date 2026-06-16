@@ -26,6 +26,7 @@ type RepoCache struct {
 	LatestDate     time.Time
 	Commits        []model.Commit
 	Initialized    bool
+	FullyLoaded    bool
 	RepoSize       int64
 	Analyzed       bool
 	Branches       []string
@@ -229,6 +230,25 @@ func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 	if len(commits) > 0 {
 		s.updateDateRange(cache, commits)
 	}
+}
+
+// SetFullyLoaded 标记仓库已加载完整历史
+func (s *Store) SetFullyLoaded(path string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if c, ok := s.Repos[path]; ok {
+		c.FullyLoaded = true
+	}
+}
+
+// IsFullyLoaded 检查仓库是否已加载完整历史
+func (s *Store) IsFullyLoaded(path string) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if c, ok := s.Repos[path]; ok {
+		return c.FullyLoaded
+	}
+	return false
 }
 
 // GetAnalyzeCache 获取缓存的深度分析结果

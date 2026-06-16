@@ -43,12 +43,13 @@ func main() {
 }
 
 func runDebug() {
-	defaultPath := "D:/work"
+	defaultPath := "D:/work/deepgrid"
 	repos, err := scanner.DiscoverRepos(defaultPath)
 	if err != nil {
 		log.Printf("Warning: Failed to discover repos in %s: %v", defaultPath, err)
 	} else {
 		store.GlobalStore.RegisterRepos(repos)
+		store.GlobalStore.SetScanPath(defaultPath)
 		log.Printf("Registered %d repos from %s", len(repos), defaultPath)
 	}
 

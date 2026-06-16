@@ -56,16 +56,34 @@ func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
 		if err != nil {
 			log.Printf("[LazyLoad] Scan failed for %s: %v", repoPath, err)
 		}
+		if err == nil && startDate.IsZero() {
+			store.GlobalStore.SetFullyLoaded(repoPath)
+		}
 		return
 	}
 
 	// 已初始化 → 零锁并行增量
-	if !startDate.IsZero() && !earliest.IsZero() && earliest.After(startDate) {
-		newCommits, err := scanner.ScanCommitsByRange(repoPath, startDate, earliest)
+	needReverse := false
+	if startDate.IsZero() {
+		needReverse = !store.GlobalStore.IsFullyLoaded(repoPath)
+	} else if !earliest.IsZero() && earliest.After(startDate) {
+		needReverse = true
+	}
+
+	if needReverse {
+		revStart := time.Time{}
+		revEnd := earliest
+		if revEnd.IsZero() {
+			revEnd = now
+		}
+		newCommits, err := scanner.ScanCommitsByRange(repoPath, revStart, revEnd)
 		if err != nil {
 			log.Printf("[LazyLoad] Backward scan failed for %s: %v", repoPath, err)
 		} else if len(newCommits) > 0 {
 			store.GlobalStore.MergeCommits(repoPath, newCommits)
+		}
+		if startDate.IsZero() {
+			store.GlobalStore.SetFullyLoaded(repoPath)
 		}
 	}
 

@@ -149,6 +149,9 @@ func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, st
 		}
 	}
 
+	if result == nil {
+		result = []model.RepositoryDailyStats{}
+	}
 	return result
 }
 
@@ -237,6 +240,9 @@ func aggregatePeriodStats(repos []model.Repository, userEmail string, startDate,
 		}
 	}
 
+	if result == nil {
+		result = []model.RepositoryPeriodStats{}
+	}
 	return result
 }
 
@@ -301,6 +307,9 @@ func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate t
 		return cmp.Compare(b.Commits, a.Commits)
 	})
 
+	if result == nil {
+		result = []model.AuthorRankItem{}
+	}
 	return result
 }
 
@@ -352,6 +361,9 @@ func AggregateActivityHeatmap(repos []model.Repository, userEmail string, startD
 		return cmp.Compare(a.Hour, b.Hour)
 	})
 
+	if result == nil {
+		result = []model.ActivityHeatmapPoint{}
+	}
 	return result
 }
 
@@ -409,5 +421,8 @@ func AggregateRepoComparison(repos []model.Repository, userEmail string, startDa
 		return cmp.Compare(b.Commits, a.Commits)
 	})
 
+	if result == nil {
+		result = []model.RepoComparison{}
+	}
 	return result
 }
