@@ -255,7 +255,7 @@ const repoColors = computed(() =>
 )
 
 const authorRankWithRepos = computed(() => {
-  if (state.authorRank.length === 0) return []
+  if (!state.authorRank || state.authorRank.length === 0) return []
   const repoOf = {}
   for (const repo of state.repoDailyTrend) {
     for (const author of repo.authors || []) {

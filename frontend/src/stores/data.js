@@ -72,6 +72,10 @@ export async function loadDashboardS2() {
 export async function fetchRepoDailyTrend() {
   try {
     const daily = await getDailyStats('', 'week', ['all'])
+    if (!Array.isArray(daily)) {
+      state.repoDailyTrend = []
+      return
+    }
     const result = []
     for (const repo of daily) {
       const dateMap = {}
