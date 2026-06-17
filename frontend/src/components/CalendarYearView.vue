@@ -241,7 +241,7 @@ const monthDetail = computed(() => {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(160, 100, 200, calc(var(--bg-alpha, 0)));
+  background: rgba(0, 212, 255, calc(var(--bg-alpha, 0)));
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
