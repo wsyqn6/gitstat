@@ -20,6 +20,7 @@ var extLangMap = map[string]string{
 	".py":      "Python",
 	".js":      "JavaScript",
 	".jsx":     "React (JSX)",
+	".mjs":     "JavaScript",
 	".ts":      "TypeScript",
 	".tsx":     "React (TSX)",
 	".vue":     "Vue",
@@ -76,6 +77,37 @@ var extLangMap = map[string]string{
 	".proto":      "Protobuf",
 	".graphql":    "GraphQL",
 	".gql":        "GraphQL",
+	".mod":     "Go Module",
+	".sum":     "Go Sum",
+	".lock":    "Lockfile",
+	".svg":     "SVG",
+	".env":     "Config",
+	".npmrc":   "Config",
+	".gitignore": "Git Config",
+	".gitattributes": "Git Config",
+}
+
+var skipExt = map[string]bool{
+	".png":  true,
+	".jpg":  true,
+	".jpeg": true,
+	".gif":  true,
+	".webp": true,
+	".ico":  true,
+	".woff":   true,
+	".woff2":  true,
+	".eot":    true,
+	".ttf":    true,
+	".otf":    true,
+	".mp4":    true,
+	".avi":    true,
+	".mov":    true,
+	".mkv":    true,
+	".webm":   true,
+	".pdf":    true,
+	".zip":    true,
+	".gz":     true,
+	".tar":    true,
 }
 
 var exactNameMap = map[string]string{
@@ -175,6 +207,10 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 		}
 		ext := strings.ToLower(filepath.Ext(rel))
 		base := filepath.Base(rel)
+
+		if skipExt[ext] {
+			continue
+		}
 
 		var lang string
 		if v, ok := exactNameMap[base]; ok {

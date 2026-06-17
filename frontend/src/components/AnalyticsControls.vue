@@ -38,7 +38,7 @@
 
       <div class="control-item">
         <label class="control-label">{{ t('analytics.repoFilter') }}</label>
-        <div class="repo-dropdown">
+        <div v-if="repositories.length > 1" class="repo-dropdown">
           <button
             @click.stop="showDropdown = !showDropdown"
             class="repo-dropdown-btn"
@@ -78,6 +78,9 @@
               </button>
             </div>
           </div>
+        </div>
+        <div v-else-if="repositories.length === 1" class="single-repo-label">
+          {{ repositories[0].name }}
         </div>
       </div>
 
@@ -578,5 +581,17 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
+.single-repo-label {
+  background: rgba(10, 14, 39, 0.8);
+  border: 2px solid rgba(0, 245, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  color: #00f5ff;
+  font-size: 0.9rem;
+  font-family: 'Rajdhani', sans-serif;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+}
 
 </style>
