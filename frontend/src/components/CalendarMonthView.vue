@@ -103,7 +103,7 @@ function cellBg(commits, maxC) {
   if (!commits || !maxC) return 'transparent'
   const intensity = Math.min(commits / maxC, 1)
   const alpha = 0.05 + intensity * 0.55
-  return `rgba(160, 100, 200, ${alpha.toFixed(2)})`
+  return `rgba(0, 212, 255, ${alpha.toFixed(2)})`
 }
 
 function isToday(dateStr) {

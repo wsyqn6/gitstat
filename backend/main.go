@@ -32,6 +32,8 @@ func main() {
 	switch os.Args[1] {
 	case "serve":
 		runServe(os.Args[2:])
+	case "--debug":
+		runDebug()
 	case "--version", "-v":
 		fmt.Println(Version)
 	case "--help", "-h", "help":
@@ -131,6 +133,7 @@ func printHelp() {
 	fmt.Println("Usage:")
 	fmt.Println("  gitstat                     Show this help")
 	fmt.Println("  gitstat serve [directory]   Start web server with embedded UI")
+	fmt.Println("  gitstat --debug             Start API-only server (dev mode)")
 	fmt.Println("  gitstat --version           Show version")
 	fmt.Println("  gitstat --help              Show this help")
 	fmt.Println()
