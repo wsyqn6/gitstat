@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: oven-sh/setup-bun@v2
+      - run: cd frontend && bun install --frozen-lockfile && bun run build
+      - run: |
+          mkdir -p backend/web/dist
+          cp -r frontend/dist/* backend/web/dist/
+      - name: Build binaries
+        run: |
+          cd backend
+          for pair in "linux amd64" "linux arm64" "windows amd64" "darwin amd64" "darwin arm64"; do
+            os=$(echo $pair | cut -d' ' -f1)
+            arch=$(echo $pair | cut -d' ' -f2)
+            ext=""; [ "$os" = "windows" ] && ext=".exe"
+            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build \
+              -ldflags "-s -w -X main.Version=${{ github.ref_name }}" \
+              -o "gitstat-${os}-${arch}${ext}" .
+          done
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: backend/gitstat-*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
