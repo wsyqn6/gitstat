@@ -26,8 +26,11 @@
 - **API**: `client.js` helpers only. POST body as plain object (auto-serialized). No `JSON.stringify` / manual headers.
 - **i18n**: All UI text via `t()`. No hardcoded Chinese. Missing keys warn in DEV.
 - **Imports**: Named imports only. No `import * as` for local modules. No `.js` extension.
-- **CSS**: `--color-*` / `--font-*` vars from `:root`. Global keyframes in `style.css`. Icons via CSS unicode (`content`), never `v-html`.
+- **CSS**: Prefer `var(--color-*)` / `var(--font-*)` over hardcoded values. Global keyframes in `style.css`. Icons via CSS `content`, never `v-html`. Inline styles only for dynamic values. Scoped CSS per component; share only truly reusable styles globally.
 - **Cleanup**: `onUnmounted` for timers, resize listeners, AbortController. Toast instead of `alert()`. Global `errorHandler` in `main.js`.
 - **Data**: `LRUCache(50)` for caches. `v-for :key` uses stable ID, never index.
-- **Size**: Views > 400 lines extract to sub-components under `src/components/`. Split by functional boundary, not UI fragment. Use scoped CSS per component; share only truly reusable styles globally.
+- **Architecture & Size**: Start thin, compose early. View's job is data flow + layout; each child component owns one functional unit. Extract >400 line views to `src/components/`. Never write monolithic and split later.
+- **Component contract**: Props typed via `defineProps({...})`. All emits declared via `defineEmits`. Remove unused props/imports before commit.
+- **Store discipline**: Mutate global state only through store functions. Never `state.x = y` from components.
 - **Security**: `rel="noopener noreferrer"` on all `target="_blank"` links.
+- **Accessibility**: Icon-only buttons must have `aria-label`. Decorative Unicode icons use `aria-hidden="true"`.
