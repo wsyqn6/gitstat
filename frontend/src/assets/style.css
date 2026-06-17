@@ -205,6 +205,43 @@ body::before {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Section headers */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.range-hint {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.75rem;
+  color: #4a5568;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+}
+
+.section-header h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  color: #00d4ff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.insight-empty {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
 /* ====== Calendar Detail Panel (shared) ====== */
 .detail-panel {
   margin-top: 1rem;

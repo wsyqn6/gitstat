@@ -29,4 +29,5 @@
 - **CSS**: `--color-*` / `--font-*` vars from `:root`. Global keyframes in `style.css`. Icons via CSS unicode (`content`), never `v-html`.
 - **Cleanup**: `onUnmounted` for timers, resize listeners, AbortController. Toast instead of `alert()`. Global `errorHandler` in `main.js`.
 - **Data**: `LRUCache(50)` for caches. `v-for :key` uses stable ID, never index.
+- **Size**: Views > 400 lines extract to sub-components under `src/components/`. Split by functional boundary, not UI fragment. Use scoped CSS per component; share only truly reusable styles globally.
 - **Security**: `rel="noopener noreferrer"` on all `target="_blank"` links.

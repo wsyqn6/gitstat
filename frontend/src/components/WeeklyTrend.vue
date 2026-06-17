@@ -1,0 +1,167 @@
+<template>
+  <div class="insight-card card">
+    <div class="insight-header">
+      <h3>{{ t('dashboard.weeklyTrend') }} <span class="range-hint">{{ weekRange }}</span></h3>
+    </div>
+    <div v-if="loading" class="skeleton-chart-area trend-skeleton">
+      <div class="skeleton-line w80"></div>
+      <div class="skeleton-line w60"></div>
+      <div class="skeleton-line w90"></div>
+      <div class="skeleton-line w40"></div>
+      <div class="skeleton-line w70"></div>
+      <div class="skeleton-line w50"></div>
+    </div>
+    <div v-else-if="repoDailyTrend.length === 0" class="insight-empty">{{ t('analytics.noData') }}</div>
+    <template v-else>
+      <div ref="trendChartRef" class="trend-chart"></div>
+      <div v-if="repoDailyTrend.length > 1" class="chart-legend">
+        <span v-for="(repo, i) in repoDailyTrend" :key="repo.repoName" class="legend-item">
+          <span class="legend-dot" :style="{ background: repoColors[i] }"></span>
+          {{ repo.repoName }}
+        </span>
+      </div>
+    </template>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from '../i18n'
+import echarts from '../utils/echarts'
+import { CHART_COLORS } from '../utils/constants'
+
+const { t } = useI18n()
+
+const props = defineProps({
+  repoDailyTrend: { type: Array, required: true },
+  repoColors: { type: Array, required: true },
+  weekRange: { type: String, required: true },
+  loading: { type: Boolean, required: true }
+})
+
+const trendChartRef = ref(null)
+let trendChart = null
+
+function renderTrendChart() {
+  if (!trendChartRef.value || props.repoDailyTrend.length === 0) return
+
+  if (!trendChart) {
+    trendChart = echarts.init(trendChartRef.value)
+  }
+
+  const allDates = [...new Set(props.repoDailyTrend.flatMap(r => r.data.map(d => d.date)))].sort()
+  const labels = allDates.map(d => d.slice(5))
+
+  const series = props.repoDailyTrend.map((repo, i) => {
+    const dateMap = Object.fromEntries(repo.data.map(d => [d.date, d.commits]))
+    return {
+      name: repo.repoName,
+      type: 'line',
+      stack: 'total',
+      smooth: true,
+      symbol: 'none',
+      lineStyle: { width: 1.5, color: CHART_COLORS[i % CHART_COLORS.length] },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: CHART_COLORS[i % CHART_COLORS.length] + '60' },
+          { offset: 1, color: CHART_COLORS[i % CHART_COLORS.length] + '05' }
+        ])
+      },
+      itemStyle: { color: CHART_COLORS[i % CHART_COLORS.length] },
+      data: allDates.map(d => dateMap[d] || 0)
+    }
+  })
+
+  trendChart.setOption({
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(10, 14, 39, 0.9)',
+      borderColor: 'rgba(0, 212, 255, 0.3)',
+      textStyle: { color: '#e0e6ff', fontSize: 12 }
+    },
+    legend: { show: false },
+    grid: { left: 40, right: 16, top: 16, bottom: 24 },
+    xAxis: {
+      type: 'category',
+      data: labels,
+      axisLine: { lineStyle: { color: 'rgba(0, 212, 255, 0.2)' } },
+      axisLabel: { color: '#a0aec0', fontSize: 11 }
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      splitLine: { lineStyle: { color: 'rgba(0, 212, 255, 0.08)', type: 'dashed' } },
+      axisLabel: { color: '#a0aec0', fontSize: 11 }
+    },
+    series
+  })
+}
+
+watch(() => props.repoDailyTrend, () => {
+  if (!props.loading) {
+    nextTick(() => renderTrendChart())
+  }
+})
+
+watch(() => props.loading, (loading) => {
+  if (!loading) {
+    nextTick(() => renderTrendChart())
+  }
+})
+
+function handleResize() {
+  if (trendChart) trendChart.resize()
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  trendChart?.dispose()
+  trendChart = null
+})
+</script>
+
+<style scoped>
+.trend-skeleton {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 20px 10px;
+}
+
+.trend-skeleton .skeleton-line {
+  height: 10px;
+}
+
+.trend-chart {
+  height: 220px;
+  width: 100%;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0 0 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #a0aec0;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+</style>
