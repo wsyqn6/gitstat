@@ -29,6 +29,13 @@
       class="chart-card quaternary"
     />
     <ChartContainer
+      :title="t('analytics.charts.hourly.title')"
+      :subtitle="t('analytics.charts.hourly.subtitle')"
+      :option="hourlyOption"
+      :loading="loading"
+      class="chart-card tertiary"
+    />
+    <ChartContainer
       :title="t('analytics.charts.repoCompare.title')"
       :subtitle="t('analytics.charts.repoCompare.subtitle')"
       :option="repoComparisonOption"
@@ -194,12 +201,7 @@ const commitTrendOption = computed(() => {
       textStyle: { color: '#94a3b8' },
       top: 10
     },
-    grid: {
-      left: '3%',
-      right: '8%',
-      bottom: '3%',
-      containLabel: true
-    },
+    grid: { containLabel: true },
     xAxis: {
       type: 'category',
       boundaryGap: false,
@@ -321,12 +323,7 @@ const codeChangeOption = computed(() => {
       top: 10,
       type: 'scroll'
     },
-    grid: {
-      left: '3%',
-      right: '8%',
-      bottom: '3%',
-      containLabel: true
-    },
+    grid: { containLabel: true },
     xAxis: {
       type: 'category',
       data: dates,
@@ -389,12 +386,7 @@ const authorRankOption = computed(() => {
         `
       }
     },
-    grid: {
-      left: '3%',
-      right: '8%',
-      bottom: '3%',
-      containLabel: true
-    },
+    grid: { containLabel: true },
     xAxis: {
       type: 'value',
       axisLine: { show: false },
@@ -462,12 +454,7 @@ const heatmapOption = computed(() => {
         return `<div>${days[params.value[0]]} ${hours[params.value[1]]}</div><div>${t('analytics.charts.tooltipCommits').replace('{0}', params.value[2])}</div>`
       }
     },
-    grid: {
-      left: '3%',
-      right: '8%',
-      bottom: '3%',
-      containLabel: true
-    },
+    grid: { containLabel: true },
     xAxis: {
       type: 'category',
       data: days,
@@ -488,7 +475,7 @@ const heatmapOption = computed(() => {
       calculable: true,
       orient: 'horizontal',
       left: 'center',
-      bottom: '0%',
+      bottom: '5%',
       inRange: {
         color: [
           'rgba(0, 245, 255, 0.1)',
@@ -509,6 +496,67 @@ const heatmapOption = computed(() => {
           shadowColor: 'rgba(0, 245, 255, 0.5)'
         }
       }
+    }]
+  }
+})
+
+const hourlyDistribution = computed(() => {
+  const h = Array(24).fill(0)
+  if (props.activityHeatmap) {
+    for (const d of props.activityHeatmap) {
+      h[d.hour] += d.commitCount
+    }
+  }
+  return h.map((count, hour) => ({ hour, count }))
+})
+
+const hourlyOption = computed(() => {
+  const data = hourlyDistribution.value
+  if (!data.some(d => d.count > 0)) {
+    return {
+      title: {
+        text: t('analytics.noData'),
+        left: 'center',
+        top: 'center',
+        textStyle: { color: '#64748b', fontSize: 16 }
+      }
+    }
+  }
+  return {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      borderColor: '#00f5ff',
+      textStyle: { color: '#fff' },
+      formatter: (p) => `${p[0].name}:00<br/>${t('analytics.charts.tooltipCommits').replace('{0}', p[0].value)}`
+    },
+    grid: { containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: data.map(d => String(d.hour)),
+      axisLine: { lineStyle: { color: '#334155' } },
+      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisLabel: { color: '#94a3b8' },
+      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } }
+    },
+    series: [{
+      type: 'bar',
+      barWidth: '60%',
+      data: data.map(d => ({
+        value: d.count,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#00d4ff' },
+            { offset: 1, color: 'rgba(0, 212, 255, 0.15)' }
+          ]),
+          borderRadius: [3, 3, 0, 0]
+        }
+      }))
     }]
   }
 })

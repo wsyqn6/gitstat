@@ -83,6 +83,7 @@ function handleResize() {
 <style scoped>
 .chart-container {
   margin-bottom: 2rem;
+  padding: 0.75rem 1rem;
 }
 
 .chart-header {
