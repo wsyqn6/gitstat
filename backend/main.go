@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 
 	"gitstat/internal/scanner"
@@ -24,7 +25,7 @@ var embeddedDist embed.FS
 
 func main() {
 	if len(os.Args) < 2 {
-		runDebug()
+		printHelp()
 		return
 	}
 
@@ -43,7 +44,7 @@ func main() {
 }
 
 func runDebug() {
-	defaultPath := "D:/work/deepgrid"
+	defaultPath := filepath.Clean("D:/work/deepgrid")
 	repos, err := scanner.DiscoverRepos(defaultPath)
 	if err != nil {
 		log.Printf("Warning: Failed to discover repos in %s: %v", defaultPath, err)
@@ -73,10 +74,13 @@ func runServe(args []string) {
 	var scanPath string
 	positionalArgs := serveCmd.Args()
 	if len(positionalArgs) > 0 {
-		scanPath = positionalArgs[0]
+		scanPath = filepath.Clean(positionalArgs[0])
 	} else {
 		var err error
 		scanPath, err = os.Getwd()
+		if err == nil {
+			scanPath = filepath.Clean(scanPath)
+		}
 		if err != nil {
 			log.Printf("Warning: Failed to get working directory: %v", err)
 		}
@@ -125,7 +129,7 @@ func printHelp() {
 	fmt.Println("GitStat - Git Repository Statistics Analyzer")
 	fmt.Println()
 	fmt.Println("Usage:")
-	fmt.Println("  gitstat                     Start in debug mode (API only, :12580)")
+	fmt.Println("  gitstat                     Show this help")
 	fmt.Println("  gitstat serve [directory]   Start web server with embedded UI")
 	fmt.Println("  gitstat --version           Show version")
 	fmt.Println("  gitstat --help              Show this help")
