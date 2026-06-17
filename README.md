@@ -3,7 +3,7 @@
 ![Go version](https://img.shields.io/github/go-mod/go-version/wsyqn6/gitstat?filename=backend%2Fgo.mod)
 ![License](https://img.shields.io/github/license/wsyqn6/gitstat)
 ![Release](https://img.shields.io/github/v/release/wsyqn6/gitstat)
-![CI](https://img.shields.io/github/actions/workflow/status/wsyqn6/gitstat/cd.yml?branch=main)
+![CI](https://img.shields.io/github/actions/workflow/status/wsyqn6/gitstat/ci.yml?branch=main)
 
 > Git 仓库提交统计与可视化分析平台 / Git Repository Commit Statistics & Visualization Platform
 
