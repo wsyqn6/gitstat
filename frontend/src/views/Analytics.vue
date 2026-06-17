@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { getDailyStats, getWeeklyStats, getMonthlyStats, getYearlyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap, getRepoComparison } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
@@ -122,6 +122,7 @@ const viewMode = ref('chart')
 const currentStartDate = ref('')
 const currentEndDate = ref('')
 const loadedTimeRange = ref('')
+const calendarViewType = ref('week')
 
 function toLocalDateStr(d) {
   const y = d.getFullYear()
@@ -134,7 +135,7 @@ const toggleSection = (section) => {
   expandedSection.value = expandedSection.value === section ? null : section
 }
 
-const calendarViewType = computed(() => {
+function computeCalendarViewType() {
   if (!currentStartDate.value || !currentEndDate.value) return 'week'
   if (selectedTimeRange.value === 'year') return 'year'
   if (selectedTimeRange.value === 'month' || selectedTimeRange.value === 'lastMonth') return 'month'
@@ -143,7 +144,7 @@ const calendarViewType = computed(() => {
   if (days <= 7) return 'week'
   if (days <= 31) return 'month'
   return 'year'
-})
+}
 
 watch(viewMode, (newMode) => {
   if (!currentStartDate.value || loading.value) return
@@ -263,6 +264,7 @@ const loadData = async () => {
 
     await nextTick()
     loadedTimeRange.value = selectedTimeRange.value
+    calendarViewType.value = computeCalendarViewType()
     loading.value = false
   } catch (error) {
     console.error('Failed to load analytics data:', error)
@@ -273,8 +275,11 @@ const loadData = async () => {
 onMounted(async () => {
   try {
     repositories.value = await getRepositories()
+    if (repositories.value.length === 1) {
+      selectedRepos.value = [repositories.value[0].path]
+    }
   } catch (error) {
-    console.error('加载仓库失败:', error)
+    console.error('Failed to load repositories:', error)
   }
 })
 
