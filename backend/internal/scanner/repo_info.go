@@ -412,7 +412,7 @@ func isNonCode(ext string) bool {
 }
 
 func GetTags(repoPath string) []string {
-	out, err := gitExec(repoPath, "for-each-ref", "refs/tags", "--format=%(refname:short)")
+	out, err := gitExec(repoPath, "for-each-ref", "refs/tags", "--sort=-creatordate", "--format=%(refname:short)")
 	if err != nil || out == "" {
 		return nil
 	}
@@ -425,6 +425,20 @@ func GetTags(repoPath string) []string {
 		}
 	}
 	return result
+}
+
+func GetTagsCount(repoPath string) int {
+	out, err := gitExec(repoPath, "tag", "--list")
+	if err != nil || out == "" {
+		return 0
+	}
+	count := 0
+	for _, line := range strings.Split(out, "\n") {
+		if strings.TrimSpace(line) != "" {
+			count++
+		}
+	}
+	return count
 }
 
 func GetRemoteBranches(repoPath string) ([]string, int) {

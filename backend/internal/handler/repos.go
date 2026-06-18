@@ -96,11 +96,9 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	remoteBranches, remoteBranchCount := scanner.GetRemoteBranches(cache.Path)
-	tags := scanner.GetTags(cache.Path)
 
 	store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
 		c.RemoteBranches = remoteBranches
-		c.Tags = tags
 	})
 
 	writeJSON(w, "RepoInfo", model.RepoInfo{
@@ -113,7 +111,6 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 		LastCommitTime:    cache.LastCommitTime,
 		RemoteUrl:         remoteUrl,
 		Branches:          branches,
-		Tags:              tags,
 		RemoteBranches:    remoteBranches,
 	})
 }
@@ -181,7 +178,6 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	remoteBranches, _ := scanner.GetRemoteBranches(path)
-	tags := scanner.GetTags(path)
 
 	stats := model.RepoStats{
 		Path:                 cache.Path,
@@ -192,7 +188,6 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		EarliestCommitAuthor: earliestAuthor,
 		RepoSize:             repoSize,
 		Contributors:         contributors,
-		Tags:                 tags,
 		RemoteBranches:       remoteBranches,
 	}
 
@@ -302,4 +297,77 @@ func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 		c.Analyzed = true
 	})
 	writeJSON(w, "RepoAnalyze", result)
+}
+
+func GetRepoTagsHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Query().Get("path")
+	if path == "" {
+		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
+		return
+	}
+
+	path, err := validatePath(path)
+	if err != nil {
+		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	cache := store.GlobalStore.GetRepoCache(path)
+	if cache == nil {
+		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
+		return
+	}
+
+	offset := parseIntQuery(r, "offset", -1)
+	limit := parseIntQuery(r, "limit", 30)
+
+	// no offset → return count only
+	if offset < 0 {
+		count := 0
+		if len(cache.Tags) > 0 {
+			count = len(cache.Tags)
+		} else {
+			count = scanner.GetTagsCount(path)
+		}
+		writeJSON(w, "RepoTags", map[string]int{"tagCount": count})
+		return
+	}
+
+	if limit < 1 {
+		limit = 30
+	}
+
+	// lazy load full tag list into cache
+	if len(cache.Tags) == 0 {
+		tags := scanner.GetTags(path)
+		if tags == nil {
+			tags = []string{}
+		}
+		store.GlobalStore.UpdateRepo(path, func(c *store.RepoCache) {
+			c.Tags = tags
+		})
+	}
+
+	all := cache.Tags
+	total := len(all)
+
+	start := offset
+	if start > total {
+		start = total
+	}
+	end := start + limit
+	if end > total {
+		end = total
+	}
+
+	tags := all[start:end]
+	if tags == nil {
+		tags = []string{}
+	}
+
+	writeJSON(w, "RepoTags", model.TagPage{
+		Tags:    tags,
+		Total:   total,
+		HasMore: end < total,
+	})
 }

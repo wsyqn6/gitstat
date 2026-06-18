@@ -18,7 +18,7 @@
       </div>
       <div class="info-card clickable" :class="{ expanded: expandedTags }" @click="toggleTags">
         <span class="info-icon" style="color:#34d399">◉</span>
-        <span class="info-value">{{ tagCount }}</span>
+        <span class="info-value">{{ detail.tagCount ?? '--' }}</span>
         <span class="info-label">{{ t('repo.tags') }} <span class="expand-icon">{{ expandedTags ? '▼' : '▶' }}</span></span>
       </div>
     </div>
@@ -52,8 +52,17 @@
 
     <div v-if="expandedTags" class="expand-panel card">
       <h4>{{ t('repo.tags') }}</h4>
-      <div v-if="detail.tags && detail.tags.length > 0" class="tag-cloud">
-        <span v-for="t in detail.tags" :key="t" class="tag-item">{{ t }}</span>
+      <div v-if="tagsLoading && tags.length === 0" class="expand-hint">
+        <span class="spinner" style="display:inline-block;width:14px;height:14px;margin-right:0.5rem;vertical-align:middle"></span>{{ t('repo.statsLoading') }}
+      </div>
+      <div v-else-if="tags.length > 0" class="tag-cloud">
+        <span v-for="t in tags" :key="t" class="tag-item">{{ t }}</span>
+        <div v-if="tagsHasMore" class="load-more-tags">
+          <button class="btn btn-sm" :disabled="tagsLoading" @click="emit('load-more-tags')">
+            <span v-if="tagsLoading" class="spinner" style="display:inline-block;width:12px;height:12px;margin-right:0.3rem;vertical-align:middle"></span>
+            {{ t('repo.loadMore') }}
+          </button>
+        </div>
       </div>
       <p v-else class="expand-hint">--</p>
     </div>
@@ -157,10 +166,14 @@ const props = defineProps({
   statsLoaded: Boolean,
   loadingStats: Boolean,
   chartData: { default: null },
-  chartLoading: Boolean
+  chartLoading: Boolean,
+  tags: { type: Array, default: () => [] },
+  tagsLoading: Boolean,
+  tagsHasMore: Boolean,
+  tagsLoaded: Boolean
 })
 
-const emit = defineEmits(['load-stats'])
+const emit = defineEmits(['load-stats', 'load-tags', 'load-more-tags'])
 
 const expandedBranch = ref(false)
 const expandedTags = ref(false)
@@ -178,10 +191,7 @@ const remoteBranchCount = computed(() => {
   return Array.isArray(v) ? v.length : '--'
 })
 
-const tagCount = computed(() => {
-  const v = props.detail?.tags
-  return Array.isArray(v) ? v.length : '--'
-})
+
 
 const localBranches = computed(() => {
   if (props.detail?.branches) return props.detail.branches
@@ -242,6 +252,9 @@ function toggleBranch() {
 
 function toggleTags() {
   expandedTags.value = !expandedTags.value
+  if (expandedTags.value && !props.tagsLoaded) {
+    emit('load-tags')
+  }
 }
 
 function toggleContributor() {
@@ -372,6 +385,30 @@ function toggleContributor() {
   background: rgba(52, 211, 153, 0.1);
   border: 1px solid rgba(52, 211, 153, 0.25);
   color: #34d399;
+}
+
+.load-more-tags {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+.btn-sm {
+  padding: 0.3rem 1rem;
+  font-size: 0.8rem;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(0, 212, 255, 0.08);
+  color: #a0aec0;
+  cursor: pointer;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+.btn-sm:hover {
+  border-color: #00d4ff;
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.15);
 }
 
 .contrib-table { width: 100%; }

@@ -79,7 +79,13 @@
             :loading-stats="loadingStats"
             :chart-data="chartData"
             :chart-loading="chartLoading"
+            :tags="tags"
+            :tags-loading="tagsLoading"
+            :tags-has-more="tagsHasMore"
+            :tags-loaded="tagsLoaded"
             @load-stats="loadStats"
+            @load-tags="loadTags"
+            @load-more-tags="loadMoreTags"
           />
 
           <div class="section-group">
@@ -107,7 +113,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from '../i18n'
-import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, triggerAnalyze } from '../stores/data'
+import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, fetchRepoTagsCount, fetchRepoTagsPage, triggerAnalyze } from '../stores/data'
 import RepoInfoCards from '../components/RepoInfoCards.vue'
 import RepoLangChart from '../components/RepoLangChart.vue'
 import RepoCommits from '../components/RepoCommits.vue'
@@ -127,22 +133,33 @@ const commitsLoading = ref(false)
 const commitsLoaded = ref(false)
 const commitsHasMore = ref(false)
 const commitsOffset = ref(0)
+const tags = ref([])
+const tagsLoading = ref(false)
+const tagsTotal = ref(0)
+const tagsOffset = ref(0)
+const tagsHasMore = ref(false)
+const tagsLoaded = ref(false)
 
 async function loadDetail(path) {
   loading.value = true
   statsLoaded.value = false
   chartData.value = null
+  tags.value = []
+  tagsLoaded.value = false
+  tagsOffset.value = 0
   try {
     const info = await fetchRepoInfo(path)
     detail.value = {
       contributors: [], repoSize: 0,
       earliestDate: '', earliestCommitAuthor: '',
-      tags: [], remoteBranches: [],
+      tagCount: 0, remoteBranches: [],
       ...info,
-      tags: info.tags || [],
       remoteBranches: info.remoteBranches || [],
       branches: info.branches || []
     }
+    fetchRepoTagsCount(path).then(res => {
+      if (detail.value) detail.value.tagCount = res.tagCount ?? 0
+    })
     if (state.repoStatsCache.has(path)) {
       detail.value = { ...detail.value, ...state.repoStatsCache.get(path) }
       statsLoaded.value = true
@@ -235,6 +252,39 @@ async function loadMoreCommits() {
     console.error('Failed to load more commits:', err)
   } finally {
     commitsLoading.value = false
+  }
+}
+
+async function loadTags() {
+  if (!activePath.value || tagsLoading.value) return
+  tagsLoading.value = true
+  tagsOffset.value = 0
+  try {
+    const result = await fetchRepoTagsPage(activePath.value, 0, 30)
+    tags.value = result.tags
+    tagsTotal.value = result.total
+    tagsHasMore.value = result.hasMore
+    tagsLoaded.value = true
+  } catch (err) {
+    console.error('Failed to load tags:', err)
+  } finally {
+    tagsLoading.value = false
+  }
+}
+
+async function loadMoreTags() {
+  if (!activePath.value || tagsLoading.value || !tagsHasMore.value) return
+  tagsLoading.value = true
+  const nextOffset = tagsOffset.value + 30
+  try {
+    const result = await fetchRepoTagsPage(activePath.value, nextOffset, 30)
+    tags.value = tags.value.concat(result.tags)
+    tagsHasMore.value = result.hasMore
+    tagsOffset.value = nextOffset
+  } catch (err) {
+    console.error('Failed to load more tags:', err)
+  } finally {
+    tagsLoading.value = false
   }
 }
 

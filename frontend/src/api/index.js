@@ -92,3 +92,13 @@ export async function getRepoCommits(path, offset = 0, limit = 30) {
   const params = buildParams({ path, offset, limit })
   return request(`${BASE}/repos/commits?${params}`, { errorMsg: 'Failed to fetch repo commits' })
 }
+
+export async function getRepoTagsCount(path) {
+  const params = buildParams({ path })
+  return request(`${BASE}/repos/tags?${params}`, { errorMsg: 'Failed to fetch repo tags' })
+}
+
+export async function getRepoTagsPage(path, offset = 0, limit = 30) {
+  const params = buildParams({ path, offset, limit })
+  return request(`${BASE}/repos/tags?${params}`, { errorMsg: 'Failed to fetch repo tags' })
+}

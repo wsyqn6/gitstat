@@ -118,7 +118,6 @@ type RepoInfo struct {
 	LastCommitTime    string   `json:"lastCommitTime"`
 	RemoteUrl         string   `json:"-"`
 	Branches          []string `json:"branches"`
-	Tags              []string `json:"tags"`
 	RemoteBranches    []string `json:"remoteBranches"`
 }
 
@@ -164,6 +163,13 @@ type CommitPage struct {
 	HasMore bool     `json:"hasMore"`
 }
 
+// Tag 分页响应
+type TagPage struct {
+	Tags    []string `json:"tags"`
+	Total   int      `json:"total"`
+	HasMore bool     `json:"hasMore"`
+}
+
 // 仓库统计（计算字段）
 type RepoStats struct {
 	Path                 string            `json:"path"`
@@ -174,7 +180,6 @@ type RepoStats struct {
 	EarliestCommitAuthor string            `json:"earliestCommitAuthor"`
 	RepoSize             int64             `json:"repoSize"`
 	Contributors         []ContributorStat `json:"contributors"`
-	Tags                 []string          `json:"tags"`
 	RemoteBranches       []string          `json:"remoteBranches"`
 	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
 }

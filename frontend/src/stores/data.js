@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { setScanPath, getScanPath, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits } from '../api'
+import { setScanPath, getScanPath, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits, getRepoTagsCount, getRepoTagsPage } from '../api'
 import LRUCache from '../utils/lruCache'
 
 export const state = reactive({
@@ -16,7 +16,8 @@ export const state = reactive({
   analyzeCache: new LRUCache(50),
   repoInfoCache: new LRUCache(50),
   repoStatsCache: new LRUCache(50),
-  repoChartCache: new LRUCache(50)
+  repoChartCache: new LRUCache(50),
+  repoTagsCache: new LRUCache(50)
 })
 
 export async function performScan(path) {
@@ -169,6 +170,29 @@ export async function fetchRepoCommits(path, offset = 0, limit = 30) {
     return await getRepoCommits(path, offset, limit)
   } catch (err) {
     console.error('Failed to fetch repo commits:', err)
+    throw err
+  }
+}
+
+export async function fetchRepoTagsCount(path) {
+  if (state.repoTagsCache.has(path)) {
+    return state.repoTagsCache.get(path)
+  }
+  try {
+    const result = await getRepoTagsCount(path)
+    state.repoTagsCache.set(path, result)
+    return result
+  } catch (err) {
+    console.error('Failed to fetch repo tags count:', err)
+    throw err
+  }
+}
+
+export async function fetchRepoTagsPage(path, offset = 0, limit = 30) {
+  try {
+    return await getRepoTagsPage(path, offset, limit)
+  } catch (err) {
+    console.error('Failed to fetch repo tags page:', err)
     throw err
   }
 }
