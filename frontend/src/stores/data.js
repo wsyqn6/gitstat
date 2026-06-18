@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { setScanPath, getScanPath, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo } from '../api'
+import { setScanPath, getScanPath, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits } from '../api'
 import LRUCache from '../utils/lruCache'
 
 export const state = reactive({
@@ -160,6 +160,15 @@ export async function fetchRepoChart(path) {
     return result
   } catch (err) {
     console.error('Failed to fetch repo chart:', err)
+    throw err
+  }
+}
+
+export async function fetchRepoCommits(path, offset = 0, limit = 30) {
+  try {
+    return await getRepoCommits(path, offset, limit)
+  } catch (err) {
+    console.error('Failed to fetch repo commits:', err)
     throw err
   }
 }

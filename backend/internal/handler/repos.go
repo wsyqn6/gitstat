@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"slices"
+	"strconv"
 	"time"
 
 	"gitstat/internal/aggregator"
@@ -13,6 +14,18 @@ import (
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
 )
+
+func parseIntQuery(r *http.Request, key string, defaultVal int) int {
+	val := r.URL.Query().Get(key)
+	if val == "" {
+		return defaultVal
+	}
+	n, err := strconv.Atoi(val)
+	if err != nil {
+		return defaultVal
+	}
+	return n
+}
 
 func GetReposListHandler(w http.ResponseWriter, r *http.Request) {
 	caches := store.GlobalStore.GetAllCaches()
@@ -144,14 +157,6 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	recentCommits := cache.Commits
-	if len(recentCommits) > 20 {
-		recentCommits = recentCommits[len(recentCommits)-20:]
-	}
-	for i, j := 0, len(recentCommits)-1; i < j; i, j = i+1, j-1 {
-		recentCommits[i], recentCommits[j] = recentCommits[j], recentCommits[i]
-	}
-
 	var earliestDate string
 	var earliestAuthor string
 	if !cache.EarliestDate.IsZero() {
@@ -186,7 +191,6 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		EarliestDate:         earliestDate,
 		EarliestCommitAuthor: earliestAuthor,
 		RepoSize:             repoSize,
-		RecentCommits:        recentCommits,
 		Contributors:         contributors,
 		Tags:                 tags,
 		RemoteBranches:       remoteBranches,
@@ -205,6 +209,56 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, "RepoStats", stats)
+}
+
+func GetRepoCommitsHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Query().Get("path")
+	if path == "" {
+		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
+		return
+	}
+
+	path, err := validatePath(path)
+	if err != nil {
+		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	cache := store.GlobalStore.GetRepoCache(path)
+	if cache == nil {
+		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
+		return
+	}
+
+	offset := parseIntQuery(r, "offset", 0)
+	limit := parseIntQuery(r, "limit", 30)
+	if limit < 1 {
+		limit = 30
+	}
+
+	ensureRepoLoaded(path, time.Time{}, time.Now())
+
+	all := cache.Commits
+	total := len(all)
+
+	// cache.Commits is newest-first (git log default)
+	start := offset
+	if start > total {
+		start = total
+	}
+	end := start + limit
+	if end > total {
+		end = total
+	}
+
+	commits := all[start:end]
+	if commits == nil {
+		commits = []model.Commit{}
+	}
+
+	hasMore := end < total
+
+	writeJSON(w, "RepoCommits", model.CommitPage{Commits: commits, HasMore: hasMore})
 }
 
 func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {

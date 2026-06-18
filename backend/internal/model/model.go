@@ -158,6 +158,12 @@ type ContributorStat struct {
 	LastCommitDate string `json:"lastCommitDate"`
 }
 
+// 提交分页响应
+type CommitPage struct {
+	Commits []Commit `json:"commits"`
+	HasMore bool     `json:"hasMore"`
+}
+
 // 仓库统计（计算字段）
 type RepoStats struct {
 	Path                 string            `json:"path"`
@@ -167,7 +173,6 @@ type RepoStats struct {
 	EarliestDate         string            `json:"earliestDate"`
 	EarliestCommitAuthor string            `json:"earliestCommitAuthor"`
 	RepoSize             int64             `json:"repoSize"`
-	RecentCommits        []Commit          `json:"recentCommits"`
 	Contributors         []ContributorStat `json:"contributors"`
 	Tags                 []string          `json:"tags"`
 	RemoteBranches       []string          `json:"remoteBranches"`

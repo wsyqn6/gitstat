@@ -89,8 +89,12 @@
               @analyze="doAnalyze"
             />
             <RepoCommits
-              :commits="detail.recentCommits || []"
-              :loading="!statsLoaded"
+              :commits="commits"
+              :commits-loading="commitsLoading"
+              :commits-loaded="commitsLoaded"
+              :has-more="commitsHasMore"
+              @load-commits="loadCommits"
+              @load-more="loadMoreCommits"
             />
           </div>
 
@@ -103,7 +107,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from '../i18n'
-import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, triggerAnalyze } from '../stores/data'
+import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, triggerAnalyze } from '../stores/data'
 import RepoInfoCards from '../components/RepoInfoCards.vue'
 import RepoLangChart from '../components/RepoLangChart.vue'
 import RepoCommits from '../components/RepoCommits.vue'
@@ -118,6 +122,11 @@ const loadingStats = ref(false)
 const analysisLoading = ref(false)
 const chartData = ref(null)
 const chartLoading = ref(false)
+const commits = ref([])
+const commitsLoading = ref(false)
+const commitsLoaded = ref(false)
+const commitsHasMore = ref(false)
+const commitsOffset = ref(0)
 
 async function loadDetail(path) {
   loading.value = true
@@ -126,7 +135,7 @@ async function loadDetail(path) {
   try {
     const info = await fetchRepoInfo(path)
     detail.value = {
-      contributors: [], recentCommits: [], repoSize: 0,
+      contributors: [], repoSize: 0,
       earliestDate: '', earliestCommitAuthor: '',
       tags: [], remoteBranches: [],
       ...info,
@@ -194,6 +203,38 @@ async function doAnalyze() {
     console.error('Analysis failed:', err)
   } finally {
     analysisLoading.value = false
+  }
+}
+
+async function loadCommits() {
+  if (!activePath.value || commitsLoading.value) return
+  commitsLoading.value = true
+  commitsOffset.value = 0
+  try {
+    const result = await fetchRepoCommits(activePath.value, 0, 30)
+    commits.value = result.commits
+    commitsHasMore.value = result.hasMore
+    commitsLoaded.value = true
+  } catch (err) {
+    console.error('Failed to load commits:', err)
+  } finally {
+    commitsLoading.value = false
+  }
+}
+
+async function loadMoreCommits() {
+  if (!activePath.value || commitsLoading.value || !commitsHasMore.value) return
+  commitsLoading.value = true
+  const nextOffset = commitsOffset.value + 30
+  try {
+    const result = await fetchRepoCommits(activePath.value, nextOffset, 30)
+    commits.value = commits.value.concat(result.commits)
+    commitsHasMore.value = result.hasMore
+    commitsOffset.value = nextOffset
+  } catch (err) {
+    console.error('Failed to load more commits:', err)
+  } finally {
+    commitsLoading.value = false
   }
 }
 

@@ -1,35 +1,51 @@
 <template>
-  <template v-if="loading || (commits && commits.length > 0)">
-    <div class="section card">
-      <h3 class="section-title">{{ t('repo.recentCommits') }}</h3>
-      <div v-if="loading" class="commit-list">
-        <div v-for="i in 5" :key="i" class="commit-main">
-          <span class="skeleton-line w15" style="height:12px"></span>
-          <span class="skeleton-line w45" style="height:12px"></span>
-          <span class="skeleton-line w12" style="height:12px"></span>
-          <span class="skeleton-line w12" style="height:12px"></span>
-          <span class="skeleton-line w18" style="height:12px"></span>
+  <div class="section card">
+    <h3 class="section-title">{{ t('repo.recentCommits') }}</h3>
+
+    <div v-if="!commitsLoaded" class="cta-body">
+      <div class="cta-icon">⎔</div>
+      <p class="cta-text">{{ t('repo.commitsCta') }}</p>
+      <button class="cta-btn" :disabled="commitsLoading" @click="emit('loadCommits')">
+        <span v-if="commitsLoading" class="spinner"></span>
+        <span v-else>{{ t('repo.loadCommits') }}</span>
+      </button>
+    </div>
+
+    <div v-else-if="commits.length === 0" class="empty-body">
+      <p>{{ t('repo.noCommits') }}</p>
+    </div>
+
+    <div v-else class="commit-list">
+      <div v-for="c in commits" :key="c.hash" class="commit-item">
+        <div class="commit-main" @click="toggleCommit(c.hash)">
+          <span class="commit-hash">{{ c.hash.slice(0, 7) }}</span>
+          <span class="commit-msg">{{ c.message.split('\n')[0] }}</span>
+          <span class="commit-author">{{ c.author }}</span>
+          <span class="commit-time">{{ formatTimeAgo(c.date) }}</span>
+          <span class="commit-changes">
+            <span v-if="c.additions > 0" class="add">+{{ c.additions }}</span>
+            <span v-if="c.deletions > 0" class="del">-{{ c.deletions }}</span>
+          </span>
+        </div>
+        <div v-if="expandedCommit === c.hash" class="commit-body">
+          <pre>{{ c.message }}</pre>
         </div>
       </div>
-      <div v-else class="commit-list">
-        <div v-for="c in commits" :key="c.hash" class="commit-item">
-          <div class="commit-main" @click="toggleCommit(c.hash)">
-            <span class="commit-hash">{{ c.hash.slice(0, 7) }}</span>
-            <span class="commit-msg">{{ c.message.split('\n')[0] }}</span>
-            <span class="commit-author">{{ c.author }}</span>
-            <span class="commit-time">{{ formatTimeAgo(c.date) }}</span>
-            <span class="commit-changes">
-              <span v-if="c.additions > 0" class="add">+{{ c.additions }}</span>
-              <span v-if="c.deletions > 0" class="del">-{{ c.deletions }}</span>
-            </span>
-          </div>
-          <div v-if="expandedCommit === c.hash" class="commit-body">
-            <pre>{{ c.message }}</pre>
-          </div>
-        </div>
+
+      <div class="load-more-wrap">
+        <button
+          v-if="hasMore"
+          class="load-more-btn"
+          :disabled="commitsLoading"
+          @click="emit('loadMore')"
+        >
+          <span v-if="commitsLoading" class="spinner"></span>
+          <span v-else>{{ t('repo.loadMore') }}</span>
+        </button>
+        <span v-else class="all-loaded">{{ t('repo.allLoaded') }}</span>
       </div>
     </div>
-  </template>
+  </div>
 </template>
 
 <script setup>
@@ -40,8 +56,12 @@ const { t } = useI18n()
 
 defineProps({
   commits: { type: Array, default: () => [] },
-  loading: Boolean
+  commitsLoading: Boolean,
+  commitsLoaded: Boolean,
+  hasMore: Boolean
 })
+
+const emit = defineEmits(['loadCommits', 'loadMore'])
 
 const expandedCommit = ref(null)
 
@@ -53,7 +73,7 @@ function formatTimeAgo(s) {
   if (diff < 60) return Math.round(diff) + 's'
   if (diff < 3600) return Math.round(diff / 60) + 'm'
   if (diff < 86400) return Math.round(diff / 3600) + 'h'
-  if (diff < 2592000) return Math.round(diff / 86400) + 'd'
+  if (diff < 604800) return Math.round(diff / 86400) + 'd'
   return s.slice(0, 10)
 }
 
@@ -71,6 +91,33 @@ function toggleCommit(hash) {
   letter-spacing: 1px;
   margin: 0 0 1rem 0;
 }
+
+.cta-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  gap: 0.8rem;
+}
+.cta-icon { font-size: 2.5rem; opacity: 0.4; color: #00d4ff; }
+.cta-text { color: #64748b; font-size: 0.9rem; font-family: var(--font-body); }
+.cta-btn {
+  padding: 0.6rem 1.6rem;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(0, 212, 255, 0.08);
+  color: #00d4ff;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.cta-btn:hover:not(:disabled) { background: rgba(0, 212, 255, 0.15); border-color: #00d4ff; }
+.cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.empty-body { padding: 2rem; text-align: center; color: #64748b; }
 
 .commit-list { width: 100%; }
 .commit-main {
@@ -102,5 +149,36 @@ function toggleCommit(hash) {
   color: #a0aec0;
   border-bottom: 1px solid rgba(0, 212, 255, 0.06);
   white-space: pre-wrap;
+}
+
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+.load-more-btn {
+  padding: 0.5rem 2rem;
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(0, 212, 255, 0.05);
+  color: #00d4ff;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.load-more-btn:hover:not(:disabled) { background: rgba(0, 212, 255, 0.12); border-color: #00d4ff; }
+.load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.all-loaded { color: #475569; font-size: 0.8rem; }
+
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
 }
 </style>
