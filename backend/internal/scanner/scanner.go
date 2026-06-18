@@ -26,10 +26,10 @@ func gitExec(repoPath string, args ...string) (string, error) {
 func runGitLog(repoPath string, since, until time.Time) ([]model.Commit, error) {
 	args := []string{"log", "--format=---GITSTAT_COMMIT---%n%H%n%an%n%ae%n%ci%n%s", "--numstat"}
 	if !since.IsZero() {
-		args = append(args, "--since="+since.Format("2006-01-02 15:04:05"))
+		args = append(args, "--since="+since.Format("2006-01-02 15:04:05 -0700"))
 	}
 	if !until.IsZero() {
-		args = append(args, "--until="+until.Format("2006-01-02 15:04:05"))
+		args = append(args, "--until="+until.Format("2006-01-02 15:04:05 -0700"))
 	}
 
 	cmd := exec.Command("git", args...)

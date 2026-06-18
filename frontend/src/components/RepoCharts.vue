@@ -108,9 +108,8 @@ const calYears = computed(() => {
     years.add(d.date.slice(0, 4))
   }
 
-  const today = new Date()
   const pad = (n) => String(n).padStart(2, '0')
-  const todayStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate())
+  const lastDate = props.data.calendar[props.data.calendar.length - 1]?.date || ''
 
   return Array.from(years).sort().map(yearStr => {
     const year = parseInt(yearStr)
@@ -127,7 +126,7 @@ const calYears = computed(() => {
         date.setDate(monday.getDate() + w * 7 + d)
         const dateStr = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
         const count = dayMap.get(dateStr) || 0
-        const outOfYear = date.getFullYear() !== year || dateStr > todayStr
+        const outOfYear = date.getFullYear() !== year || dateStr > lastDate
         cells.push({
           date: dateStr,
           count,

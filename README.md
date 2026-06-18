@@ -7,6 +7,17 @@
 
 > Git 仓库提交统计与可视化分析平台 / Git Repository Commit Statistics & Visualization Platform
 
+<table>
+  <tr>
+    <td><img src="docs/assets/screenshots/dash1.webp" alt="Dashboard 看板"></td>
+    <td><img src="docs/assets/screenshots/dash2.webp" alt="Dashboard 看板 2"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/analy1.webp" alt="Analytics 分析中心"></td>
+    <td><img src="docs/assets/screenshots/repo2.webp" alt="Repository 仓库"></td>
+  </tr>
+</table>
+
 ---
 
 # 中文文档
@@ -40,19 +51,6 @@ cd frontend && bun install && bun run build
 mkdir -p backend/web/dist && cp -r frontend/dist/* backend/web/dist/
 cd backend && go build -ldflags="-s -w" -o gitstat.exe .
 ```
-
-## 界面预览
-
-<table>
-  <tr>
-    <td><img src="docs/assets/screenshots/dash1.webp" alt="Dashboard 看板"></td>
-    <td><img src="docs/assets/screenshots/dash2.webp" alt="Dashboard 看板 2"></td>
-  </tr>
-  <tr>
-    <td><img src="docs/assets/screenshots/analy1.webp" alt="Analytics 分析中心"></td>
-    <td><img src="docs/assets/screenshots/repo2.webp" alt="Repository 仓库"></td>
-  </tr>
-</table>
 
 ## 技术栈
 

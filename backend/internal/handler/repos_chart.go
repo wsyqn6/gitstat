@@ -38,17 +38,20 @@ func GetRepoChartHandler(w http.ResponseWriter, r *http.Request) {
 
 	var earliestDate time.Time
 	for _, c := range cache.Commits {
-		dateKey := c.Date.Format("2006-01-02")
+		ct := c.Date.In(loc)
+		dateKey := ct.Format("2006-01-02")
 		dayMap[dateKey]++
-		hourCount[c.Date.In(loc).Hour()]++
-		if earliestDate.IsZero() || c.Date.Before(earliestDate) {
-			earliestDate = c.Date
+		hourCount[ct.Hour()]++
+		if earliestDate.IsZero() || ct.Before(earliestDate) {
+			earliestDate = ct
 		}
 	}
 
 	calendar := make([]model.CalendarPoint, 0)
 	if !earliestDate.IsZero() {
-		for d := earliestDate; !d.After(now); d = d.AddDate(0, 0, 1) {
+		start := time.Date(earliestDate.Year(), earliestDate.Month(), earliestDate.Day(), 0, 0, 0, 0, loc)
+		end := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+		for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 			dateKey := d.Format("2006-01-02")
 			calendar = append(calendar, model.CalendarPoint{
 				Date:  dateKey,
