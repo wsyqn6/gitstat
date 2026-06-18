@@ -14,7 +14,7 @@ type Repository struct {
 type Commit struct {
 	Hash      string    `json:"hash"`
 	Author    string    `json:"author"`
-	Email     string    `json:"email"`
+	Email     string    `json:"-"`
 	Date      time.Time `json:"date"`
 	Message   string    `json:"message"`
 	Additions int       `json:"additions"`
@@ -69,15 +69,15 @@ type AuthorPeriodStats struct {
 	Commits    int               `json:"commits"`
 	Additions  int               `json:"additions"`
 	Deletions  int               `json:"deletions"`
-	IsMe       bool              `json:"isMe"`
+	IsMe       bool              `json:"-"`
 	PeriodData []PeriodCommitData `json:"dailyData,omitempty"`
 }
 
 type RepositoryPeriodStats struct {
 	RepoName       string             `json:"repoName"`
 	RepoPath       string             `json:"repoPath"`
-	CurrentBranch  string             `json:"currentBranch"`
-	LastCommitTime string             `json:"lastCommitTime"`
+	CurrentBranch  string              `json:"-"`
+	LastCommitTime string              `json:"-"`
 	Authors        []AuthorPeriodStats `json:"authors"`
 }
 
@@ -96,8 +96,8 @@ type AuthorRankItem struct {
 	Deletions     int     `json:"deletions"`
 	NetChange     int     `json:"netChange"` // 新增-删除
 	IsMe          bool    `json:"isMe"`
-	AvgCommitSize float64 `json:"avgCommitSize"` // 平均提交大小
-	LastCommitDate string `json:"lastCommitDate,omitempty"` // 最后提交时间
+	AvgCommitSize float64 `json:"-"` // 平均提交大小
+	LastCommitDate string `json:"-"` // 最后提交时间
 }
 
 // 活动热力图数据点
@@ -113,10 +113,10 @@ type RepoInfo struct {
 	Name              string   `json:"name"`
 	CurrentBranch     string   `json:"currentBranch"`
 	BranchCount       int      `json:"branchCount"`
-	RemoteBranchCount int      `json:"remoteBranchCount"`
+	RemoteBranchCount int      `json:"-"`
 	FileCount         int      `json:"fileCount"`
 	LastCommitTime    string   `json:"lastCommitTime"`
-	RemoteUrl         string   `json:"remoteUrl"`
+	RemoteUrl         string   `json:"-"`
 	Branches          []string `json:"branches"`
 	Tags              []string `json:"tags"`
 	RemoteBranches    []string `json:"remoteBranches"`
@@ -132,15 +132,15 @@ type LanguageStat struct {
 
 // 深度分析结果
 type AnalyzeResult struct {
-	Name            string        `json:"name"`
-	Path            string        `json:"path"`
-	BranchCount     int           `json:"branchCount"`
-	Branches        []string      `json:"branches"`
-	RemoteBranches  []string      `json:"remoteBranches"`
+	Name            string        `json:"-"`
+	Path            string        `json:"-"`
+	BranchCount     int           `json:"-"`
+	Branches        []string      `json:"-"`
+	RemoteBranches  []string      `json:"-"`
 	FileCount       int           `json:"fileCount"`
 	TotalLines      int           `json:"totalLines"`
 	Languages       []LanguageStat `json:"languages"`
-	Tags            []string      `json:"tags"`
+	Tags            []string      `json:"-"`
 }
 
 // 深度分析请求
@@ -182,7 +182,7 @@ type RepoComparison struct {
 	Authors          int     `json:"authors"`
 	Additions        int     `json:"additions"`
 	Deletions        int     `json:"deletions"`
-	LastCommitTime   string  `json:"lastCommitTime"`
+	LastCommitTime   string  `json:"-"`
 	ActiveDays       int     `json:"activeDays"`       // 活跃天数
 	AvgCommitsPerDay float64 `json:"avgCommitsPerDay"` // 日均提交数
 }

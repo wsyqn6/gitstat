@@ -53,8 +53,7 @@ func AggregateOverview(repos []model.Repository, userEmail string, startDate, en
 	var authorList []model.AuthorRankItem
 	for _, item := range authorMap {
 		if item.Commits > 0 {
-			item.AvgCommitSize = float64(item.Additions+item.Deletions) / float64(item.Commits)
-		}
+			}
 		authorList = append(authorList, *item)
 	}
 	slices.SortFunc(authorList, func(a, b model.AuthorRankItem) int {
@@ -297,8 +296,7 @@ func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate t
 	var result []model.AuthorRankItem
 	for _, item := range authorMap {
 		if item.Commits > 0 {
-			item.AvgCommitSize = float64(item.Additions+item.Deletions) / float64(item.Commits)
-		}
+			}
 		result = append(result, *item)
 	}
 
