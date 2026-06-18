@@ -5,12 +5,12 @@
     </div>
     <div v-if="loading" class="comparison-table card">
       <div v-for="i in 3" :key="i" class="cmp-row">
-        <div class="skeleton-line w40"></div>
-        <div class="skeleton-line w15"></div>
-        <div class="skeleton-line w15"></div>
-        <div class="skeleton-line w15"></div>
-        <div class="skeleton-line w15"></div>
-        <div class="skeleton-line w15"></div>
+        <Skeleton w="40" />
+        <Skeleton w="15" />
+        <Skeleton w="15" />
+        <Skeleton w="15" />
+        <Skeleton w="15" />
+        <Skeleton w="15" />
       </div>
     </div>
     <div v-else-if="repoComparison.length > 0" class="comparison-table card">
@@ -35,6 +35,7 @@
 </template>
 
 <script setup>
+import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()

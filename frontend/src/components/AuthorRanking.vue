@@ -5,9 +5,9 @@
     </div>
     <div v-if="loading" class="skeleton-rank">
       <div class="skeleton-rank-row" v-for="i in 5" :key="i">
-        <div class="skeleton-circle"></div>
-        <div class="skeleton-line w60"></div>
-        <div class="skeleton-line w20"></div>
+        <Skeleton circle />
+        <Skeleton w="60" />
+        <Skeleton w="20" />
       </div>
     </div>
     <template v-else-if="authorRankWithRepos.length > 0">
@@ -38,6 +38,7 @@
 </template>
 
 <script setup>
+import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()

@@ -7,14 +7,14 @@
     <div v-if="loading" class="skeleton-daily">
       <div v-for="i in 2" :key="i" class="repo-daily-card card">
         <div class="repo-daily-header">
-          <div class="skeleton-line w50"></div>
-          <div class="skeleton-line w30" style="margin-top:8px"></div>
+          <Skeleton w="50" />
+          <div style="margin-top:8px"><Skeleton w="30" /></div>
         </div>
         <div class="authors-table">
           <div v-for="j in 2" :key="j" class="table-row">
-            <div class="skeleton-line w35"></div>
-            <div class="skeleton-line w15"></div>
-            <div class="skeleton-line w25"></div>
+            <Skeleton w="35" />
+            <Skeleton w="15" />
+            <Skeleton w="25" />
           </div>
         </div>
       </div>
@@ -59,6 +59,7 @@
 </template>
 
 <script setup>
+import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()

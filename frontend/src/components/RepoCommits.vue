@@ -2,7 +2,17 @@
   <div class="section card">
     <h3 class="section-title">{{ t('repo.recentCommits') }}</h3>
 
-    <div v-if="!commitsLoaded" class="cta-body">
+    <div v-if="commitsLoading && !commitsLoaded" class="commit-skeleton">
+      <Skeleton w="25" h="14" mb="1rem" />
+      <div v-for="i in 5" :key="i" class="skel-commit-row">
+        <Skeleton w="70" />
+        <Skeleton w="85" />
+        <Skeleton w="60" />
+        <Skeleton w="55" />
+        <Skeleton w="50" />
+      </div>
+    </div>
+    <div v-else-if="!commitsLoaded" class="cta-body">
       <div class="cta-icon">⎔</div>
       <p class="cta-text">{{ t('repo.commitsCta') }}</p>
       <button class="cta-btn" :disabled="commitsLoading" @click="emit('loadCommits')">
@@ -50,6 +60,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
@@ -171,6 +182,16 @@ function toggleCommit(hash) {
 .load-more-btn:hover:not(:disabled) { background: rgba(0, 212, 255, 0.12); border-color: #00d4ff; }
 .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .all-loaded { color: #475569; font-size: 0.8rem; }
+
+.commit-skeleton { padding: 0.25rem 0; }
+.skel-commit-row {
+  display: grid;
+  grid-template-columns: 1fr 2.5fr 1fr 1fr 1.2fr;
+  padding: 0.55rem 0.5rem;
+  align-items: center;
+  gap: 0.3rem;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.06);
+}
 
 .spinner {
   display: inline-block;

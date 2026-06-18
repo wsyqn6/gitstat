@@ -72,28 +72,28 @@
         <div class="info-card dim" :class="{ 'has-data': statsLoaded && detail.repoSize > 0 }">
           <span class="info-value">
             <template v-if="statsLoaded">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</template>
-            <span v-else class="skeleton-line w40" style="margin:0 auto;height:22px;border-radius:6px"></span>
+            <Skeleton v-else w="40" h="22" radius="6" center />
           </span>
           <span class="info-label">{{ t('repo.diskSize') }}</span>
         </div>
         <div class="info-card clickable dim" :class="statsLoaded ? { expanded: expandedContributor, 'has-data': hasCommits } : {}" @click="toggleContributor">
           <span class="info-value">
             <template v-if="statsLoaded">{{ hasCommits ? detail.contributors.length : '--' }}</template>
-            <span v-else class="skeleton-line w30" style="margin:0 auto;height:22px;border-radius:6px"></span>
+            <Skeleton v-else w="30" h="22" radius="6" center />
           </span>
           <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
         </div>
         <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.earliestCommitAuthor }">
           <span class="info-value">
             <template v-if="statsLoaded">{{ formatDate(detail.earliestDate) }}</template>
-            <span v-else class="skeleton-line w55" style="margin:0 auto;height:22px;border-radius:6px"></span>
+            <Skeleton v-else w="55" h="22" radius="6" center />
           </span>
           <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
         </div>
         <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.lastCommitTime }">
           <span class="info-value">
             <template v-if="statsLoaded">{{ formatTimeAgo(detail.lastCommitTime) }}</template>
-            <span v-else class="skeleton-line w45" style="margin:0 auto;height:22px;border-radius:6px"></span>
+            <Skeleton v-else w="45" h="22" radius="6" center />
           </span>
           <span class="info-label">{{ t('repo.lastCommit') }}</span>
         </div>
@@ -126,15 +126,15 @@
         <div class="section-header">
           <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
         </div>
-        <div class="skeleton-chart-area" style="height:160px;margin-bottom:2rem;border-radius:12px"></div>
+        <Skeleton chart h="160" mb="2rem" radius="12" />
         <div class="chart-row-skel">
           <div class="card" style="flex:1;padding:1rem;min-height:300px">
-            <div class="skeleton-line w40" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
-            <div class="skeleton-chart-area" style="height:240px"></div>
+            <Skeleton w="40" h="20" radius="6" mb="1rem" />
+            <Skeleton chart h="240" />
           </div>
           <div class="card" style="flex:1;padding:1rem;min-height:300px">
-            <div class="skeleton-line w40" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
-            <div class="skeleton-chart-area" style="height:240px"></div>
+            <Skeleton w="40" h="20" radius="6" mb="1rem" />
+            <Skeleton chart h="240" />
           </div>
         </div>
       </div>
@@ -157,6 +157,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
+import Skeleton from './Skeleton.vue'
 import RepoCharts from './RepoCharts.vue'
 
 const { t } = useI18n()

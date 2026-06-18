@@ -4,12 +4,12 @@
       <h3>{{ t('dashboard.weeklyTrend') }} <span class="range-hint">{{ weekRange }}</span></h3>
     </div>
     <div v-if="loading" class="skeleton-chart-area trend-skeleton">
-      <div class="skeleton-line w80"></div>
-      <div class="skeleton-line w60"></div>
-      <div class="skeleton-line w90"></div>
-      <div class="skeleton-line w40"></div>
-      <div class="skeleton-line w70"></div>
-      <div class="skeleton-line w50"></div>
+      <Skeleton w="80" />
+      <Skeleton w="60" />
+      <Skeleton w="90" />
+      <Skeleton w="40" />
+      <Skeleton w="70" />
+      <Skeleton w="50" />
     </div>
     <div v-else-if="repoDailyTrend.length === 0" class="insight-empty">{{ t('analytics.noData') }}</div>
     <template v-else>
@@ -26,6 +26,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import { CHART_COLORS } from '../utils/constants'

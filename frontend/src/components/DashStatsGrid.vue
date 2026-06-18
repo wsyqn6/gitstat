@@ -1,9 +1,9 @@
 <template>
   <div v-if="loading" class="stats-grid">
     <div v-for="i in 6" :key="i" class="stat-card-ph">
-      <div class="skeleton-circle stat-ph-icon"></div>
-      <div class="skeleton-line w40 stat-ph-value"></div>
-      <div class="skeleton-line w60 stat-ph-label"></div>
+      <Skeleton circle class="stat-ph-icon" />
+      <Skeleton w="40" class="stat-ph-value" />
+      <Skeleton w="60" class="stat-ph-label" />
     </div>
   </div>
   <div v-else class="stats-grid">
@@ -19,6 +19,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../i18n'
+import Skeleton from './Skeleton.vue'
 import StatCard from './StatCard.vue'
 
 const { t } = useI18n()

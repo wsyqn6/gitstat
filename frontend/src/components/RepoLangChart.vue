@@ -1,9 +1,17 @@
 <template>
   <div class="section card lang-card">
     <h3 class="section-title">{{ t('repo.langDistribution') }}</h3>
-    <div v-if="analysisLoading" class="section-loading">
-      <span class="spinner"></span>
-      <span>{{ t('repo.analyzing') }}</span>
+    <div v-if="analysisLoading" class="lang-skeleton">
+      <Skeleton w="30" h="14" mb="0.75rem" />
+      <Skeleton w="100" h="10" radius="5" mb="0.75rem" />
+      <div class="lang-list">
+        <div v-for="i in 5" :key="i" class="lang-row">
+          <Skeleton circle h="10" />
+          <Skeleton w="35" />
+          <Skeleton w="15" />
+          <Skeleton w="20" />
+        </div>
+      </div>
     </div>
     <template v-else-if="analysis">
       <div class="lang-bar">
@@ -37,6 +45,7 @@
 </template>
 
 <script setup>
+import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
@@ -82,6 +91,7 @@ function formatNumber(n) {
   margin: 0 0 0.75rem 0;
   flex-shrink: 0;
 }
+.lang-skeleton { padding: 0.25rem 0; }
 .section-loading { text-align: center; padding: 2rem; color: #00d4ff; font-family: var(--font-body); }
 
 .spinner {

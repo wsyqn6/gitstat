@@ -25,42 +25,42 @@
 
           <div v-else-if="!detail" class="skeleton-page">
             <div class="title-row">
-              <div class="skeleton-line w40" style="height:32px;border-radius:6px"></div>
+              <Skeleton w="40" h="32" radius="6" />
             </div>
             <div class="card-row l1-row">
               <div v-for="i in 4" :key="i" class="info-card">
-                <div class="skeleton-circle" style="width:36px;height:36px;margin:0 auto 0.5rem"></div>
-                <div class="skeleton-line w35" style="margin:0 auto 0.4rem;height:22px;border-radius:6px"></div>
-                <div class="skeleton-line w55" style="margin:0 auto"></div>
+                <Skeleton circle h="36" center mb="0.5rem" />
+                <Skeleton w="35" h="22" radius="6" center mb="0.4rem" />
+                <Skeleton w="55" center />
               </div>
             </div>
             <div class="card stats-cta">
               <div class="stats-cta-content">
-                <div class="skeleton-circle" style="width:40px;height:40px;flex-shrink:0"></div>
+                <Skeleton circle h="40" />
                 <div style="flex:1;display:flex;flex-direction:column;gap:0.3rem">
-                  <div class="skeleton-line w45" style="height:18px;border-radius:6px"></div>
-                  <div class="skeleton-line w70"></div>
+                  <Skeleton w="45" h="18" radius="6" />
+                  <Skeleton w="70" />
                 </div>
-                <div class="skeleton-line w20" style="height:38px;border-radius:8px"></div>
+                <Skeleton w="20" h="38" radius="8" />
               </div>
             </div>
             <div class="card-row l2-row">
               <div v-for="i in 4" :key="i" class="info-card dim">
-                <div class="skeleton-line w40" style="margin:0 auto 0.3rem;height:22px;border-radius:6px"></div>
-                <div class="skeleton-line w65" style="margin:0 auto"></div>
+                <Skeleton w="40" h="22" radius="6" center mb="0.3rem" />
+                <Skeleton w="65" center />
               </div>
             </div>
             <div class="section-group">
               <div class="section card">
-                <div class="skeleton-line w50" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
-                <div class="skeleton-bar" style="height:10px;border-radius:5px;margin-bottom:0.75rem"></div>
+                <Skeleton w="50" h="20" radius="6" mb="1rem" />
+                <Skeleton w="100" h="10" radius="5" mb="0.75rem" />
                 <div style="display:flex;flex-direction:column;gap:0.5rem">
-                  <div v-for="i in 5" :key="i" class="skeleton-line w70"></div>
+                  <Skeleton v-for="i in 5" :key="i" w="70" />
                 </div>
               </div>
               <div class="section card">
-                <div class="skeleton-line w50" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
-                <div v-for="i in 5" :key="i" class="skeleton-line w85" style="margin-bottom:0.5rem;height:12px"></div>
+                <Skeleton w="50" h="20" radius="6" mb="1rem" />
+                <Skeleton v-for="i in 5" :key="i" w="85" mb="0.5rem" />
               </div>
             </div>
           </div>
@@ -112,6 +112,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from '../i18n'
 import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, fetchRepoTagsCount, fetchRepoTagsPage, triggerAnalyze } from '../stores/data'
+import Skeleton from '../components/Skeleton.vue'
 import RepoInfoCards from '../components/RepoInfoCards.vue'
 import RepoLangChart from '../components/RepoLangChart.vue'
 import RepoCommits from '../components/RepoCommits.vue'
