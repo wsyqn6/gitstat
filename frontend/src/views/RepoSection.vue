@@ -53,11 +53,9 @@
             <div class="section-group">
               <div class="section card">
                 <div class="skeleton-line w50" style="height:20px;border-radius:6px;margin-bottom:1rem"></div>
-                <div class="lang-body">
-                  <div class="skeleton-chart-area" style="height:200px"></div>
-                  <div style="display:flex;flex-direction:column;gap:0.5rem;padding-top:0.3rem">
-                    <div v-for="i in 4" :key="i" class="skeleton-line w90"></div>
-                  </div>
+                <div class="skeleton-bar" style="height:10px;border-radius:5px;margin-bottom:0.75rem"></div>
+                <div style="display:flex;flex-direction:column;gap:0.5rem">
+                  <div v-for="i in 5" :key="i" class="skeleton-line w70"></div>
                 </div>
               </div>
               <div class="section card">
@@ -425,8 +423,7 @@ onMounted(init)
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin-bottom: 2rem;
+  align-items: start;
 }
 .section { padding: 1.5rem; }
-
-.lang-body { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: start; }
 </style>
