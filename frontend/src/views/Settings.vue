@@ -128,13 +128,13 @@ async function handleExport() {
 }
 
 .page-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 2rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 3px;
   text-transform: uppercase;
   margin-bottom: 2rem;
-  background: linear-gradient(135deg, #00d4ff, #7800ff);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -155,9 +155,9 @@ async function handleExport() {
 .form-group label {
   display: block;
   margin-bottom: 0.75rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.85rem;
-  color: #a0aec0;
+  color: var(--color-nav-link);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -170,20 +170,20 @@ async function handleExport() {
 .input-row input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  border: 1px solid var(--border-input);
   border-radius: 8px;
-  background: rgba(10, 14, 39, 0.6);
-  color: #e0e6ff;
-  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-input);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
   font-size: 1rem;
   transition: all 0.3s;
 }
 
 .input-row input:focus {
   outline: none;
-  border-color: #00d4ff;
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-  background: rgba(10, 14, 39, 0.8);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 20px var(--border-input);
+  background: var(--bg-panel);
 }
 
 .scan-btn {
@@ -196,19 +196,19 @@ async function handleExport() {
   margin-top: 1rem;
   padding: 0.75rem;
   border-radius: 8px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
 }
 
 .error-msg {
-  color: #ff4757;
-  background: rgba(255, 71, 87, 0.1);
-  border: 1px solid rgba(255, 71, 87, 0.3);
+  color: var(--color-danger);
+  background: var(--bg-badge-danger);
+  border: 1px solid var(--border-badge-danger);
 }
 
 .success-msg {
-  color: #00ff88;
-  background: rgba(0, 255, 136, 0.1);
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  color: var(--color-green);
+  background: var(--bg-badge-success);
+  border: 1px solid var(--border-badge-success);
 }
 
 .card-header {
@@ -217,9 +217,9 @@ async function handleExport() {
 }
 
 .card-header h3 {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.3rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 2px;
   text-transform: uppercase;
   margin: 0;
@@ -243,10 +243,10 @@ async function handleExport() {
 }
 
 .logo-text {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #00d4ff 0%, #7800ff 50%, #00ff88 100%);
+  background: var(--gradient-logo);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -255,7 +255,7 @@ async function handleExport() {
 }
 
 .version {
-  color: #a0aec0;
+  color: var(--color-nav-link);
   font-size: 1rem;
   margin-bottom: 2rem;
 }
@@ -272,17 +272,17 @@ async function handleExport() {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(0, 212, 255, 0.1);
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  background: var(--bg-btn-hover);
+  border: 1px solid var(--border-input);
   border-radius: 8px;
   transition: all 0.3s;
 }
 
 .tech-item:hover {
-  background: rgba(0, 212, 255, 0.2);
-  border-color: #00d4ff;
+  background: var(--border-insight-card);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+  box-shadow: var(--shadow-glow-btn);
 }
 
 .tech-icon {

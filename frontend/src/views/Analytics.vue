@@ -306,22 +306,22 @@ onMounted(async () => {
 }
 
 .page-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #00f5ff 0%, #ff00ff 50%, #ffd700 100%);
+  background: var(--gradient-page-title);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 3px;
   text-transform: uppercase;
   margin: 0 0 0.25rem 0;
-  filter: drop-shadow(0 0 15px rgba(0, 245, 255, 0.3));
+  filter: drop-shadow(var(--shadow-glow-btn));
 }
 
 .subtitle {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   letter-spacing: 4px;
   text-transform: uppercase;
   margin: 0;
@@ -334,8 +334,8 @@ onMounted(async () => {
 
 .view-toggle-inner {
   display: inline-flex;
-  background: rgba(10, 14, 39, 0.6);
-  border: 1px solid rgba(0, 245, 255, 0.2);
+  background: var(--bg-tab);
+  border: 1px solid var(--border-card);
   border-radius: 8px;
   padding: 3px;
   gap: 2px;
@@ -349,9 +349,9 @@ onMounted(async () => {
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -359,13 +359,13 @@ onMounted(async () => {
 }
 
 .view-toggle-btn:hover {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 
 .view-toggle-btn.active {
-  background: rgba(0, 245, 255, 0.15);
-  color: #00f5ff;
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+  background: var(--bg-stat);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-glow-active);
 }
 
 .toggle-icon {

@@ -86,19 +86,19 @@ function formatNumber(n) {
 .section-title {
   font-family: var(--font-display);
   font-size: 0.95rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 1px;
   margin: 0 0 0.75rem 0;
   flex-shrink: 0;
 }
 .lang-skeleton { padding: 0.25rem 0; }
-.section-loading { text-align: center; padding: 2rem; color: #00d4ff; font-family: var(--font-body); }
+.section-loading { text-align: center; padding: 2rem; color: var(--color-primary); font-family: var(--font-body); }
 
 .spinner {
   display: inline-block;
   width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white;
+  border: 2px solid var(--bg-spinner);
+  border-top-color: var(--color-white);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
   vertical-align: middle;
@@ -130,7 +130,7 @@ function formatNumber(n) {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #e0e6ff;
+  color: var(--color-text-primary);
   padding: 0.2rem 0;
   flex-shrink: 0;
 }
@@ -144,15 +144,15 @@ function formatNumber(n) {
 .lang-pct {
   font-family: var(--font-display);
   font-size: 0.85rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   width: 4.5rem;
   text-align: right;
   flex-shrink: 0;
 }
 .lang-meta {
-  font-family: 'Rajdhani', monospace;
+  font-family: var(--font-body);
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   width: 5rem;
   text-align: right;
   flex-shrink: 0;
@@ -160,6 +160,6 @@ function formatNumber(n) {
 
 .analyze-cta { text-align: center; padding: 1.5rem 1rem; margin: auto 0; }
 .analyze-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
-.analyze-cta h4 { font-family: var(--font-display); font-size: 1rem; color: #00d4ff; letter-spacing: 1px; margin-bottom: 0.3rem; }
-.analyze-desc { color: #64748b; font-size: 0.85rem; margin-bottom: 0.8rem; font-family: var(--font-body); }
+.analyze-cta h4 { font-family: var(--font-display); font-size: 1rem; color: var(--color-primary); letter-spacing: 1px; margin-bottom: 0.3rem; }
+.analyze-desc { color: var(--color-text-muted); font-size: 0.85rem; margin-bottom: 0.8rem; font-family: var(--font-body); }
 </style>

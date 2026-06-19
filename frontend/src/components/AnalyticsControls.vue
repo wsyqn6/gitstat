@@ -229,16 +229,16 @@ onUnmounted(() => {
 }
 
 .control-label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.75rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 600;
 }
 
 .analyze-btn {
-  background: linear-gradient(135deg, #00f5ff 0%, #ff00ff 100%);
+  background: var(--gradient-accent);
   border: none;
   border-radius: 8px;
   padding: 0.6rem 1.5rem;
@@ -251,9 +251,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(0, 245, 255, 0.4);
+  box-shadow: var(--shadow-btn);
   height: fit-content;
   align-self: flex-end;
   opacity: 0.5;
@@ -267,7 +267,7 @@ onUnmounted(() => {
 
 .analyze-btn.can-analyze:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 245, 255, 0.6);
+  box-shadow: var(--shadow-btn-hover);
 }
 
 .analyze-btn:disabled {
@@ -305,16 +305,16 @@ onUnmounted(() => {
 
 .cyber-time-btn {
   position: relative;
-  background: rgba(10, 14, 39, 0.6);
-  border: 1px solid rgba(0, 245, 255, 0.2);
+  background: var(--bg-tab);
+  border: 1px solid var(--border-card);
   border-radius: 4px;
   padding: 0.6rem 1.2rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -329,7 +329,7 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, var(--bg-insight-hover), transparent);
   transition: left 0.5s ease;
 }
 
@@ -338,20 +338,20 @@ onUnmounted(() => {
 }
 
 .cyber-time-btn:hover {
-  border-color: rgba(0, 245, 255, 0.5);
-  color: #e2e8f0;
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.2), inset 0 0 20px rgba(0, 245, 255, 0.05);
+  border-color: var(--border-card-hover);
+  color: var(--color-input-text);
+  box-shadow: var(--shadow-glow-active), inset 0 0 20px rgba(0, 245, 255, 0.05);
   transform: translateY(-2px);
 }
 
 .cyber-time-btn.active {
-  background: rgba(0, 245, 255, 0.15);
-  border-color: #00f5ff;
-  color: #00f5ff;
+  background: var(--bg-stat);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
   box-shadow:
-    0 0 30px rgba(0, 245, 255, 0.4),
-    inset 0 0 30px rgba(0, 245, 255, 0.1),
-    0 0 60px rgba(0, 245, 255, 0.2);
+    0 0 30px var(--shadow-active),
+    inset 0 0 30px var(--bg-insight-hover),
+    0 0 60px var(--border-card);
   text-shadow: 0 0 10px rgba(0, 245, 255, 0.8);
 }
 
@@ -361,7 +361,7 @@ onUnmounted(() => {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, #00f5ff, #ff00ff, #00f5ff);
+  background: var(--gradient-btn-glow);
   border-radius: 4px;
   opacity: 0.3;
   filter: blur(8px);
@@ -400,11 +400,11 @@ onUnmounted(() => {
 }
 
 .repo-dropdown-btn {
-  background: rgba(10, 14, 39, 0.8);
-  border: 2px solid rgba(0, 245, 255, 0.3);
+  background: var(--bg-panel);
+  border: 2px solid var(--border-dropdown);
   border-radius: 8px;
   padding: 0.6rem 1rem;
-  color: #e2e8f0;
+  color: var(--color-input-text);
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -414,17 +414,17 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
 }
 
 .repo-dropdown-btn:hover {
-  border-color: #00f5ff;
-  box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow-btn);
 }
 
 .repo-dropdown-btn.active {
-  border-color: #00f5ff;
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px var(--border-card-hover);
 }
 
 .btn-text {
@@ -436,7 +436,7 @@ onUnmounted(() => {
   width: 16px;
   height: 16px;
   transition: transform 0.3s ease;
-  color: #00f5ff;
+  color: var(--color-accent);
 }
 
 .dropdown-icon.rotated {
@@ -448,11 +448,11 @@ onUnmounted(() => {
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: rgba(10, 14, 39, 0.98);
+  background: var(--bg-dropdown-full);
   backdrop-filter: blur(20px);
-  border: 2px solid rgba(0, 245, 255, 0.3);
+  border: 2px solid var(--border-dropdown);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 245, 255, 0.2);
+  box-shadow: var(--shadow-lg-black), 0 0 30px var(--border-card);
   z-index: 1000;
   overflow: hidden;
   animation: dropdownSlide 0.2s ease;
@@ -474,31 +474,31 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(0, 245, 255, 0.1);
-  background: rgba(0, 245, 255, 0.05);
+  border-bottom: 1px solid var(--bg-insight-hover);
+  background: var(--bg-tag-section);
 }
 
 .select-all-btn {
   background: transparent;
-  border: 1px solid rgba(0, 245, 255, 0.4);
+  border: 1px solid var(--shadow-active);
   border-radius: 6px;
   padding: 0.35rem 0.75rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
 }
 
 .select-all-btn:hover {
-  background: rgba(0, 245, 255, 0.1);
-  border-color: #00f5ff;
+  background: var(--bg-insight-hover);
+  border-color: var(--color-accent);
 }
 
 .selected-count {
   font-size: 0.8rem;
-  color: #64748b;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
 }
 
 .dropdown-list {
@@ -516,12 +516,12 @@ onUnmounted(() => {
 }
 
 .dropdown-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 245, 255, 0.3);
+  background: var(--border-dropdown);
   border-radius: 3px;
 }
 
 .dropdown-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 245, 255, 0.5);
+  background: var(--border-card-hover);
 }
 
 .repo-option {
@@ -533,22 +533,22 @@ onUnmounted(() => {
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
 }
 
 .repo-option:hover {
-  background: rgba(0, 245, 255, 0.1);
-  color: #e2e8f0;
+  background: var(--bg-insight-hover);
+  color: var(--color-input-text);
 }
 
 .repo-option.active {
-  background: rgba(0, 245, 255, 0.15);
-  color: #00f5ff;
+  background: var(--bg-stat);
+  color: var(--color-accent);
 }
 
 .option-checkbox {
@@ -564,14 +564,14 @@ onUnmounted(() => {
 }
 
 .repo-option.active .option-checkbox {
-  border-color: #00f5ff;
-  background: rgba(0, 245, 255, 0.2);
+  border-color: var(--color-accent);
+  background: var(--border-card);
 }
 
 .option-checkbox svg {
   width: 12px;
   height: 12px;
-  color: #00f5ff;
+  color: var(--color-accent);
 }
 
 .option-text {
@@ -582,13 +582,13 @@ onUnmounted(() => {
 }
 
 .single-repo-label {
-  background: rgba(10, 14, 39, 0.8);
-  border: 2px solid rgba(0, 245, 255, 0.3);
+  background: var(--bg-panel);
+  border: 2px solid var(--border-dropdown);
   border-radius: 8px;
   padding: 0.6rem 1rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   font-size: 0.9rem;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   min-width: 180px;
   display: flex;
   align-items: center;

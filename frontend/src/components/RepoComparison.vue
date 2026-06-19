@@ -65,17 +65,17 @@ defineProps({
 }
 
 .cmp-header {
-  background: rgba(0, 212, 255, 0.05);
-  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-  font-family: 'Orbitron', sans-serif;
+  background: var(--bg-row-hover);
+  border-bottom: 1px solid var(--border-insight-card);
+  font-family: var(--font-display);
   font-size: 0.8rem;
-  color: #a0aec0;
+  color: var(--color-nav-link);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
 
 .cmp-row {
-  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+  border-bottom: 1px solid var(--bg-btn-hover);
   transition: all 0.3s;
 }
 
@@ -84,27 +84,27 @@ defineProps({
 }
 
 .cmp-row:hover {
-  background: rgba(0, 212, 255, 0.05);
+  background: var(--bg-row-hover);
 }
 
 .cmp-col-name {
   font-weight: 600;
-  color: #e0e6ff;
+  color: var(--color-text-primary);
 }
 
 .cmp-col-num {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 700;
-  color: #00d4ff;
+  color: var(--color-primary);
   text-align: center;
 }
 
 .cmp-col-num.additions {
-  color: #00ff88;
+  color: var(--color-green);
 }
 
 .cmp-col-num.deletions {
-  color: #ff6b9d;
+  color: var(--color-pink);
 }
 </style>

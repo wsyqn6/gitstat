@@ -94,7 +94,7 @@ defineProps({
 }
 
 .rank-row:hover {
-  background: rgba(0, 212, 255, 0.05);
+  background: var(--bg-row-hover);
 }
 
 .rank-num {
@@ -104,28 +104,28 @@ defineProps({
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 700;
-  background: rgba(0, 212, 255, 0.1);
-  color: #a0aec0;
+  background: var(--bg-btn-hover);
+  color: var(--color-nav-link);
   flex-shrink: 0;
 }
 
 .rank-num.gold {
   background: rgba(255, 215, 0, 0.2);
-  color: #ffd700;
+  color: var(--color-gold);
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
 }
 
 .rank-num.silver {
   background: rgba(192, 192, 192, 0.15);
-  color: #c0c0c0;
+  color: var(--color-silver);
 }
 
 .rank-num.bronze {
   background: rgba(205, 127, 50, 0.15);
-  color: #cd7f32;
+  color: var(--color-bronze);
 }
 
 .rank-info {
@@ -138,7 +138,7 @@ defineProps({
 
 .rank-name {
   font-weight: 600;
-  color: #e0e6ff;
+  color: var(--color-text-primary);
   font-size: 0.95rem;
   white-space: nowrap;
   overflow: hidden;
@@ -146,14 +146,14 @@ defineProps({
 }
 
 .me-badge-small {
-  background: rgba(0, 212, 255, 0.15);
-  border: 1px solid rgba(0, 212, 255, 0.4);
+  background: var(--bg-me-badge);
+  border: 1px solid var(--border-me-badge);
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
   font-size: 0.6rem;
   font-weight: 700;
-  color: #00d4ff;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--color-primary);
+  font-family: var(--font-display);
   letter-spacing: 1px;
   flex-shrink: 0;
 }
@@ -166,10 +166,10 @@ defineProps({
 }
 
 .rank-commits {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
-  color: #00d4ff;
+  color: var(--color-primary);
 }
 
 .rank-row-compact {
@@ -186,11 +186,11 @@ defineProps({
 
 .repo-tag {
   font-size: 0.7rem;
-  font-family: 'Rajdhani', monospace;
+  font-family: var(--font-mono);
   padding: 0.1rem 0.5rem;
   border-radius: 8px;
   border: 1px solid;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-detail-msg);
   font-weight: 600;
 }
 </style>

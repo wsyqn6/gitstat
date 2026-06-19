@@ -238,7 +238,7 @@ const netChange = computed(() => {
   left: 12%;
   right: 12%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  background: var(--gradient-header-bar);
   border-radius: 2px;
   opacity: 0.45;
   pointer-events: none;
@@ -248,16 +248,16 @@ const netChange = computed(() => {
   margin-bottom: 1.25rem;
 }
 .cal-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 2px;
 }
 
 .cal-empty {
   text-align: center;
   padding: 3rem 0;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.95rem;
   letter-spacing: 1px;
 }
@@ -273,15 +273,15 @@ const netChange = computed(() => {
 .cal-grid thead th {
   text-align: center;
   padding: 0.5rem 0.3rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   letter-spacing: 1px;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(160, 100, 200, 0.15);
+  border-bottom: 1px solid var(--border-section-header);
 }
 .weekend-header {
-  color: #64748b;
+  color: var(--color-text-muted);
   opacity: 0.6;
 }
 
@@ -290,7 +290,7 @@ const netChange = computed(() => {
   text-align: center;
   vertical-align: top;
   padding: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.06);
+  border: 1px solid var(--border-table);
   transition: all 0.2s ease;
   cursor: default;
   height: 72px;
@@ -300,12 +300,12 @@ const netChange = computed(() => {
   cursor: pointer;
 }
 .cal-cell:hover {
-  border-color: rgba(160, 100, 200, 0.4);
+  border-color: var(--border-cal-hover-intense);
   filter: brightness(1.25);
   z-index: 1;
 }
 .weekend-cell {
-  background: rgba(148, 163, 184, 0.03);
+  background: var(--bg-cal-weekend);
 }
 
 .cell-inner {
@@ -316,10 +316,10 @@ const netChange = computed(() => {
   padding: 2px;
 }
 .cell-day {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   width: 26px;
   height: 26px;
   display: flex;
@@ -328,16 +328,16 @@ const netChange = computed(() => {
   border-radius: 50%;
 }
 .cell-day.today-text {
-  background: rgba(160, 100, 200, 0.8);
-  color: #0a0e27;
+  background: var(--bg-cal-today);
+  color: var(--color-bg-dark);
   font-weight: 700;
-  box-shadow: 0 0 12px rgba(160, 100, 200, 0.5);
+  box-shadow: 0 0 12px var(--shadow-today);
 }
 .cell-count {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--color-input-text);
   line-height: 1;
 }
 

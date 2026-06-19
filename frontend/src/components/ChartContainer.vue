@@ -99,9 +99,9 @@ function handleResize() {
 }
 
 .chart-header h3 {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.3rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 2px;
   text-transform: uppercase;
   margin: 0;
@@ -109,7 +109,7 @@ function handleResize() {
 
 .subtitle {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   letter-spacing: 1px;
   margin: 0;
 }
@@ -121,17 +121,17 @@ function handleResize() {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(0, 245, 255, 0.1);
-  border-top-color: #00f5ff;
+  border: 3px solid var(--bg-insight-hover);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+  box-shadow: 0 0 20px var(--border-dropdown);
 }
 
 .chart {

@@ -168,7 +168,7 @@ const maxCommits = computed(() => {
   left: 12%;
   right: 12%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  background: var(--gradient-header-bar);
   border-radius: 2px;
   opacity: 0.45;
   pointer-events: none;
@@ -178,16 +178,16 @@ const maxCommits = computed(() => {
   margin-bottom: 1.25rem;
 }
 .cal-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 2px;
 }
 
 .cal-empty {
   text-align: center;
   padding: 3rem 0;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.95rem;
   letter-spacing: 1px;
 }
@@ -198,21 +198,21 @@ const maxCommits = computed(() => {
 .cal-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
 }
 .cal-table thead th {
   text-align: center;
   padding: 0.5rem 0.4rem;
-  border-bottom: 1px solid rgba(160, 100, 200, 0.15);
+  border-bottom: 1px solid var(--border-section-header);
   vertical-align: bottom;
 }
 .cal-table .row-header {
   text-align: center;
   padding: 0.5rem 0.3rem;
   min-width: 64px;
-  color: #64748b;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
   font-size: 0.75rem;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -221,22 +221,22 @@ const maxCommits = computed(() => {
   min-width: 64px;
 }
 .day-name {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.72rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
 .day-date {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   margin-top: 2px;
 }
 .total-col {
   min-width: 80px;
 }
 .total-col .day-name {
-  color: #ffd700;
+  color: var(--color-gold);
 }
 
 .data-cell {
@@ -251,12 +251,12 @@ const maxCommits = computed(() => {
 }
 .data-cell:hover {
   filter: brightness(1.3);
-  border-color: rgba(160, 100, 200, 0.3);
+  border-color: var(--border-cal-hover);
 }
 .cell-commits {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--color-input-text);
 }
 .cell-changes {
   font-size: 0.65rem;
@@ -265,14 +265,14 @@ const maxCommits = computed(() => {
   gap: 4px;
   justify-content: center;
 }
-.cell-changes .add { color: #00ff88; }
-.cell-changes .del { color: #ff6b6b; }
+.cell-changes .add { color: var(--color-green); }
+.cell-changes .del { color: var(--color-red); }
 
 .total-cell {
-  border-left: 1px solid rgba(160, 100, 200, 0.25);
+  border-left: 1px solid var(--border-cal-today);
 }
 .total-cell .cell-commits {
-  color: #ffd700;
+  color: var(--color-gold);
   font-size: 1.15rem;
 }
 
@@ -281,10 +281,10 @@ const maxCommits = computed(() => {
   transition: background 0.2s;
 }
 .author-row:hover {
-  background: rgba(160, 100, 200, 0.05);
+  background: var(--bg-cal-hover);
 }
 .author-row.expanded {
-  background: rgba(160, 100, 200, 0.08);
+  background: var(--bg-cal-today-other);
 }
 .cell-author {
   text-align: center;
@@ -298,8 +298,8 @@ const maxCommits = computed(() => {
   gap: 3px;
 }
 .author-name {
-  font-family: 'Rajdhani', sans-serif;
-  color: #00f5ff;
+  font-family: var(--font-body);
+  color: var(--color-accent);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: none;
@@ -309,9 +309,9 @@ const maxCommits = computed(() => {
   white-space: nowrap;
 }
 .author-email {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.6rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   text-transform: none !important;
   letter-spacing: 0;
   overflow: hidden;
@@ -321,12 +321,12 @@ const maxCommits = computed(() => {
   margin-top: 1px;
 }
 .me-badge {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.6rem;
   padding: 1px 5px;
-  border: 1px solid #ffd700;
+  border: 1px solid var(--color-gold);
   border-radius: 3px;
-  color: #ffd700;
+  color: var(--color-gold);
   letter-spacing: 0.5px;
 }
 

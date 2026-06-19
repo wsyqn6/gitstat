@@ -149,9 +149,9 @@ const insights = computed(() => {
 
 <style scoped>
 .expand-panel {
-  background: rgba(10, 14, 39, 0.8);
+  background: var(--bg-panel);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  border: 1px solid var(--border-insight-card);
   border-radius: 12px;
   padding: 1.25rem;
   margin-top: 1rem;
@@ -160,9 +160,9 @@ const insights = computed(() => {
 }
 
 .expand-panel-header {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.8rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 1px;
   margin-bottom: 1rem;
   opacity: 0.9;
@@ -171,42 +171,42 @@ const insights = computed(() => {
 .expand-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
 }
 
 .expand-table th {
   text-align: left;
   padding: 0.5rem 0.75rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-weight: 600;
   font-size: 0.8rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+  border-bottom: 1px solid var(--bg-stat);
 }
 
 .expand-table td {
   padding: 0.5rem 0.75rem;
-  color: #e2e8f0;
+  color: var(--color-input-text);
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 .expand-table tbody tr:hover {
-  background: rgba(0, 245, 255, 0.05);
+  background: var(--bg-row-hover);
 }
 
 .expand-table .cell-author {
-  color: #00f5ff;
+  color: var(--color-accent);
   font-weight: 600;
 }
 
 .expand-table .cell-additions {
-  color: #00ff88;
+  color: var(--color-green);
 }
 
 .expand-table .cell-deletions {
-  color: #ff6b6b;
+  color: var(--color-red);
 }
 
 .insights-grid {
@@ -217,9 +217,9 @@ const insights = computed(() => {
 }
 
 .insight-card {
-  background: rgba(10, 14, 39, 0.6);
+  background: var(--bg-tab);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  border: 1px solid var(--border-insight-card);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -232,7 +232,7 @@ const insights = computed(() => {
 .insight-card:hover {
   border-color: rgba(0, 212, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+  box-shadow: var(--shadow-glow-card);
 }
 
 .insight-card.clickable {
@@ -242,12 +242,12 @@ const insights = computed(() => {
 .insight-card.clickable:hover {
   border-color: rgba(0, 212, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+  box-shadow: var(--shadow-glow-card);
 }
 
 .insight-card.clickable.expanded {
-  border-color: #00f5ff;
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.3), inset 0 0 20px rgba(0, 245, 255, 0.05);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px var(--border-dropdown), inset 0 0 20px var(--bg-tag-section);
 }
 
 .insight-icon {
@@ -257,8 +257,8 @@ const insights = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00f5ff;
-  filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.4));
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 6px var(--shadow-active));
 }
 
 .icon-star::after  { content: '★'; font-size: 20px; }
@@ -272,7 +272,7 @@ const insights = computed(() => {
 
 .insight-title {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   letter-spacing: 1px;
   margin-bottom: 0.25rem;
 }
@@ -280,7 +280,7 @@ const insights = computed(() => {
 .insight-value {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #00d4ff, #7800ff);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -289,6 +289,6 @@ const insights = computed(() => {
 
 .insight-desc {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 </style>

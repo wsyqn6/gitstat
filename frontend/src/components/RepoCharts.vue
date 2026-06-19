@@ -279,9 +279,9 @@ const hourlyOption = computed(() => {
   margin-bottom: 1rem;
 }
 .section-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.95rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 1px;
   margin: 0;
 }
@@ -291,23 +291,23 @@ const hourlyOption = computed(() => {
 }
 .year-tab {
   padding: 0.2rem 0.6rem;
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  border: 1px solid var(--border-year-tab);
   border-radius: 4px;
   background: transparent;
-  color: #64748b;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
   font-size: 0.7rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 .year-tab:hover {
-  border-color: rgba(0, 212, 255, 0.5);
-  color: #94a3b8;
+  border-color: var(--border-card-hover);
+  color: var(--color-text-secondary);
 }
 .year-tab.active {
-  background: rgba(0, 212, 255, 0.12);
-  border-color: #00d4ff;
-  color: #00d4ff;
+  background: var(--bg-cta-intense);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* Loading */
@@ -331,8 +331,8 @@ const hourlyOption = computed(() => {
 }
 .cal-month-label {
   font-size: 0.65rem;
-  color: #64748b;
-  font-family: 'Rajdhani', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
   text-align: left;
   white-space: nowrap;
 }
@@ -351,8 +351,8 @@ const hourlyOption = computed(() => {
   align-items: center;
   justify-content: flex-end;
   font-size: 0.6rem;
-  color: #64748b;
-  font-family: 'Rajdhani', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
   padding-right: 2px;
 }
 .cal-grid {
@@ -371,7 +371,7 @@ const hourlyOption = computed(() => {
 }
 .cal-cell:hover {
   transform: scale(1.3);
-  outline: 1px solid rgba(0, 212, 255, 0.6);
+  outline: var(--outline-primary);
   outline-offset: 1px;
 }
 .cal-footer {
@@ -384,8 +384,8 @@ const hourlyOption = computed(() => {
 }
 .cal-legend-label {
   font-size: 0.6rem;
-  color: #64748b;
-  font-family: 'Rajdhani', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
 }
 .cal-legend-cell {
   width: 10px;
@@ -394,8 +394,8 @@ const hourlyOption = computed(() => {
 }
 
 .empty-hint {
-  color: #64748b;
-  font-family: 'Rajdhani', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
   font-size: 0.85rem;
   margin-bottom: 2rem;
 }

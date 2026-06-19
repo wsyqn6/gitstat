@@ -173,7 +173,7 @@ const monthDetail = computed(() => {
   left: 12%;
   right: 12%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  background: var(--gradient-header-bar);
   border-radius: 2px;
   opacity: 0.45;
   pointer-events: none;
@@ -183,16 +183,16 @@ const monthDetail = computed(() => {
   margin-bottom: 1.25rem;
 }
 .cal-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 2px;
 }
 
 .cal-empty {
   text-align: center;
   padding: 3rem 0;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.95rem;
   letter-spacing: 1px;
 }
@@ -204,9 +204,9 @@ const monthDetail = computed(() => {
 }
 .year-month-card {
   position: relative;
-  background: rgba(10, 14, 39, 0.6);
+  background: var(--bg-cal-month-card);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 212, 255, 0.15);
+  border: 1px solid var(--border-card-subtle);
   border-radius: 12px;
   padding: 1.25rem 1rem;
   text-align: center;
@@ -216,7 +216,7 @@ const monthDetail = computed(() => {
 }
 .year-month-card:hover:not(.future-month) {
   border-color: rgba(0, 245, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(0, 245, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-glow-card), var(--shadow-inset-card-hover);
   transform: translateY(-3px);
 }
 .year-month-card::before {
@@ -226,7 +226,7 @@ const monthDetail = computed(() => {
   left: 15%;
   right: 15%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  background: var(--gradient-header-bar);
   border-radius: 2px;
   opacity: 0.4;
   transition: all 0.4s ease;
@@ -246,8 +246,8 @@ const monthDetail = computed(() => {
   transition: opacity 0.3s ease;
 }
 .year-month-card.selected {
-  border-color: #00f5ff;
-  box-shadow: 0 0 25px rgba(0, 245, 255, 0.3), inset 0 0 20px rgba(0, 245, 255, 0.05);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-selected), inset 0 0 20px rgba(0, 245, 255, 0.05);
 }
 .year-month-card.selected::before {
   left: 5%;
@@ -262,10 +262,10 @@ const monthDetail = computed(() => {
 .ym-header {
   position: relative;
   z-index: 1;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.7rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   letter-spacing: 2px;
   text-transform: uppercase;
   margin-bottom: 0.35rem;
@@ -273,10 +273,10 @@ const monthDetail = computed(() => {
 .ym-commits {
   position: relative;
   z-index: 1;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--color-input-text);
   line-height: 1.15;
   margin-bottom: 0.4rem;
 }
@@ -287,13 +287,13 @@ const monthDetail = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.65rem;
   font-weight: 600;
 }
-.ym-changes .ym-add { color: #00ff88; }
-.ym-changes .ym-del { color: #ff6b6b; }
-.ym-changes .ym-net { color: #64748b; }
+.ym-changes .ym-add { color: var(--color-green); }
+.ym-changes .ym-del { color: var(--color-red); }
+.ym-changes .ym-net { color: var(--color-text-muted); }
 
 @media (max-width: 900px) {
   .year-grid {

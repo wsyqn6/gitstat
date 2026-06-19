@@ -92,9 +92,9 @@ const timePeriodLabel = computed(() => {
 }
 
 .overview-period-label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.85rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 2px;
   text-transform: uppercase;
   margin-bottom: 0.75rem;
@@ -108,9 +108,9 @@ const timePeriodLabel = computed(() => {
 }
 
 .stat-card {
-  background: rgba(10, 14, 39, 0.6);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  border: 1px solid var(--border-card);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -121,9 +121,9 @@ const timePeriodLabel = computed(() => {
 }
 
 .stat-card:hover {
-  border-color: rgba(0, 212, 255, 0.5);
+  border-color: var(--border-card-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+  box-shadow: var(--shadow-glow-card);
 }
 
 .stat-card.clickable {
@@ -131,8 +131,8 @@ const timePeriodLabel = computed(() => {
 }
 
 .stat-card.clickable.expanded {
-  border-color: #00f5ff;
-  box-shadow: 0 0 20px rgba(0, 245, 255, 0.3), inset 0 0 20px rgba(0, 245, 255, 0.05);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-accent-soft), inset 0 0 20px var(--bg-insight-hover);
 }
 
 .stat-icon {
@@ -142,8 +142,8 @@ const timePeriodLabel = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00f5ff;
-  filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.4));
+  color: var(--color-accent);
+  filter: drop-shadow(var(--shadow-accent-drop));
 }
 
 .stat-icon svg {
@@ -158,14 +158,14 @@ const timePeriodLabel = computed(() => {
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #00d4ff, #7800ff);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .stat-label {
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   letter-spacing: 1px;
   margin-bottom: 0.25rem;

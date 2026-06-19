@@ -1,4 +1,5 @@
 :root {
+  /* ============ Existing colors (unchanged) ============ */
   --color-primary: #00d4ff;
   --color-accent: #00f5ff;
   --color-purple: #7800ff;
@@ -13,6 +14,209 @@
   --color-text-muted: #64748b;
   --font-display: 'Orbitron', sans-serif;
   --font-body: 'Rajdhani', sans-serif;
+
+  /* ============ Backgrounds ============ */
+  --bg-body: #0a0e27;
+  --bg-body-mid: #1a1f3a;
+  --bg-body-end: #0d1235;
+  --bg-body-gradient: linear-gradient(135deg, var(--bg-body) 0%, var(--bg-body-mid) 50%, var(--bg-body-end) 100%);
+  --bg-glow-1: rgba(0, 245, 255, 0.1);
+  --bg-glow-2: rgba(255, 0, 255, 0.1);
+  --bg-glow-3: rgba(255, 215, 0, 0.05);
+  --bg-card: rgba(20, 25, 50, 0.6);
+  --bg-card-header: rgba(0, 212, 255, 0.05);
+  --bg-nav: rgba(10, 14, 39, 0.8);
+  --bg-input: rgba(10, 14, 39, 0.6);
+  --bg-input-focus: rgba(10, 14, 39, 0.8);
+  --bg-tab: rgba(10, 14, 39, 0.6);
+  --bg-tab-active: rgba(0, 245, 255, 0.15);
+  --bg-dropdown: rgba(10, 14, 39, 0.95);
+  --bg-dropdown-full: rgba(10, 14, 39, 0.98);
+  --bg-tooltip: rgba(10, 14, 39, 0.95);
+  --bg-panel: rgba(10, 14, 39, 0.8);
+  --bg-stat: rgba(0, 245, 255, 0.15);
+  --bg-tag-section: rgba(0, 245, 255, 0.05);
+  --bg-row-hover: rgba(0, 212, 255, 0.05);
+  --bg-row-active: rgba(0, 212, 255, 0.1);
+  --bg-row-header: rgba(0, 212, 255, 0.05);
+  --bg-insight-hover: rgba(0, 245, 255, 0.05);
+  --bg-info-card: rgba(20, 25, 50, 0.6);
+  --bg-year-month-card: rgba(10, 14, 39, 0.6);
+  --bg-detail-msg: rgba(0, 0, 0, 0.2);
+  --bg-cta: rgba(0, 212, 255, 0.08);
+  --bg-cta-hover: rgba(0, 212, 255, 0.15);
+  --bg-cta-intense: rgba(0, 212, 255, 0.12);
+  --bg-load-more: rgba(0, 212, 255, 0.05);
+  --bg-tech-item: rgba(0, 212, 255, 0.1);
+  --bg-tech-item-hover: rgba(0, 212, 255, 0.2);
+  --bg-btn-hover: rgba(0, 245, 255, 0.1);
+  --bg-btn-active: rgba(0, 245, 255, 0.2);
+  --bg-nav-btn-hover: rgba(0, 245, 255, 0.1);
+  --bg-active-panel: rgba(0, 245, 255, 0.15);
+  --bg-label-bg: rgba(0, 245, 255, 0.05);
+  --bg-range-info: rgba(0, 245, 255, 0.05);
+
+  /* Badges */
+  --bg-me-badge: rgba(0, 212, 255, 0.15);
+  --bg-badge-add: rgba(0, 255, 136, 0.1);
+  --bg-badge-add-intense: rgba(0, 255, 136, 0.15);
+  --bg-badge-del: rgba(255, 107, 107, 0.1);
+  --bg-badge-danger: rgba(255, 71, 87, 0.1);
+  --bg-badge-success: rgba(0, 255, 136, 0.1);
+
+  /* Toast */
+  --bg-toast-success: rgba(0, 255, 136, 0.15);
+  --bg-toast-error: rgba(255, 107, 107, 0.15);
+  --bg-toast-info: rgba(0, 245, 255, 0.15);
+
+  /* Calendar */
+  --bg-cal-today: rgba(160, 100, 200, 0.8);
+  --bg-cal-hover: rgba(160, 100, 200, 0.05);
+  --bg-cal-today-other: rgba(160, 100, 200, 0.08);
+  --bg-cal-weekend: rgba(148, 163, 184, 0.03);
+  --bg-in-range: rgba(160, 100, 200, 0.12);
+  --bg-in-range-hover: rgba(160, 100, 200, 0.10);
+  --bg-range-edge: rgba(160, 100, 200, 0.4);
+  --bg-date-cell-hover: rgba(160, 100, 200, 0.25);
+
+  /* ============ Borders ============ */
+  --border-card: rgba(0, 245, 255, 0.2);
+  --border-card-hover: rgba(0, 245, 255, 0.5);
+  --border-input: rgba(0, 212, 255, 0.3);
+  --border-input-focus: var(--color-primary);
+  --border-nav: rgba(0, 212, 255, 0.2);
+  --border-active: rgba(0, 212, 255, 0.3);
+  --border-tab: rgba(0, 212, 255, 0.2);
+  --border-dropdown: rgba(0, 245, 255, 0.3);
+  --border-badge-add: rgba(0, 255, 136, 0.2);
+  --border-badge-add-intense: rgba(0, 255, 136, 0.4);
+  --border-badge-del: rgba(255, 107, 107, 0.2);
+  --border-badge-danger: rgba(255, 71, 87, 0.3);
+  --border-badge-success: rgba(0, 255, 136, 0.3);
+  --border-me-badge: rgba(0, 212, 255, 0.4);
+  --border-card-subtle: rgba(0, 212, 255, 0.15);
+  --border-card-dim: rgba(0, 212, 255, 0.08);
+  --border-cal-today: rgba(160, 100, 200, 0.25);
+  --border-cal-hover: rgba(160, 100, 200, 0.3);
+  --border-cal-hover-intense: rgba(160, 100, 200, 0.4);
+  --border-header: rgba(0, 245, 255, 0.15);
+  --border-row: rgba(0, 212, 255, 0.1);
+  --border-row-subtle: rgba(0, 212, 255, 0.06);
+  --border-table: rgba(148, 163, 184, 0.06);
+  --border-table-header: rgba(148, 163, 184, 0.1);
+  --border-total: rgba(160, 100, 200, 0.25);
+  --border-section-header: rgba(160, 100, 200, 0.15);
+  --border-clear: rgba(100, 116, 139, 0.3);
+  --border-clear-hover: rgba(100, 116, 139, 0.5);
+  --border-nav-btn: rgba(0, 245, 255, 0.2);
+  --border-select-all: rgba(0, 245, 255, 0.4);
+  --border-trigger: rgba(0, 245, 255, 0.3);
+  --border-year-tab: rgba(0, 212, 255, 0.2);
+  --border-insight-card: rgba(0, 212, 255, 0.2);
+  --border-lang-chart: rgba(255, 255, 255, 0.3);
+  --border-panel: rgba(0, 212, 255, 0.2);
+  --border-chart-card: rgba(0, 212, 255, 0.2);
+
+  /* ============ Shadows ============ */
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 12px 48px rgba(0, 245, 255, 0.2);
+  --shadow-card-hover-dark: 0 12px 48px rgba(0, 0, 0, 0.4);
+  --shadow-btn: 0 4px 15px rgba(0, 245, 255, 0.4);
+  --shadow-btn-hover: 0 6px 25px rgba(0, 245, 255, 0.6);
+  --shadow-nav: 0 4px 30px rgba(0, 0, 0, 0.3);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-inset-hover: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --shadow-dropdown: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 30px rgba(0, 245, 255, 0.15);
+  --shadow-glow-active: 0 0 20px rgba(0, 245, 255, 0.2);
+  --shadow-glow-card: 0 8px 32px rgba(0, 212, 255, 0.15);
+  --shadow-glow-sm: 0 0 15px rgba(0, 212, 255, 0.3);
+  --shadow-glow-btn: 0 0 15px rgba(0, 212, 255, 0.3);
+  --shadow-toast: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lg-black: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-today: 0 0 12px rgba(160, 100, 200, 0.5);
+  --shadow-selected: 0 0 25px rgba(0, 245, 255, 0.3);
+  --shadow-active: 0 0 20px rgba(0, 245, 255, 0.4);
+  --shadow-inset-card-hover: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-chart-glow: 0 0 20px rgba(0, 245, 255, 0.3);
+  --shadow-dropdown-glow: 0 0 30px rgba(0, 245, 255, 0.2);
+  --shadow-cal-glow: 0 0 20px rgba(0, 245, 255, 0.5);
+
+  /* ============ Gradients ============ */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-purple));
+  --gradient-accent: linear-gradient(135deg, var(--color-accent), #ff00ff);
+  --gradient-logo: linear-gradient(135deg, var(--color-primary) 0%, var(--color-purple) 50%, var(--color-green) 100%);
+  --gradient-card-scan: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+  --gradient-hero-date: linear-gradient(135deg, #e2e8f0, #a064c8);
+  --gradient-detail-divider: linear-gradient(90deg, transparent, rgba(160, 100, 200, 0.3), transparent);
+  --gradient-scrollbar: linear-gradient(180deg, #00f5ff, #ff00ff);
+  --gradient-skeleton: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
+  --gradient-header-bar: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
+  --gradient-nav-glow: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
+  --gradient-btn-glow: linear-gradient(45deg, #00f5ff, #ff00ff, #00f5ff);
+  --gradient-section-header: var(--gradient-primary);
+  --gradient-repo-title: linear-gradient(135deg, var(--color-primary), var(--color-green));
+  --gradient-footer-active: linear-gradient(90deg, var(--color-primary), var(--color-purple));
+
+  /* ============ Text ============ */
+  --color-nav-link: #a0aec0;
+  --color-nav-link-hover: var(--color-primary);
+  --color-nav-active: var(--color-primary);
+  --color-range-hint: #4a5568;
+  --color-input-text: #e2e8f0;
+  --color-danger: #ff4757;
+  --color-git-icon: #f05033;
+  --color-silver: #c0c0c0;
+  --color-bronze: #cd7f32;
+  --color-cal-text: #e2e8f0;
+  --color-all-loaded: #475569;
+  --color-technical-text: #475569;
+  --color-btn-disabled: #475569;
+
+  /* ============ ECharts (neon) ============ */
+  --echarts-axis: #334155;
+  --echarts-split: #1e293b;
+  --echarts-tooltip-bg: rgba(10, 14, 39, 0.95);
+  --echarts-split-area: rgba(30, 41, 59, 0.3);
+
+  /* ============ Radii ============ */
+  --radius-card: 16px;
+  --radius-btn: 8px;
+  --radius-input: 8px;
+  --radius-sm: 4px;
+  --radius-lg: 12px;
+  --radius-pill: 50%;
+
+  /* ============ Misc ============ */
+  --scrollbar-width: 8px;
+  --scrollbar-track: var(--bg-body-mid);
+  --scrollbar-thumb-gradient: var(--gradient-scrollbar);
+  --cal-level-0: rgba(0, 212, 255, 0.04);
+  --cal-level-1: rgba(0, 212, 255, 0.18);
+  --cal-level-2: rgba(0, 212, 255, 0.38);
+  --cal-level-3: rgba(0, 140, 255, 0.6);
+  --cal-level-4: rgba(0, 100, 255, 0.85);
+
+  /* ============ Extra phase-1 vars ============ */
+  --color-purple-soft: #a78bfa;
+  --color-amber: #fbbf24;
+  --color-emerald: #34d399;
+  --color-white: #fff;
+
+  --bg-green-mid: rgba(0, 255, 136, 0.2);
+  --bg-purple-soft-dim: rgba(167, 139, 250, 0.08);
+  --bg-emerald-dim: rgba(52, 211, 153, 0.1);
+  --bg-overlay: rgba(10, 14, 39, 0.55);
+  --bg-overlay-hover: rgba(10, 14, 39, 0.65);
+
+  --border-purple-soft: rgba(167, 139, 250, 0.2);
+  --border-emerald: rgba(52, 211, 153, 0.25);
+
+  --shadow-accent-soft: 0 0 20px rgba(0, 245, 255, 0.3);
+  --shadow-accent-drop: 0 0 6px rgba(0, 245, 255, 0.4);
+  --outline-primary: 1px solid rgba(0, 212, 255, 0.6);
+
+  --gradient-page-title: linear-gradient(135deg, #00f5ff 0%, #ff00ff 50%, #ffd700 100%);
 }
 
 * {
@@ -22,14 +226,13 @@
 }
 
 body {
-  font-family: 'Rajdhani', sans-serif;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1235 100%);
-  color: #e0e6ff;
+  font-family: var(--font-body);
+  background: var(--bg-body-gradient);
+  color: var(--color-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* 背景动画效果 */
 body::before {
   content: '';
   position: fixed;
@@ -37,10 +240,10 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(0, 245, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 20%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 20% 50%, var(--bg-glow-1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, var(--bg-glow-2) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, var(--bg-glow-3) 0%, transparent 50%);
   pointer-events: none;
   z-index: -1;
   animation: backgroundShift 20s ease-in-out infinite;
@@ -52,14 +255,14 @@ body::before {
 }
 
 .card {
-  background: rgba(20, 25, 50, 0.6);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   padding: 2rem;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(0, 245, 255, 0.2);
+  box-shadow:
+    var(--shadow-card),
+    var(--shadow-inset);
+  border: 1px solid var(--border-card);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -72,7 +275,7 @@ body::before {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+  background: var(--gradient-card-scan);
   transition: left 0.5s;
 }
 
@@ -81,21 +284,21 @@ body::before {
 }
 
 .card:hover {
-  border-color: rgba(0, 245, 255, 0.5);
-  box-shadow: 
-    0 12px 48px rgba(0, 245, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-color: var(--border-card-hover);
+  box-shadow:
+    var(--shadow-card-hover),
+    var(--shadow-inset-hover);
   transform: translateY(-2px);
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #00f5ff 0%, #ff00ff 100%);
+  border-radius: var(--radius-btn);
+  background: var(--gradient-accent);
   color: white;
   cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 0.9rem;
   letter-spacing: 1px;
@@ -103,7 +306,7 @@ body::before {
   position: relative;
   overflow: hidden;
   transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(0, 245, 255, 0.4);
+  box-shadow: var(--shadow-btn);
 }
 
 .btn::before {
@@ -113,7 +316,7 @@ body::before {
   left: 50%;
   width: 0;
   height: 0;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
@@ -126,7 +329,7 @@ body::before {
 
 .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 245, 255, 0.6);
+  box-shadow: var(--shadow-btn-hover);
 }
 
 .btn:active {
@@ -138,12 +341,11 @@ body::before {
   cursor: not-allowed;
 }
 
-/* Skeleton placeholders */
 .skeleton-line {
   display: block;
   height: 14px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
+  border-radius: var(--radius-sm);
+  background: var(--gradient-skeleton);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -151,18 +353,18 @@ body::before {
 .skeleton-circle {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
+  border-radius: var(--radius-pill);
+  background: var(--gradient-skeleton);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 .skeleton-chart-area {
-  background: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
+  background: var(--gradient-skeleton);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
 }
 
 .w5 { width: 5%; }
@@ -186,6 +388,9 @@ body::before {
 .w85 { width: 85%; }
 .w90 { width: 90%; }
 
+.c-add { color: var(--color-green); }
+.c-del { color: var(--color-red); }
+
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -205,7 +410,6 @@ body::before {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Section headers */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -214,18 +418,18 @@ body::before {
 }
 
 .range-hint {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.75rem;
-  color: #4a5568;
+  color: var(--color-range-hint);
   letter-spacing: 0;
   text-transform: none;
   font-weight: 400;
 }
 
 .section-header h3 {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.5rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 2px;
   text-transform: uppercase;
   margin: 0;
@@ -236,13 +440,12 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
-  font-family: 'Rajdhani', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
   font-size: 1rem;
   letter-spacing: 1px;
 }
 
-/* ====== Calendar Detail Panel (shared) ====== */
 .detail-panel {
   margin-top: 1rem;
   animation: slideDown 0.25s ease;
@@ -256,10 +459,10 @@ body::before {
   padding: 0.25rem 0;
 }
 .hero-date {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.3rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #e2e8f0, #a064c8);
+  background: var(--gradient-hero-date);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -276,15 +479,15 @@ body::before {
   gap: 0.25rem;
 }
 .hero-number {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 700;
-  color: #00f5ff;
+  color: var(--color-accent);
 }
 .hero-label {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -292,47 +495,47 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
 }
-.hero-add { color: #00ff88; }
-.hero-del { color: #ff6b6b; }
+.hero-add { color: var(--color-green); }
+.hero-del { color: var(--color-red); }
 .hero-net {
   padding: 2px 8px;
-  border-radius: 4px;
-  font-family: 'Orbitron', sans-serif;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
   font-size: 0.7rem;
   font-weight: 600;
 }
 .hero-net.pos {
-  background: rgba(0, 255, 136, 0.1);
-  color: #00ff88;
-  border: 1px solid rgba(0, 255, 136, 0.2);
+  background: var(--bg-badge-add);
+  color: var(--color-green);
+  border: 1px solid var(--border-badge-add);
 }
 .hero-net.neg {
-  background: rgba(255, 107, 107, 0.1);
-  color: #ff6b6b;
-  border: 1px solid rgba(255, 107, 107, 0.2);
+  background: var(--bg-badge-del);
+  color: var(--color-red);
+  border: 1px solid var(--border-badge-del);
 }
 .detail-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(160, 100, 200, 0.3), transparent);
+  background: var(--gradient-detail-divider);
   margin: 0.75rem 0;
 }
 .detail-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
 }
 .detail-table th {
   padding: 0.4rem 0.6rem;
-  color: #64748b;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
   font-size: 0.65rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(160, 100, 200, 0.15);
+  border-bottom: 1px solid var(--border-section-header);
 }
 .detail-table th.num-col,
 .detail-table td.num-col {
@@ -340,20 +543,20 @@ body::before {
 }
 .detail-table td {
   padding: 0.4rem 0.6rem;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: var(--color-cal-text);
+  border-bottom: 1px solid var(--border-table);
 }
 .detail-table tbody tr {
   animation: rowFadeIn 0.3s ease both;
 }
 .detail-table tbody tr:hover {
-  background: rgba(160, 100, 200, 0.05);
+  background: var(--bg-cal-hover);
 }
 .detail-table .cell-repo {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
 }
 .detail-table .cell-author {
-  color: #00f5ff;
+  color: var(--color-accent);
   font-weight: 600;
 }
 .detail-empty {
@@ -361,10 +564,10 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   padding: 1.5rem 0;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
 }
 .detail-empty .empty-icon {
   font-size: 1.1rem;

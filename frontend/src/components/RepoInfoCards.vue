@@ -2,22 +2,22 @@
   <div>
     <div class="card-row l1-row">
       <div class="info-card">
-        <span class="info-icon" style="color:#00d4ff">⑂</span>
+        <span class="info-icon" style="color:var(--color-primary)">⑂</span>
         <span class="info-value">{{ detail.currentBranch }}</span>
         <span class="info-label">{{ t('repo.currentBranch') }}</span>
       </div>
       <div class="info-card clickable" :class="{ expanded: expandedBranch }" @click="toggleBranch">
-        <span class="info-icon" style="color:#a78bfa">⑂</span>
+        <span class="info-icon" style="color:var(--color-purple-soft)">⑂</span>
         <span class="info-value">{{ localBranchCount }}</span>
         <span class="info-label">{{ t('repo.branchCount') }} <span class="expand-icon">{{ expandedBranch ? '▼' : '▶' }}</span></span>
       </div>
       <div class="info-card">
-        <span class="info-icon" style="color:#fbbf24">◈</span>
+        <span class="info-icon" style="color:var(--color-amber)">◈</span>
         <span class="info-value">{{ detail.fileCount ?? '--' }}</span>
         <span class="info-label">{{ t('repo.fileCount') }}</span>
       </div>
       <div class="info-card clickable" :class="{ expanded: expandedTags }" @click="toggleTags">
-        <span class="info-icon" style="color:#34d399">◉</span>
+        <span class="info-icon" style="color:var(--color-emerald)">◉</span>
         <span class="info-value">{{ detail.tagCount ?? '--' }}</span>
         <span class="info-label">{{ t('repo.tags') }} <span class="expand-icon">{{ expandedTags ? '▼' : '▶' }}</span></span>
       </div>
@@ -296,15 +296,15 @@ function toggleContributor() {
   font-family: var(--font-display);
   font-size: 1.3rem;
   font-weight: 700;
-  color: #e0e6ff;
+  color: var(--color-text-primary);
   margin-bottom: 0.3rem;
 }
-.dim .info-value { color: #4a5568; }
-.dim.has-data .info-value { color: #e0e6ff; }
+.dim .info-value { color: var(--color-range-hint); }
+.dim.has-data .info-value { color: var(--color-text-primary); }
 .info-label {
   font-family: var(--font-display);
   font-size: 0.65rem;
-  color: #a0aec0;
+  color: var(--color-nav-link);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -317,11 +317,11 @@ function toggleContributor() {
 .expand-panel h4 {
   font-family: var(--font-display);
   font-size: 0.9rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 1px;
   margin: 0 0 1rem 0;
 }
-.expand-hint { color: #64748b; font-family: var(--font-body); font-size: 0.9rem; }
+.expand-hint { color: var(--color-text-muted); font-family: var(--font-body); font-size: 0.9rem; }
 
 .branch-groups {
   display: flex;
@@ -336,7 +336,7 @@ function toggleContributor() {
 .branch-group-label {
   font-family: var(--font-display);
   font-size: 0.75rem;
-  color: #a0aec0;
+  color: var(--color-nav-link);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -345,15 +345,15 @@ function toggleContributor() {
   padding: 0.3rem 0.8rem;
   border-radius: 12px;
   font-size: 0.85rem;
-  font-family: 'Rajdhani', monospace;
-  background: rgba(0, 212, 255, 0.08);
-  border: 1px solid rgba(0, 212, 255, 0.2);
-  color: #a0aec0;
+  font-family: var(--font-body);
+  background: var(--bg-cta);
+  border: 1px solid var(--border-year-tab);
+  color: var(--color-nav-link);
 }
 .branch-tag.current {
-  background: rgba(0, 255, 136, 0.12);
-  border-color: rgba(0, 255, 136, 0.4);
-  color: #00ff88;
+  background: var(--bg-badge-add-intense);
+  border-color: var(--border-badge-add-intense);
+  color: var(--color-green);
   font-weight: 600;
 }
 .current-badge {
@@ -361,16 +361,16 @@ function toggleContributor() {
   margin-left: 0.3rem;
   padding: 0.05rem 0.35rem;
   border-radius: 4px;
-  background: rgba(0, 255, 136, 0.2);
-  color: #00ff88;
+  background: var(--bg-green-mid);
+  color: var(--color-green);
   font-family: var(--font-body);
   vertical-align: middle;
   letter-spacing: 0.5px;
 }
 .branch-tag.remote {
-  background: rgba(167, 139, 250, 0.08);
-  border-color: rgba(167, 139, 250, 0.2);
-  color: #a78bfa;
+  background: var(--bg-purple-soft-dim);
+  border-color: var(--border-purple-soft);
+  color: var(--color-purple-soft);
 }
 
 .tag-cloud {
@@ -382,10 +382,10 @@ function toggleContributor() {
   padding: 0.25rem 0.7rem;
   border-radius: 6px;
   font-size: 0.8rem;
-  font-family: 'Rajdhani', monospace;
-  background: rgba(52, 211, 153, 0.1);
-  border: 1px solid rgba(52, 211, 153, 0.25);
-  color: #34d399;
+  font-family: var(--font-body);
+  background: var(--bg-emerald-dim);
+  border: 1px solid var(--border-emerald);
+  color: var(--color-emerald);
 }
 
 .load-more-tags {
@@ -397,19 +397,19 @@ function toggleContributor() {
 .btn-sm {
   padding: 0.3rem 1rem;
   font-size: 0.8rem;
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  border: 1px solid var(--border-input);
   border-radius: 6px;
-  background: rgba(0, 212, 255, 0.08);
-  color: #a0aec0;
+  background: var(--bg-cta);
+  color: var(--color-nav-link);
   cursor: pointer;
   font-family: var(--font-display);
   letter-spacing: 0.5px;
   transition: all 0.2s;
 }
 .btn-sm:hover {
-  border-color: #00d4ff;
-  color: #00d4ff;
-  background: rgba(0, 212, 255, 0.15);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--bg-cta-hover);
 }
 
 .contrib-table { width: 100%; }
@@ -422,25 +422,25 @@ function toggleContributor() {
   font-size: 0.85rem;
 }
 .contrib-header {
-  background: rgba(0, 212, 255, 0.05);
-  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+  background: var(--bg-row-header);
+  border-bottom: 1px solid var(--border-card-subtle);
   font-family: var(--font-display);
   font-size: 0.7rem;
-  color: #a0aec0;
+  color: var(--color-nav-link);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
-.contrib-row { border-bottom: 1px solid rgba(0, 212, 255, 0.06); color: #e0e6ff; }
+.contrib-row { border-bottom: 1px solid var(--border-row-subtle); color: var(--color-text-primary); }
 .contrib-name { font-weight: 600; }
-.contrib-time { font-family: 'Rajdhani', monospace; color: #64748b; font-size: 0.8rem; }
-.add { color: #00ff88; }
-.del { color: #ff6b6b; }
+.contrib-time { font-family: var(--font-body); color: var(--color-text-muted); font-size: 0.8rem; }
+.add { color: var(--color-green); }
+.del { color: var(--color-red); }
 
 .spinner {
   display: inline-block;
   width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white;
+  border: 2px solid var(--bg-spinner);
+  border-top-color: var(--color-white);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
   vertical-align: middle;
@@ -456,7 +456,7 @@ function toggleContributor() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 14, 39, 0.55);
+  background: var(--bg-overlay);
   backdrop-filter: blur(4px);
   border-radius: 12px;
   cursor: pointer;
@@ -464,7 +464,7 @@ function toggleContributor() {
   transition: all 0.3s;
 }
 .stats-group-overlay:hover {
-  background: rgba(10, 14, 39, 0.65);
+  background: var(--bg-overlay-hover);
   backdrop-filter: blur(6px);
 }
 .stats-group-overlay-content {
@@ -474,12 +474,12 @@ function toggleContributor() {
 .stats-group-overlay-content h4 {
   font-family: var(--font-display);
   font-size: 1rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 1px;
   margin: 0.5rem 0 0.3rem 0;
 }
 .stats-group-overlay-content p {
-  color: #a0aec0;
+  color: var(--color-nav-link);
   font-size: 0.85rem;
   margin: 0 0 1rem 0;
   font-family: var(--font-body);
@@ -488,7 +488,7 @@ function toggleContributor() {
 .stats-cta-icon {
   display: block;
   font-size: 2.5rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   opacity: 0.6;
 }
 
@@ -510,7 +510,7 @@ function toggleContributor() {
 .section-title {
   font-family: var(--font-display);
   font-size: 0.95rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 1px;
   margin: 0;
 }

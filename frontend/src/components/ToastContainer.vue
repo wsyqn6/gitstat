@@ -37,7 +37,7 @@ const icons = { success: '✓', error: '✗', info: 'ℹ' }
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
   border-radius: 8px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 600;
   backdrop-filter: blur(10px);
@@ -47,21 +47,21 @@ const icons = { success: '✓', error: '✗', info: 'ℹ' }
 }
 
 .toast-success {
-  background: rgba(0, 255, 136, 0.15);
-  border: 1px solid rgba(0, 255, 136, 0.3);
-  color: #00ff88;
+  background: var(--bg-toast-success);
+  border: 1px solid var(--border-badge-success);
+  color: var(--color-green);
 }
 
 .toast-error {
-  background: rgba(255, 107, 107, 0.15);
+  background: var(--bg-toast-error);
   border: 1px solid rgba(255, 107, 107, 0.3);
-  color: #ff6b6b;
+  color: var(--color-red);
 }
 
 .toast-info {
-  background: rgba(0, 245, 255, 0.15);
-  border: 1px solid rgba(0, 245, 255, 0.3);
-  color: #00f5ff;
+  background: var(--bg-toast-info);
+  border: 1px solid var(--border-dropdown);
+  color: var(--color-accent);
 }
 
 .toast-icon {

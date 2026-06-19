@@ -24,15 +24,15 @@ const cardStyle = computed(() => ({
 
 <style scoped>
 .stat-card {
-  background: rgba(20, 25, 50, 0.6);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   padding: 2rem;
   border-radius: 16px;
   text-align: center;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(0, 212, 255, 0.2);
+    var(--shadow-card),
+    var(--shadow-inset);
+  border: 1px solid var(--border-card);
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -54,7 +54,7 @@ const cardStyle = computed(() => ({
   transform: translateY(-5px);
   border-color: var(--accent-color);
   box-shadow: 
-    0 12px 48px rgba(0, 0, 0, 0.4),
+    var(--shadow-card-hover-dark),
     0 0 30px var(--accent-color);
 }
 
@@ -76,7 +76,7 @@ const cardStyle = computed(() => ({
 }
 
 .stat-value {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 900;
   background: linear-gradient(135deg, var(--accent-color), white);
@@ -89,8 +89,8 @@ const cardStyle = computed(() => ({
 }
 
 .stat-label {
-  font-family: 'Orbitron', sans-serif;
-  color: #a0aec0;
+  font-family: var(--font-display);
+  color: var(--color-nav-link);
   font-size: 0.85rem;
   letter-spacing: 2px;
   text-transform: uppercase;

@@ -202,14 +202,14 @@ function clearRange() {
 <style scoped>
 .dp-wrapper {
   position: relative;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
 }
 .dp-trigger {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(10, 14, 39, 0.8);
-  border: 1px solid rgba(0, 245, 255, 0.3);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-trigger);
   border-radius: 4px;
   padding: 0.5rem 0.6rem;
   cursor: pointer;
@@ -218,30 +218,30 @@ function clearRange() {
   white-space: nowrap;
 }
 .dp-trigger:hover {
-  border-color: rgba(0, 245, 255, 0.5);
+  border-color: var(--border-card-hover);
   box-shadow: 0 0 15px rgba(0, 245, 255, 0.15);
 }
 .dp-label {
   font-size: 0.65rem;
-  color: #64748b;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
 .dp-value {
   flex: 1;
   font-size: 0.78rem;
-  color: #e2e8f0;
+  color: var(--color-input-text);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .dp-value.empty {
-  color: #64748b;
+  color: var(--color-text-muted);
   font-weight: 400;
 }
 .dp-arrow {
   font-size: 0.6rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   transition: transform 0.2s ease;
 }
 .dp-overlay {
@@ -250,12 +250,12 @@ function clearRange() {
   z-index: 999;
 }
 .dp-dropdown {
-  background: rgba(10, 14, 39, 0.95);
+  background: var(--bg-tooltip);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 245, 255, 0.25);
   border-radius: 8px;
   padding: 0.75rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 245, 255, 0.15);
+  box-shadow: var(--shadow-lg-black), var(--shadow-glow);
   animation: dpFadeIn 0.15s ease;
   width: 520px;
   z-index: 1000;
@@ -272,9 +272,9 @@ function clearRange() {
 }
 .dp-nav-btn {
   background: none;
-  border: 1px solid rgba(0, 245, 255, 0.2);
+  border: 1px solid var(--border-nav-btn);
   border-radius: 4px;
-  color: #00f5ff;
+  color: var(--color-accent);
   width: 28px;
   height: 28px;
   font-size: 1rem;
@@ -286,12 +286,12 @@ function clearRange() {
 }
 .dp-nav-btn:hover {
   background: rgba(0, 245, 255, 0.1);
-  border-color: rgba(0, 245, 255, 0.5);
+  border-color: var(--border-card-hover);
 }
 .dp-nav-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.72rem;
-  color: #00f5ff;
+  color: var(--color-accent);
   letter-spacing: 1px;
 }
 .dp-months {
@@ -300,9 +300,9 @@ function clearRange() {
   gap: 1rem;
 }
 .dp-month-label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.68rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   text-align: center;
   margin-bottom: 0.4rem;
   letter-spacing: 1px;
@@ -315,9 +315,9 @@ function clearRange() {
 }
 .dp-day-hd {
   text-align: center;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.55rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 3px 0;
@@ -331,31 +331,31 @@ function clearRange() {
   text-align: center;
   padding: 4px 0;
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.1s ease;
   position: relative;
 }
 .dp-cell:hover:not(.muted) {
-  background: rgba(160, 100, 200, 0.25);
-  color: #e2e8f0;
+  background: var(--border-cal-today);
+  color: var(--color-input-text);
 }
 .dp-cell.hovering.in-range:not(.range-edge) {
-  background: rgba(160, 100, 200, 0.10);
+  background: var(--bg-in-range-hover);
 }
 .dp-cell.today {
-  color: #00f5ff;
+  color: var(--color-accent);
   font-weight: 700;
 }
 .dp-cell.in-range {
-  background: rgba(160, 100, 200, 0.12);
-  color: #e2e8f0;
+  background: var(--bg-in-range);
+  color: var(--color-input-text);
   border-radius: 0;
 }
 .dp-cell.range-edge {
-  background: rgba(160, 100, 200, 0.4);
-  color: #fff;
+  background: var(--bg-range-edge);
+  color: var(--color-white);
   font-weight: 700;
   border-radius: 4px;
 }
@@ -372,21 +372,21 @@ function clearRange() {
   gap: 0.5rem;
   margin-top: 0.6rem;
   padding: 0.3rem 0.5rem;
-  background: rgba(0, 245, 255, 0.05);
+  background: var(--bg-range-info);
   border-radius: 4px;
   font-size: 0.7rem;
-  font-family: 'Orbitron', sans-serif;
-  color: #00f5ff;
+  font-family: var(--font-display);
+  color: var(--color-accent);
   letter-spacing: 0.5px;
 }
 .dp-info-label {
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.6rem;
   text-transform: uppercase;
 }
 .dp-info-dates {
   font-variant-numeric: tabular-nums;
-  color: #e2e8f0;
+  color: var(--color-input-text);
 }
 .dp-actions {
   display: flex;
@@ -395,18 +395,18 @@ function clearRange() {
 }
 .dp-clear-btn {
   padding: 0.3rem 1rem;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 600;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid rgba(100, 116, 139, 0.3);
+  border: 1px solid var(--border-clear);
   background: transparent;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 .dp-clear-btn:hover {
-  background: rgba(100, 116, 139, 0.1);
-  border-color: rgba(100, 116, 139, 0.5);
+  background: var(--bg-clear-btn-hover);
+  border-color: var(--border-clear-hover);
 }
 </style>

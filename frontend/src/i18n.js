@@ -100,8 +100,8 @@ const messages = {
         dayNames: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
         hours: ['0时', '1时', '2时', '3时', '4时', '5时', '6时', '7时', '8时', '9时', '10时', '11时', '12时', '13时', '14时', '15时', '16时', '17时', '18时', '19时', '20时', '21时', '22时', '23时'],
         tooltipCommits: '提交数: {0}',
-        tooltipAdditions: '新增: <span style="color:#00ff88">{0}</span>',
-        tooltipDeletions: '删除: <span style="color:#ff6b6b">{0}</span>',
+        tooltipAdditions: '新增: <span class="c-add">{0}</span>',
+        tooltipDeletions: '删除: <span class="c-del">{0}</span>',
         tooltipNetChange: '净变化: {0}'
       },
       panels: {
@@ -315,8 +315,8 @@ const messages = {
         dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         hours: ['0h','1h','2h','3h','4h','5h','6h','7h','8h','9h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h'],
         tooltipCommits: 'Commits: {0}',
-        tooltipAdditions: 'Additions: <span style="color:#00ff88">{0}</span>',
-        tooltipDeletions: 'Deletions: <span style="color:#ff6b6b">{0}</span>',
+        tooltipAdditions: 'Additions: <span class="c-add">{0}</span>',
+        tooltipDeletions: 'Deletions: <span class="c-del">{0}</span>',
         tooltipNetChange: 'Net Change: {0}'
       },
       panels: {

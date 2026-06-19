@@ -83,14 +83,14 @@ defineProps({
 
 .repo-daily-header {
   padding: 1.5rem 2rem;
-  background: rgba(0, 212, 255, 0.05);
-  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+  background: var(--bg-row-hover);
+  border-bottom: 1px solid var(--border-insight-card);
 }
 
 .repo-daily-header h4 {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.2rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   margin: 0 0 0.75rem 0;
   letter-spacing: 1px;
 }
@@ -103,20 +103,20 @@ defineProps({
 }
 
 .branch-badge {
-  background: rgba(0, 255, 136, 0.15);
-  border: 1px solid rgba(0, 255, 136, 0.4);
+  background: var(--bg-badge-add-intense);
+  border: 1px solid var(--border-badge-add-intense);
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.8rem;
-  color: #00ff88;
+  color: var(--color-green);
   font-weight: 600;
-  font-family: 'Rajdhani', monospace;
+  font-family: var(--font-mono);
 }
 
 .last-commit {
   font-size: 0.85rem;
-  color: #a0aec0;
-  font-family: 'Rajdhani', monospace;
+  color: var(--color-nav-link);
+  font-family: var(--font-mono);
 }
 
 .authors-table {
@@ -132,17 +132,17 @@ defineProps({
 }
 
 .table-header {
-  background: rgba(0, 212, 255, 0.05);
-  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-  font-family: 'Orbitron', sans-serif;
+  background: var(--bg-row-hover);
+  border-bottom: 1px solid var(--border-insight-card);
+  font-family: var(--font-display);
   font-size: 0.8rem;
-  color: #a0aec0;
+  color: var(--color-nav-link);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
 
 .table-row {
-  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+  border-bottom: 1px solid var(--bg-btn-hover);
   transition: all 0.3s;
 }
 
@@ -151,7 +151,7 @@ defineProps({
 }
 
 .table-row:hover {
-  background: rgba(0, 212, 255, 0.05);
+  background: var(--bg-row-hover);
 }
 
 .col-author {
@@ -162,27 +162,27 @@ defineProps({
 
 .author-name {
   font-weight: 600;
-  color: #e0e6ff;
+  color: var(--color-text-primary);
 }
 
 .me-badge {
-  background: rgba(0, 212, 255, 0.15);
-  border: 1px solid rgba(0, 212, 255, 0.4);
+  background: var(--bg-me-badge);
+  border: 1px solid var(--border-me-badge);
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #00d4ff;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--color-primary);
+  font-family: var(--font-display);
   letter-spacing: 1px;
   cursor: help;
 }
 
 .col-commits {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 700;
-  color: #00d4ff;
+  color: var(--color-primary);
   text-align: center;
 }
 
@@ -193,12 +193,12 @@ defineProps({
 }
 
 .additions {
-  color: #00ff88;
+  color: var(--color-green);
   font-weight: 600;
 }
 
 .deletions {
-  color: #ff6b9d;
+  color: var(--color-pink);
   font-weight: 600;
 }
 

@@ -155,8 +155,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.35rem;
   font-size: 0.75rem;
-  color: #a0aec0;
-  font-family: 'Rajdhani', sans-serif;
+  color: var(--color-nav-link);
+  font-family: var(--font-body);
 }
 
 .legend-dot {

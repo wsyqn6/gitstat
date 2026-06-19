@@ -107,13 +107,13 @@ function toggleLanguage() {
 }
 
 .header {
-  background: rgba(10, 14, 39, 0.8);
+  background: var(--bg-nav);
   backdrop-filter: blur(20px);
   padding: 1.5rem 2rem;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--border-nav);
+  box-shadow: var(--shadow-nav);
   position: relative;
 }
 
@@ -132,20 +132,20 @@ function toggleLanguage() {
   align-items: center;
   gap: 0.35rem;
   font-size: 0.65rem;
-  font-family: 'Rajdhani', sans-serif;
-  color: #475569;
+  font-family: var(--font-body);
+  color: var(--color-technical-text);
   margin-top: 0.15rem;
   max-width: 360px;
 }
 
 .git-icon {
-  color: #f05033;
+  color: var(--color-git-icon);
   flex-shrink: 0;
 }
 
 .meta-version {
-  font-family: 'Rajdhani', sans-serif;
-  color: #94a3b8;
+  font-family: var(--font-body);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
@@ -162,10 +162,10 @@ function toggleLanguage() {
 
 .logo {
   margin: 0;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   font-size: 2rem;
-  background: linear-gradient(135deg, #00d4ff 0%, #7800ff 50%, #00ff88 100%);
+  background: var(--gradient-logo);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -181,7 +181,7 @@ function toggleLanguage() {
   transform: translate(-50%, -50%);
   width: 150%;
   height: 150%;
-  background: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
+  background: var(--gradient-nav-glow);
   filter: blur(20px);
   animation: pulse 3s ease-in-out infinite;
 }
@@ -208,10 +208,10 @@ function toggleLanguage() {
 
 .header-center a,
 .header-right a {
-  color: #a0aec0;
+  color: var(--color-nav-link);
   text-decoration: none;
   cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-weight: 500;
   font-size: 0.9rem;
   letter-spacing: 1px;
@@ -230,7 +230,7 @@ function toggleLanguage() {
 
 .header-center a:hover,
 .header-right a:hover {
-  color: #00d4ff;
+  color: var(--color-primary);
 }
 
 .header-center a:hover .nav-icon,
@@ -240,7 +240,7 @@ function toggleLanguage() {
 
 .header-center a.active,
 .header-right a.active {
-  color: #00d4ff;
+  color: var(--color-primary);
   font-weight: 700;
 }
 
@@ -252,28 +252,28 @@ function toggleLanguage() {
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, #00d4ff, #7800ff);
+  background: var(--gradient-footer-active);
   box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
   animation: slideIn 0.3s ease-out;
 }
 
 .lang-switcher {
-  background: rgba(0, 212, 255, 0.1);
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  background: var(--bg-btn-hover);
+  border: 1px solid var(--border-input);
   border-radius: 6px;
   padding: 0.4rem 0.8rem;
   cursor: pointer;
   transition: all 0.3s;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.8rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 1px;
 }
 
 .lang-switcher:hover {
-  background: rgba(0, 212, 255, 0.2);
-  border-color: #00d4ff;
-  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+  background: var(--bg-btn-active);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow-btn);
   transform: translateY(-1px);
 }
 
@@ -287,15 +287,15 @@ function toggleLanguage() {
   padding: 0.4rem 0.5rem;
   cursor: pointer;
   transition: all 0.3s;
-  color: #64748b;
+  color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
   text-decoration: none;
 }
 
 .github-link:hover {
-  color: #00d4ff;
-  background: rgba(0, 212, 255, 0.1);
+  color: var(--color-primary);
+  background: var(--bg-btn-hover);
   box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
   transform: translateY(-1px);
 }

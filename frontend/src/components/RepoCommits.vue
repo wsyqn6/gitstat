@@ -98,7 +98,7 @@ function toggleCommit(hash) {
 .section-title {
   font-family: var(--font-display);
   font-size: 0.95rem;
-  color: #00d4ff;
+  color: var(--color-primary);
   letter-spacing: 1px;
   margin: 0 0 1rem 0;
 }
@@ -111,24 +111,24 @@ function toggleCommit(hash) {
   text-align: center;
   gap: 0.8rem;
 }
-.cta-icon { font-size: 2.5rem; opacity: 0.4; color: #00d4ff; }
-.cta-text { color: #64748b; font-size: 0.9rem; font-family: var(--font-body); }
+.cta-icon { font-size: 2.5rem; opacity: 0.4; color: var(--color-primary); }
+.cta-text { color: var(--color-text-muted); font-size: 0.9rem; font-family: var(--font-body); }
 .cta-btn {
   padding: 0.6rem 1.6rem;
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  border: 1px solid var(--border-input);
   border-radius: 8px;
   background: rgba(0, 212, 255, 0.08);
-  color: #00d4ff;
+  color: var(--color-primary);
   font-family: var(--font-display);
   font-size: 0.85rem;
   letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.3s;
 }
-.cta-btn:hover:not(:disabled) { background: rgba(0, 212, 255, 0.15); border-color: #00d4ff; }
+.cta-btn:hover:not(:disabled) { background: var(--bg-cta-hover); border-color: var(--color-primary); }
 .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.empty-body { padding: 2rem; text-align: center; color: #64748b; }
+.empty-body { padding: 2rem; text-align: center; color: var(--color-text-muted); }
 
 .commit-list { width: 100%; }
 .commit-main {
@@ -138,26 +138,26 @@ function toggleCommit(hash) {
   align-items: center;
   gap: 0.3rem;
   font-size: 0.85rem;
-  color: #e0e6ff;
+  color: var(--color-text-primary);
   border-bottom: 1px solid rgba(0, 212, 255, 0.06);
   cursor: pointer;
   transition: background 0.2s;
 }
 .commit-main:hover { background: rgba(0, 212, 255, 0.03); }
-.commit-hash { font-family: 'Rajdhani', monospace; color: #a0aec0; }
+.commit-hash { font-family: var(--font-mono); color: var(--color-nav-link); }
 .commit-msg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .commit-author { font-size: 0.8rem; }
-.commit-time { font-family: 'Rajdhani', monospace; color: #64748b; font-size: 0.8rem; }
+.commit-time { font-family: var(--font-mono); color: var(--color-text-muted); font-size: 0.8rem; }
 .commit-changes { text-align: right; }
 .commit-changes .add { margin-right: 0.3rem; }
-.add { color: #00ff88; }
-.del { color: #ff6b6b; }
+.add { color: var(--color-green); }
+.del { color: var(--color-red); }
 .commit-body pre {
   margin: 0; padding: 0.6rem 0.5rem;
-  background: rgba(0, 0, 0, 0.2);
-  font-family: 'Rajdhani', monospace;
+  background: var(--bg-detail-msg);
+  font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #a0aec0;
+  color: var(--color-nav-link);
   border-bottom: 1px solid rgba(0, 212, 255, 0.06);
   white-space: pre-wrap;
 }
@@ -169,19 +169,19 @@ function toggleCommit(hash) {
 }
 .load-more-btn {
   padding: 0.5rem 2rem;
-  border: 1px solid rgba(0, 212, 255, 0.25);
+  border: 1px solid var(--border-card);
   border-radius: 6px;
-  background: rgba(0, 212, 255, 0.05);
-  color: #00d4ff;
+  background: var(--bg-row-hover);
+  color: var(--color-primary);
   font-family: var(--font-display);
   font-size: 0.85rem;
   letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.3s;
 }
-.load-more-btn:hover:not(:disabled) { background: rgba(0, 212, 255, 0.12); border-color: #00d4ff; }
+.load-more-btn:hover:not(:disabled) { background: var(--bg-cta-intense); border-color: var(--color-primary); }
 .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.all-loaded { color: #475569; font-size: 0.8rem; }
+.all-loaded { color: var(--color-all-loaded); font-size: 0.8rem; }
 
 .commit-skeleton { padding: 0.25rem 0; }
 .skel-commit-row {
