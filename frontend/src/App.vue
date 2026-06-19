@@ -30,17 +30,10 @@
         </a>
       </nav>
       <div class="header-right">
-        <a @click="setView('settings')" :class="{ active: currentView === 'settings' }">
-          <span class="nav-icon">⚙</span>
-          {{ t('nav.settings') }}
-        </a>
-        <button @click="toggleTheme" class="theme-switcher btn-outline" :title="theme === 'neon' ? 'Switch to iOS26' : 'Switch to Neon'">
-          <span class="theme-icon">{{ theme === 'neon' ? '☰' : '○' }}</span>
+        <button @click="showSettings = true" class="settings-btn btn-ghost" :title="t('nav.settings')">
+          <span class="nav-icon" style="margin:0">⚙</span>
         </button>
-        <button @click="toggleLanguage" class="lang-switcher btn-outline" :title="locale === 'zh' ? 'Switch to English' : '切换到中文'">
-          <span class="lang-icon">{{ locale === 'zh' ? '中' : 'EN' }}</span>
-        </button>
-        <a href="https://github.com/wsyqn6/gitstat" target="_blank" rel="noopener noreferrer" class="github-link btn-ghost" :title="t('nav.github')">
+        <a href="https://github.com/wsyqn6/gitstat" target="_blank" rel="noopener noreferrer" class="github-link" :title="t('nav.github')">
           <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor">
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
           </svg>
@@ -52,6 +45,7 @@
         <component :is="currentComponent" />
       </KeepAlive>
     </main>
+    <SettingsModal v-if="showSettings" @close="showSettings = false" />
     <ToastContainer />
   </div>
 </template>
@@ -63,18 +57,19 @@ import { getScanPath } from './api'
 import { loadScanPath } from './stores/data'
 import { useTheme } from './composables/useTheme'
 import ToastContainer from './components/ToastContainer.vue'
+import SettingsModal from './components/SettingsModal.vue'
 
 const Dashboard = defineAsyncComponent(() => import('./views/Dashboard.vue'))
 const Analytics = defineAsyncComponent(() => import('./views/Analytics.vue'))
 const RepoSection = defineAsyncComponent(() => import('./views/RepoSection.vue'))
-const Settings = defineAsyncComponent(() => import('./views/Settings.vue'))
 
-const componentMap = { dashboard: Dashboard, analytics: Analytics, repos: RepoSection, settings: Settings }
+const componentMap = { dashboard: Dashboard, analytics: Analytics, repos: RepoSection }
 
-const { t, locale, setLocale } = useI18n()
-const { theme, toggleTheme } = useTheme()
+const { t } = useI18n()
+const { theme } = useTheme()
 const currentView = ref(localStorage.getItem('currentView') || 'dashboard')
 const currentComponent = computed(() => componentMap[currentView.value])
+const showSettings = ref(false)
 const scanPath = ref('')
 const version = ref('')
 
@@ -99,9 +94,6 @@ function setView(view) {
   localStorage.setItem('currentView', view)
 }
 
-function toggleLanguage() {
-  setLocale(locale.value === 'zh' ? 'en' : 'zh')
-}
 </script>
 
 <style scoped>
@@ -262,70 +254,24 @@ function toggleLanguage() {
   animation: slideIn 0.3s ease-out;
 }
 
-.theme-switcher {
-  background: var(--bg-btn-hover);
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  color: var(--color-primary);
-  letter-spacing: 1px;
-}
-
-.theme-switcher:hover {
-  background: var(--bg-btn-active);
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-glow-btn);
-  transform: translateY(-1px);
-}
-
-.theme-icon {
-  font-weight: 700;
-}
-
-.lang-switcher {
-  background: var(--bg-btn-hover);
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  color: var(--color-primary);
-  letter-spacing: 1px;
-}
-
-.lang-switcher:hover {
-  background: var(--bg-btn-active);
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-glow-btn);
-  transform: translateY(-1px);
-}
-
-.lang-icon {
-  font-weight: 700;
+.settings-btn {
+  font-size: 1.1rem;
+  padding: 0.4rem 0.5rem;
 }
 
 .github-link {
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s;
   color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s;
 }
 
 .github-link:hover {
   color: var(--color-primary);
   background: var(--bg-btn-hover);
-  box-shadow: 0 0 12px rgba(var(--color-primary-rgb), 0.2);
   transform: translateY(-1px);
 }
 

@@ -203,6 +203,8 @@ const messages = {
     },
     settings: {
       title: '设置',
+      theme: '主题',
+      language: '语言',
       scanConfig: '扫描配置',
       directoryPath: '目录路径',
       pathPlaceholder: '/path/to/repos',
@@ -418,6 +420,8 @@ const messages = {
     },
     settings: {
       title: 'Settings',
+      theme: 'Theme',
+      language: 'Language',
       scanConfig: 'Scan Configuration',
       directoryPath: 'Directory Path',
       pathPlaceholder: '/path/to/repos',
