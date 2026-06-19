@@ -205,7 +205,7 @@ const monthDetail = computed(() => {
 .year-month-card {
   position: relative;
   background: var(--bg-cal-month-card);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--blur-card));
   border: 1px solid var(--border-card-subtle);
   border-radius: 12px;
   padding: 1.25rem 1rem;
@@ -241,13 +241,13 @@ const monthDetail = computed(() => {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 212, 255, calc(var(--bg-alpha, 0)));
+  background: rgba(var(--color-primary-rgb), calc(var(--bg-alpha, 0)));
   pointer-events: none;
   transition: opacity 0.3s ease;
 }
 .year-month-card.selected {
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-selected), inset 0 0 20px rgba(0, 245, 255, 0.05);
+  box-shadow: var(--shadow-selected), inset 0 0 20px rgba(var(--color-accent-rgb), 0.05);
 }
 .year-month-card.selected::before {
   left: 5%;

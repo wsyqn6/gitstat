@@ -449,7 +449,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   background: var(--bg-dropdown-full);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(var(--blur-card));
   border: 2px solid var(--border-dropdown);
   border-radius: 12px;
   box-shadow: var(--shadow-lg-black), 0 0 30px var(--border-card);
@@ -512,7 +512,7 @@ onUnmounted(() => {
 }
 
 .dropdown-list::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-detail-msg);
 }
 
 .dropdown-list::-webkit-scrollbar-thumb {

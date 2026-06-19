@@ -25,7 +25,7 @@ const cardStyle = computed(() => ({
 <style scoped>
 .stat-card {
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(var(--blur-card));
   padding: 2rem;
   border-radius: 16px;
   text-align: center;

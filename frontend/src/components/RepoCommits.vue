@@ -117,7 +117,7 @@ function toggleCommit(hash) {
   padding: 0.6rem 1.6rem;
   border: 1px solid var(--border-input);
   border-radius: 8px;
-  background: rgba(0, 212, 255, 0.08);
+  background: rgba(var(--color-primary-rgb), 0.08);
   color: var(--color-primary);
   font-family: var(--font-display);
   font-size: 0.85rem;
@@ -139,11 +139,11 @@ function toggleCommit(hash) {
   gap: 0.3rem;
   font-size: 0.85rem;
   color: var(--color-text-primary);
-  border-bottom: 1px solid rgba(0, 212, 255, 0.06);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.06);
   cursor: pointer;
   transition: background 0.2s;
 }
-.commit-main:hover { background: rgba(0, 212, 255, 0.03); }
+.commit-main:hover { background: rgba(var(--color-primary-rgb), 0.03); }
 .commit-hash { font-family: var(--font-mono); color: var(--color-nav-link); }
 .commit-msg { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .commit-author { font-size: 0.8rem; }

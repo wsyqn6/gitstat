@@ -109,7 +109,7 @@ const timePeriodLabel = computed(() => {
 
 .stat-card {
   background: var(--bg-card);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur-card));
   border: 1px solid var(--border-card);
   border-radius: 12px;
   padding: 1.5rem;

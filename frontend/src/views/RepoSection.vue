@@ -332,7 +332,7 @@ onMounted(init)
   padding: 0.6rem 1.4rem;
   border: 1px solid var(--border-insight-card);
   border-radius: 8px;
-  background: rgba(20, 25, 50, 0.4);
+  background: var(--bg-tab);
   color: var(--color-nav-link);
   font-family: var(--font-display);
   font-size: 0.85rem;
@@ -400,13 +400,13 @@ onMounted(init)
 
 .info-card {
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--bg-cta-hover);
   text-align: center;
 }
-.info-card.dim { border-color: rgba(0, 212, 255, 0.08); }
+.info-card.dim { border-color: rgba(var(--color-primary-rgb), 0.08); }
 
 .stats-cta {
   margin-bottom: 1.5rem;

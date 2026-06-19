@@ -150,7 +150,7 @@ const insights = computed(() => {
 <style scoped>
 .expand-panel {
   background: var(--bg-panel);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur-card));
   border: 1px solid var(--border-insight-card);
   border-radius: 12px;
   padding: 1.25rem;
@@ -218,7 +218,7 @@ const insights = computed(() => {
 
 .insight-card {
   background: var(--bg-tab);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur-card));
   border: 1px solid var(--border-insight-card);
   border-radius: 12px;
   padding: 1.5rem;

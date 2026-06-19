@@ -273,15 +273,15 @@ function toggleContributor() {
 .l2-row { grid-template-columns: repeat(4, 1fr); }
 
 .info-card {
-  background: rgba(20, 25, 50, 0.6);
-  backdrop-filter: blur(20px);
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem 1rem;
   border-radius: 12px;
-  border: 1px solid rgba(0, 212, 255, 0.15);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
   text-align: center;
   transition: all 0.3s;
 }
-.info-card.dim { border-color: rgba(0, 212, 255, 0.08); }
+.info-card.dim { border-color: rgba(var(--color-primary-rgb), 0.08); }
 .info-card.dim.has-data { border-color: rgba(0, 212, 255, 0.15); }
 .info-card.clickable { cursor: pointer; }
 .info-card.clickable:hover, .info-card.expanded {
@@ -457,7 +457,7 @@ function toggleContributor() {
   align-items: center;
   justify-content: center;
   background: var(--bg-overlay);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(var(--blur-card));
   border-radius: 12px;
   cursor: pointer;
   z-index: 2;
@@ -465,7 +465,7 @@ function toggleContributor() {
 }
 .stats-group-overlay:hover {
   background: var(--bg-overlay-hover);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(var(--blur-card));
 }
 .stats-group-overlay-content {
   text-align: center;

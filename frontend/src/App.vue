@@ -113,7 +113,7 @@ function toggleLanguage() {
 
 .header {
   background: var(--bg-nav);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem 2rem;
   display: flex;
   align-items: center;

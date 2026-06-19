@@ -193,7 +193,7 @@ const commitTrendOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
       axisPointer: {
@@ -305,7 +305,7 @@ const codeChangeOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
       axisPointer: {
@@ -375,7 +375,7 @@ const authorRankOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
       axisPointer: { type: 'shadow' },
@@ -452,7 +452,7 @@ const heatmapOption = computed(() => {
 
   return {
     tooltip: {
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
       formatter: (params) => {
@@ -523,7 +523,7 @@ const hourlyOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
       formatter: (p) => `${p[0].name}:00<br/>${t('analytics.charts.tooltipCommits').replace('{0}', p[0].value)}`
@@ -581,7 +581,7 @@ const repoComparisonOption = computed(() => {
 
   return {
     tooltip: {
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
+      backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText }
     },

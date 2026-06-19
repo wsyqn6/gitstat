@@ -251,7 +251,7 @@ function clearRange() {
 }
 .dp-dropdown {
   background: var(--bg-tooltip);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(var(--blur-card));
   border: 1px solid rgba(0, 245, 255, 0.25);
   border-radius: 8px;
   padding: 0.75rem;
@@ -285,7 +285,7 @@ function clearRange() {
   transition: all 0.2s ease;
 }
 .dp-nav-btn:hover {
-  background: rgba(0, 245, 255, 0.1);
+  background: rgba(var(--color-accent-rgb), 0.1);
   border-color: var(--border-card-hover);
 }
 .dp-nav-title {

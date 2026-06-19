@@ -14,6 +14,11 @@
   --color-text-muted: #64748b;
   --font-display: 'Orbitron', sans-serif;
   --font-body: 'Rajdhani', sans-serif;
+  --color-primary-rgb: 0, 212, 255;
+  --color-accent-rgb: 0, 245, 255;
+  --color-gold-rgb: 255, 215, 0;
+  --color-silver-rgb: 192, 192, 192;
+  --color-bronze-rgb: 205, 127, 50;
 
   /* ============ Backgrounds ============ */
   --bg-body: #0a0e27;
@@ -24,6 +29,7 @@
   --bg-glow-2: rgba(255, 0, 255, 0.1);
   --bg-glow-3: rgba(255, 215, 0, 0.05);
   --bg-card: rgba(20, 25, 50, 0.6);
+  --blur-card: 20px;
   --bg-card-header: rgba(0, 212, 255, 0.05);
   --bg-nav: rgba(10, 14, 39, 0.8);
   --bg-input: rgba(10, 14, 39, 0.6);
@@ -40,7 +46,6 @@
   --bg-row-active: rgba(0, 212, 255, 0.1);
   --bg-row-header: rgba(0, 212, 255, 0.05);
   --bg-insight-hover: rgba(0, 245, 255, 0.05);
-  --bg-info-card: rgba(20, 25, 50, 0.6);
   --bg-year-month-card: rgba(10, 14, 39, 0.6);
   --bg-detail-msg: rgba(0, 0, 0, 0.2);
   --bg-cta: rgba(0, 212, 255, 0.08);
@@ -235,6 +240,12 @@
   --color-text-muted: #8E8E93;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --color-primary-rgb: 0, 122, 255;
+  --color-accent-rgb: 175, 82, 222;
+  --color-gold-rgb: 255, 149, 0;
+  --color-silver-rgb: 199, 199, 204;
+  --color-bronze-rgb: 205, 127, 50;
+  --blur-card: 24px;
 
   --bg-body: #F2F2F7;
   --bg-body-mid: #FFFFFF;
@@ -260,7 +271,6 @@
   --bg-row-active: rgba(0, 122, 255, 0.08);
   --bg-row-header: rgba(0, 122, 255, 0.04);
   --bg-insight-hover: rgba(0, 122, 255, 0.04);
-  --bg-info-card: rgba(255, 255, 255, 0.7);
   --bg-year-month-card: rgba(255, 255, 255, 0.6);
   --bg-detail-msg: rgba(0, 0, 0, 0.03);
   --bg-cta: rgba(0, 122, 255, 0.06);
@@ -448,7 +458,7 @@ body::before {
 
 .card {
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(var(--blur-card));
   border-radius: var(--radius-card);
   padding: 2rem;
   box-shadow:

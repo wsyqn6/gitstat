@@ -113,18 +113,18 @@ defineProps({
 }
 
 .rank-num.gold {
-  background: rgba(255, 215, 0, 0.2);
+  background: rgba(var(--color-gold-rgb), 0.2);
   color: var(--color-gold);
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
 }
 
 .rank-num.silver {
-  background: rgba(192, 192, 192, 0.15);
+  background: rgba(var(--color-silver-rgb), 0.15);
   color: var(--color-silver);
 }
 
 .rank-num.bronze {
-  background: rgba(205, 127, 50, 0.15);
+  background: rgba(var(--color-bronze-rgb), 0.15);
   color: var(--color-bronze);
 }
 
