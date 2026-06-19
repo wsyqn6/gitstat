@@ -57,10 +57,14 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useI18n } from '../i18n'
+import { getChartConfig } from '../utils/constants'
+import { useTheme } from '../composables/useTheme'
 import echarts from '../utils/echarts'
 import ChartContainer from './ChartContainer.vue'
 
 const { t, locale } = useI18n()
+const { theme } = useTheme()
+const chartCfg = computed(() => getChartConfig(theme.value))
 
 const props = defineProps({
   data: Object,
@@ -80,20 +84,13 @@ const monthNames = computed(() => t('calendar.monthNames'))
 
 const selectedYear = ref('')
 
-const CAL_LEVELS = [
-  'rgba(0, 212, 255, 0.04)',
-  'rgba(0, 212, 255, 0.18)',
-  'rgba(0, 212, 255, 0.38)',
-  'rgba(0, 140, 255, 0.6)',
-  'rgba(0, 100, 255, 0.85)'
-]
-
 function getCalColor(count) {
-  if (count === 0) return CAL_LEVELS[0]
-  if (count <= 2) return CAL_LEVELS[1]
-  if (count <= 5) return CAL_LEVELS[2]
-  if (count <= 10) return CAL_LEVELS[3]
-  return CAL_LEVELS[4]
+  const levels = chartCfg.value.calLevels
+  if (count === 0) return levels[0]
+  if (count <= 2) return levels[1]
+  if (count <= 5) return levels[2]
+  if (count <= 10) return levels[3]
+  return levels[4]
 }
 
 const calYears = computed(() => {
@@ -178,7 +175,7 @@ function emptyOption() {
       text: t('repo.noChartData'),
       left: 'center',
       top: 'center',
-      textStyle: { color: '#64748b', fontSize: 14 }
+      textStyle: { color: chartCfg.value.titleColor, fontSize: 14 }
     }
   }
 }
@@ -189,9 +186,9 @@ const cumulativeOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' },
+      backgroundColor: chartCfg.value.tooltipBg,
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
       formatter: (p) => `${p[0].axisValue}<br/>${t('repo.commits')}: ${p[0].value}`
     },
     grid: { left: '3%', right: '3%', bottom: '3%', containLabel: true },
@@ -199,25 +196,25 @@ const cumulativeOption = computed(() => {
       type: 'category',
       data: data.map(d => d.date),
       boundaryGap: false,
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: { color: chartCfg.value.axisLabel, fontSize: 10 },
       splitLine: { show: false }
     },
     yAxis: {
       type: 'value',
       axisLine: { show: false },
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } }
+      axisLabel: { color: chartCfg.value.axisLabel },
+      splitLine: { lineStyle: { color: chartCfg.value.splitLine, type: 'dashed' } }
     },
     series: [{
       type: 'line',
       smooth: true,
       symbol: 'none',
-      lineStyle: { width: 2, color: '#00d4ff' },
+      lineStyle: { width: 2, color: chartCfg.value.primary },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(0, 212, 255, 0.3)' },
-          { offset: 1, color: 'rgba(0, 212, 255, 0.02)' }
+          { offset: 0, color: chartCfg.value.primary + '4D' },
+          { offset: 1, color: chartCfg.value.primary + '05' }
         ])
       },
       data: data.map(d => d.total)
@@ -231,24 +228,24 @@ const hourlyOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' },
+      backgroundColor: chartCfg.value.tooltipBg,
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
       formatter: (p) => `${p[0].name}:00<br/>${t('repo.commits')}: ${p[0].value}`
     },
     grid: { left: '3%', right: '3%', bottom: '3%', containLabel: true },
     xAxis: {
       type: 'category',
       data: data.map(d => String(d.hour)),
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: { color: chartCfg.value.axisLabel, fontSize: 10 },
       splitLine: { show: false }
     },
     yAxis: {
       type: 'value',
       axisLine: { show: false },
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } }
+      axisLabel: { color: chartCfg.value.axisLabel },
+      splitLine: { lineStyle: { color: chartCfg.value.splitLine, type: 'dashed' } }
     },
     series: [{
       type: 'bar',
@@ -257,8 +254,8 @@ const hourlyOption = computed(() => {
         value: d.count,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#00d4ff' },
-            { offset: 1, color: 'rgba(0, 212, 255, 0.15)' }
+            { offset: 0, color: chartCfg.value.primary },
+            { offset: 1, color: chartCfg.value.primary + '26' }
           ]),
           borderRadius: [3, 3, 0, 0]
         }

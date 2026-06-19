@@ -34,6 +34,9 @@
           <span class="nav-icon">⚙</span>
           {{ t('nav.settings') }}
         </a>
+        <button @click="toggleTheme" class="theme-switcher" :title="theme === 'neon' ? 'Switch to iOS26' : 'Switch to Neon'">
+          <span class="theme-icon">{{ theme === 'neon' ? '☰' : '○' }}</span>
+        </button>
         <button @click="toggleLanguage" class="lang-switcher" :title="locale === 'zh' ? 'Switch to English' : '切换到中文'">
           <span class="lang-icon">{{ locale === 'zh' ? '中' : 'EN' }}</span>
         </button>
@@ -58,6 +61,7 @@ import { ref, computed, defineAsyncComponent, onMounted } from 'vue'
 import { useI18n } from './i18n'
 import { getScanPath } from './api'
 import { loadScanPath } from './stores/data'
+import { useTheme } from './composables/useTheme'
 import ToastContainer from './components/ToastContainer.vue'
 
 const Dashboard = defineAsyncComponent(() => import('./views/Dashboard.vue'))
@@ -68,6 +72,7 @@ const Settings = defineAsyncComponent(() => import('./views/Settings.vue'))
 const componentMap = { dashboard: Dashboard, analytics: Analytics, repos: RepoSection, settings: Settings }
 
 const { t, locale, setLocale } = useI18n()
+const { theme, toggleTheme } = useTheme()
 const currentView = ref(localStorage.getItem('currentView') || 'dashboard')
 const currentComponent = computed(() => componentMap[currentView.value])
 const scanPath = ref('')
@@ -255,6 +260,30 @@ function toggleLanguage() {
   background: var(--gradient-footer-active);
   box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
   animation: slideIn 0.3s ease-out;
+}
+
+.theme-switcher {
+  background: var(--bg-btn-hover);
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  letter-spacing: 1px;
+}
+
+.theme-switcher:hover {
+  background: var(--bg-btn-active);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow-btn);
+  transform: translateY(-1px);
+}
+
+.theme-icon {
+  font-weight: 700;
 }
 
 .lang-switcher {

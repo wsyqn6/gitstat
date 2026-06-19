@@ -50,6 +50,8 @@ import { computed } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from './ChartContainer.vue'
+import { getChartConfig } from '../utils/constants'
+import { useTheme } from '../composables/useTheme'
 
 const { t } = useI18n()
 
@@ -83,6 +85,9 @@ function adjustColor(color, amount) {
   const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount))
   return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`
 }
+
+const { theme } = useTheme()
+const chartCfg = computed(() => getChartConfig(theme.value))
 
 const activeStats = computed(() => {
   return props.currentGranularity === 'day' ? props.dailyStats : props.periodStats
@@ -140,12 +145,12 @@ const commitTrendOption = computed(() => {
         text: t('analytics.noData'),
         left: 'center',
         top: 'center',
-        textStyle: { color: '#64748b', fontSize: 16 }
+        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
       }
     }
   }
 
-  const colors = ['#00f5ff', '#ff00ff', '#ffd700', '#00ff88', '#ff6b6b', '#a78bfa']
+  const colors = chartCfg.value.chartColors
   const series = authors.map((author, idx) => {
     const data = dates.map(date => {
       let commits = 0
@@ -172,7 +177,7 @@ const commitTrendOption = computed(() => {
       itemStyle: {
         color: colors[idx % colors.length],
         borderWidth: 2,
-        borderColor: '#fff'
+        borderColor: chartCfg.value.tooltipText
       },
       areaStyle: {
         opacity: 0.1,
@@ -189,16 +194,16 @@ const commitTrendOption = computed(() => {
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' },
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
       axisPointer: {
         type: 'cross',
-        lineStyle: { color: '#00f5ff', opacity: 0.5 }
+        lineStyle: { color: chartCfg.value.accent, opacity: 0.5 }
       }
     },
     legend: {
       data: authors.map(a => a.name),
-      textStyle: { color: '#94a3b8' },
+      textStyle: { color: chartCfg.value.axisLabel },
       top: 10
     },
     grid: { containLabel: true },
@@ -206,9 +211,9 @@ const commitTrendOption = computed(() => {
       type: 'category',
       boundaryGap: false,
       data: dates,
-      axisLine: { lineStyle: { color: '#334155' } },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
       axisLabel: {
-        color: '#94a3b8',
+        color: chartCfg.value.axisLabel,
         formatter: (value) => formatPeriodLabel(value, props.currentGranularity)
       },
       splitLine: { show: false }
@@ -216,10 +221,10 @@ const commitTrendOption = computed(() => {
     yAxis: {
       type: 'value',
       axisLine: { show: false },
-      axisLabel: { color: '#94a3b8' },
+      axisLabel: { color: chartCfg.value.axisLabel },
       splitLine: {
         lineStyle: {
-          color: '#1e293b',
+          color: chartCfg.value.splitLine,
           type: 'dashed'
         }
       }
@@ -237,12 +242,12 @@ const codeChangeOption = computed(() => {
         text: t('analytics.noData'),
         left: 'center',
         top: 'center',
-        textStyle: { color: '#64748b', fontSize: 16 }
+        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
       }
     }
   }
 
-  const colors = ['#00f5ff', '#ff00ff', '#ffd700', '#00ff88', '#ff6b6b', '#a78bfa']
+  const colors = chartCfg.value.chartColors
   const series = []
 
   authors.forEach((author, idx) => {
@@ -301,8 +306,8 @@ const codeChangeOption = computed(() => {
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' },
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
       axisPointer: {
         type: 'shadow',
         shadowStyle: { color: 'rgba(0, 245, 255, 0.1)' }
@@ -319,7 +324,7 @@ const codeChangeOption = computed(() => {
     },
     legend: {
       data: series.map(s => s.name),
-      textStyle: { color: '#94a3b8' },
+      textStyle: { color: chartCfg.value.axisLabel },
       top: 10,
       type: 'scroll'
     },
@@ -327,9 +332,9 @@ const codeChangeOption = computed(() => {
     xAxis: {
       type: 'category',
       data: dates,
-      axisLine: { lineStyle: { color: '#334155' } },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
       axisLabel: {
-        color: '#94a3b8',
+        color: chartCfg.value.axisLabel,
         formatter: (value) => formatPeriodLabel(value, props.currentGranularity)
       },
       splitLine: { show: false }
@@ -338,12 +343,12 @@ const codeChangeOption = computed(() => {
       type: 'value',
       axisLine: { show: false },
       axisLabel: {
-        color: '#94a3b8',
+        color: chartCfg.value.axisLabel,
         formatter: (value) => Math.abs(value)
       },
       splitLine: {
         lineStyle: {
-          color: '#1e293b',
+          color: chartCfg.value.splitLine,
           type: 'dashed'
         }
       }
@@ -359,20 +364,20 @@ const authorRankOption = computed(() => {
         text: t('analytics.noData'),
         left: 'center',
         top: 'center',
-        textStyle: { color: '#64748b', fontSize: 16 }
+        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
       }
     }
   }
 
   const topAuthors = props.authorRank.slice(0, 10)
-  const colors = ['#00f5ff', '#ff00ff', '#ffd700', '#00ff88', '#ff6b6b', '#a78bfa']
+  const colors = chartCfg.value.chartColors
 
   return {
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' },
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
       axisPointer: { type: 'shadow' },
       formatter: (params) => {
         const item = params[0]
@@ -390,10 +395,10 @@ const authorRankOption = computed(() => {
     xAxis: {
       type: 'value',
       axisLine: { show: false },
-      axisLabel: { color: '#94a3b8' },
+      axisLabel: { color: chartCfg.value.axisLabel },
       splitLine: {
         lineStyle: {
-          color: '#1e293b',
+          color: chartCfg.value.splitLine,
           type: 'dashed'
         }
       }
@@ -401,8 +406,8 @@ const authorRankOption = computed(() => {
     yAxis: {
       type: 'category',
       data: topAuthors.map(a => a.author),
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8' },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: { color: chartCfg.value.axisLabel },
       inverse: true
     },
     series: [{
@@ -429,7 +434,7 @@ const heatmapOption = computed(() => {
         text: t('analytics.noData'),
         left: 'center',
         top: 'center',
-        textStyle: { color: '#64748b', fontSize: 16 }
+        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
       }
     }
   }
@@ -448,8 +453,8 @@ const heatmapOption = computed(() => {
   return {
     tooltip: {
       backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' },
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
       formatter: (params) => {
         return `<div>${days[params.value[0]]} ${hours[params.value[1]]}</div><div>${t('analytics.charts.tooltipCommits').replace('{0}', params.value[2])}</div>`
       }
@@ -458,15 +463,15 @@ const heatmapOption = computed(() => {
     xAxis: {
       type: 'category',
       data: days,
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8' },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: { color: chartCfg.value.axisLabel },
       splitArea: { show: true, areaStyle: { color: 'rgba(30, 41, 59, 0.3)' } }
     },
     yAxis: {
       type: 'category',
       data: hours,
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8' },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: { color: chartCfg.value.axisLabel },
       splitArea: { show: true, areaStyle: { color: 'rgba(30, 41, 59, 0.3)' } }
     },
     visualMap: {
@@ -476,15 +481,8 @@ const heatmapOption = computed(() => {
       orient: 'horizontal',
       left: 'center',
       bottom: '5%',
-      inRange: {
-        color: [
-          'rgba(0, 245, 255, 0.1)',
-          'rgba(0, 245, 255, 0.4)',
-          'rgba(0, 245, 255, 0.7)',
-          '#00f5ff'
-        ]
-      },
-      textStyle: { color: '#94a3b8' }
+      inRange: { color: chartCfg.value.heatmapColors },
+      textStyle: { color: chartCfg.value.axisLabel }
     },
     series: [{
       type: 'heatmap',
@@ -518,7 +516,7 @@ const hourlyOption = computed(() => {
         text: t('analytics.noData'),
         left: 'center',
         top: 'center',
-        textStyle: { color: '#64748b', fontSize: 16 }
+        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
       }
     }
   }
@@ -526,23 +524,23 @@ const hourlyOption = computed(() => {
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' },
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
       formatter: (p) => `${p[0].name}:00<br/>${t('analytics.charts.tooltipCommits').replace('{0}', p[0].value)}`
     },
     grid: { containLabel: true },
     xAxis: {
       type: 'category',
       data: data.map(d => String(d.hour)),
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: { color: chartCfg.value.axisLabel, fontSize: 10 },
       splitLine: { show: false }
     },
     yAxis: {
       type: 'value',
       axisLine: { show: false },
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } }
+      axisLabel: { color: chartCfg.value.axisLabel },
+      splitLine: { lineStyle: { color: chartCfg.value.splitLine, type: 'dashed' } }
     },
     series: [{
       type: 'bar',
@@ -551,7 +549,7 @@ const hourlyOption = computed(() => {
         value: d.count,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#00d4ff' },
+            { offset: 0, color: chartCfg.value.primary },
             { offset: 1, color: 'rgba(0, 212, 255, 0.15)' }
           ]),
           borderRadius: [3, 3, 0, 0]
@@ -568,13 +566,13 @@ const repoComparisonOption = computed(() => {
         text: t('analytics.noData'),
         left: 'center',
         top: 'center',
-        textStyle: { color: '#64748b', fontSize: 16 }
+        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
       }
     }
   }
 
   const repos = props.repoComparison.slice(0, 5)
-  const colors = ['#00f5ff', '#ff00ff', '#ffd700', '#00ff88', '#ff6b6b']
+  const colors = chartCfg.value.chartColors
 
   const maxCommits = Math.max(...repos.map(r => r.commits))
   const maxAdditions = Math.max(...repos.map(r => r.additions))
@@ -584,12 +582,12 @@ const repoComparisonOption = computed(() => {
   return {
     tooltip: {
       backgroundColor: 'rgba(10, 14, 39, 0.95)',
-      borderColor: '#00f5ff',
-      textStyle: { color: '#fff' }
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText }
     },
     legend: {
       data: repos.map(r => r.repoName),
-      textStyle: { color: '#94a3b8' },
+      textStyle: { color: chartCfg.value.axisLabel },
       top: 10
     },
     radar: {
@@ -602,7 +600,7 @@ const repoComparisonOption = computed(() => {
       ],
       shape: 'polygon',
       splitNumber: 4,
-      axisName: { color: '#94a3b8' },
+      axisName: { color: chartCfg.value.axisLabel },
       splitLine: {
         lineStyle: { color: 'rgba(0, 245, 255, 0.2)' }
       },

@@ -25,13 +25,16 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
+import { getChartConfig } from '../utils/constants'
+import { useTheme } from '../composables/useTheme'
 import echarts from '../utils/echarts'
-import { CHART_COLORS } from '../utils/constants'
 
 const { t } = useI18n()
+const { theme } = useTheme()
+const chartCfg = computed(() => getChartConfig(theme.value))
 
 const props = defineProps({
   repoDailyTrend: { type: Array, required: true },
@@ -50,6 +53,8 @@ function renderTrendChart() {
     trendChart = echarts.init(trendChartRef.value)
   }
 
+  const cfg = chartCfg.value
+  const colors = cfg.chartColors8
   const allDates = [...new Set(props.repoDailyTrend.flatMap(r => r.data.map(d => d.date)))].sort()
   const labels = allDates.map(d => d.slice(5))
 
@@ -61,14 +66,14 @@ function renderTrendChart() {
       stack: 'total',
       smooth: true,
       symbol: 'none',
-      lineStyle: { width: 1.5, color: CHART_COLORS[i % CHART_COLORS.length] },
+      lineStyle: { width: 1.5, color: colors[i % colors.length] },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: CHART_COLORS[i % CHART_COLORS.length] + '60' },
-          { offset: 1, color: CHART_COLORS[i % CHART_COLORS.length] + '05' }
+          { offset: 0, color: colors[i % colors.length] + '60' },
+          { offset: 1, color: colors[i % colors.length] + '05' }
         ])
       },
-      itemStyle: { color: CHART_COLORS[i % CHART_COLORS.length] },
+      itemStyle: { color: colors[i % colors.length] },
       data: allDates.map(d => dateMap[d] || 0)
     }
   })
@@ -76,23 +81,23 @@ function renderTrendChart() {
   trendChart.setOption({
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(10, 14, 39, 0.9)',
-      borderColor: 'rgba(0, 212, 255, 0.3)',
-      textStyle: { color: '#e0e6ff', fontSize: 12 }
+      backgroundColor: cfg.tooltipBg,
+      borderColor: cfg.accent + '4D',
+      textStyle: { color: cfg.tooltipText, fontSize: 12 }
     },
     legend: { show: false },
     grid: { left: 40, right: 16, top: 16, bottom: 24 },
     xAxis: {
       type: 'category',
       data: labels,
-      axisLine: { lineStyle: { color: 'rgba(0, 212, 255, 0.2)' } },
-      axisLabel: { color: '#a0aec0', fontSize: 11 }
+      axisLine: { lineStyle: { color: cfg.axisLine } },
+      axisLabel: { color: cfg.axisLabel, fontSize: 11 }
     },
     yAxis: {
       type: 'value',
       minInterval: 1,
-      splitLine: { lineStyle: { color: 'rgba(0, 212, 255, 0.08)', type: 'dashed' } },
-      axisLabel: { color: '#a0aec0', fontSize: 11 }
+      splitLine: { lineStyle: { color: cfg.splitLine, type: 'dashed' } },
+      axisLabel: { color: cfg.axisLabel, fontSize: 11 }
     },
     series
   })
@@ -108,6 +113,10 @@ watch(() => props.loading, (loading) => {
   if (!loading) {
     nextTick(() => renderTrendChart())
   }
+})
+
+watch(chartCfg, () => {
+  renderTrendChart()
 })
 
 function handleResize() {
