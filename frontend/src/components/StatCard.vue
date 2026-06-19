@@ -26,8 +26,8 @@ const cardStyle = computed(() => ({
 .stat-card {
   background: var(--bg-card);
   backdrop-filter: blur(var(--blur-card));
-  padding: 2rem;
-  border-radius: 16px;
+  padding: 1.5rem;
+  border-radius: var(--radius-card);
   text-align: center;
   box-shadow: 
     var(--shadow-card),

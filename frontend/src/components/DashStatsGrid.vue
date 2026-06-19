@@ -48,8 +48,8 @@ const repositoryCount = computed(() => props.overviewStats?.repositoryCount ?? 0
 .stat-card-ph {
   background: var(--bg-card);
   backdrop-filter: blur(var(--blur-card));
-  padding: 2rem;
-  border-radius: 16px;
+  padding: 1.5rem;
+  border-radius: var(--radius-card);
   text-align: center;
   border: 1px solid var(--border-insight-card);
   display: flex;

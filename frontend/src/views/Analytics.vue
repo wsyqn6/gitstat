@@ -26,7 +26,7 @@
         <div class="view-toggle-inner">
           <button
             @click="viewMode = 'chart'"
-            class="view-toggle-btn"
+            class="view-toggle-btn btn-ghost"
             :class="{ active: viewMode === 'chart' }"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
@@ -36,7 +36,7 @@
           </button>
           <button
             @click="viewMode = 'calendar'"
-            class="view-toggle-btn"
+            class="view-toggle-btn btn-ghost"
             :class="{ active: viewMode === 'calendar' }"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
@@ -334,9 +334,10 @@ onMounted(async () => {
 
 .view-toggle-inner {
   display: inline-flex;
-  background: var(--bg-tab);
-  border: 1px solid var(--border-card);
-  border-radius: 8px;
+  background: var(--glass-btn-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-btn-border);
+  border-radius: calc(var(--radius-btn) + 2px);
   padding: 3px;
   gap: 2px;
 }
@@ -346,26 +347,13 @@ onMounted(async () => {
   align-items: center;
   gap: 6px;
   padding: 0.5rem 1.2rem;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: var(--color-text-muted);
   font-size: 0.8rem;
-  font-family: var(--font-display);
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-}
-
-.view-toggle-btn:hover {
-  color: var(--color-text-secondary);
 }
 
 .view-toggle-btn.active {
-  background: var(--bg-stat);
-  color: var(--color-accent);
-  box-shadow: var(--shadow-glow-active);
+  background: var(--glass-btn-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  color: var(--glass-btn-color);
 }
 
 .toggle-icon {

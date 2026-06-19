@@ -9,18 +9,16 @@
               v-for="option in timeOptions"
               :key="option.value"
               @click="selectTimeRange(option.value)"
-              class="cyber-time-btn"
+               class="cyber-time-btn btn-outline"
               :class="{ active: selectedTimeRange === option.value }"
             >
-              <span class="btn-glow"></span>
               <span class="btn-text-cyber">{{ t(option.labelKey) }}</span>
             </button>
             <button
               @click.stop="emit('update:showCustomPicker', !showCustomPicker)"
-              class="cyber-time-btn custom-btn"
+               class="cyber-time-btn custom-btn btn-outline"
               :class="{ active: selectedTimeRange === 'custom' }"
             >
-              <span class="btn-glow"></span>
               <span class="btn-text-cyber">{{ t('analytics.customPeriod') }}</span>
             </button>
           </div>
@@ -41,7 +39,7 @@
         <div v-if="repositories.length > 1" class="repo-dropdown">
           <button
             @click.stop="showDropdown = !showDropdown"
-            class="repo-dropdown-btn"
+            class="repo-dropdown-btn btn-outline"
             :class="{ active: showDropdown, 'has-selection': selectedRepos.length > 0 }"
           >
             <span class="btn-text">
@@ -56,7 +54,7 @@
 
           <div v-show="showDropdown" class="repo-dropdown-menu">
             <div class="dropdown-header">
-              <button @click.stop="toggleAllRepos" class="select-all-btn">
+              <button @click.stop="toggleAllRepos" class="select-all-btn btn-ghost">
                 {{ allReposSelected ? t('analytics.cancelSelectAll') : t('analytics.selectAll') }}
               </button>
               <span class="selected-count">{{ selectedRepos.length }}/{{ repositories.length }}</span>
@@ -66,7 +64,7 @@
                 v-for="repo in repositories"
                 :key="repo.path"
                 @click.stop="toggleRepo(repo.path)"
-                class="repo-option"
+                class="repo-option btn-ghost"
                 :class="{ active: selectedRepos.includes(repo.path) }"
               >
                 <div class="option-checkbox">
@@ -88,7 +86,7 @@
         <button
           @click="emit('analyze')"
           :disabled="loading || selectedRepos.length === 0"
-          class="analyze-btn"
+          class="analyze-btn btn"
           :class="{ 'can-analyze': selectedRepos.length > 0 }"
         >
           <svg v-if="!loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -238,22 +236,16 @@ onUnmounted(() => {
 }
 
 .analyze-btn {
-  background: var(--gradient-accent);
-  border: none;
   border-radius: 8px;
   padding: 0.6rem 1.5rem;
-  color: white;
   font-size: 0.9rem;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   outline: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--font-display);
   letter-spacing: 1px;
-  box-shadow: var(--shadow-btn);
   height: fit-content;
   align-self: flex-end;
   opacity: 0.5;
@@ -304,74 +296,9 @@ onUnmounted(() => {
 }
 
 .cyber-time-btn {
-  position: relative;
-  background: var(--bg-tab);
-  border: 1px solid var(--border-card);
   border-radius: 4px;
   padding: 0.6rem 1.2rem;
-  color: var(--color-text-secondary);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  outline: none;
-  font-family: var(--font-body);
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  overflow: hidden;
   min-width: 80px;
-}
-
-.cyber-time-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, var(--bg-insight-hover), transparent);
-  transition: left 0.5s ease;
-}
-
-.cyber-time-btn:hover::before {
-  left: 100%;
-}
-
-.cyber-time-btn:hover {
-  border-color: var(--border-card-hover);
-  color: var(--color-input-text);
-  box-shadow: var(--shadow-glow-active), inset 0 0 20px rgba(0, 245, 255, 0.05);
-  transform: translateY(-2px);
-}
-
-.cyber-time-btn.active {
-  background: var(--bg-stat);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  box-shadow:
-    0 0 30px var(--shadow-active),
-    inset 0 0 30px var(--bg-insight-hover),
-    0 0 60px var(--border-card);
-  text-shadow: 0 0 10px rgba(0, 245, 255, 0.8);
-}
-
-.cyber-time-btn.active .btn-glow {
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: var(--gradient-btn-glow);
-  border-radius: 4px;
-  opacity: 0.3;
-  filter: blur(8px);
-  animation: glow-pulse 2s ease-in-out infinite;
-  z-index: -1;
-}
-
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
 }
 
 .btn-text-cyber {

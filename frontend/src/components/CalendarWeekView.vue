@@ -57,6 +57,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
+import { useTheme } from '../composables/useTheme'
+import { getChartConfig } from '../utils/constants'
 
 const props = defineProps({
   dailyStats: { type: Array, default: () => [] },
@@ -64,6 +66,8 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
+const { theme } = useTheme()
+const chartCfg = computed(() => getChartConfig(theme.value))
 
 const expandedAuthor = ref(null)
 
@@ -79,7 +83,7 @@ function cellBg(commits, maxC) {
   if (!commits || !maxC) return 'transparent'
   const intensity = Math.min(commits / maxC, 1)
   const alpha = 0.05 + intensity * 0.55
-  return `rgba(0, 212, 255, ${alpha.toFixed(2)})`
+  return `rgba(${chartCfg.value.primaryRgb}, ${alpha.toFixed(2)})`
 }
 
 const dayNames = computed(() => t('calendar.dayNamesShort'))

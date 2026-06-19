@@ -10,7 +10,7 @@
         <button
           v-for="repo in state.reposInfo"
           :key="repo.path"
-          :class="['tab', { active: activePath === repo.path }]"
+          :class="['tab btn-ghost', { active: activePath === repo.path }]"
           @click="switchRepo(repo.path)"
         >
           {{ repo.name }}
@@ -330,22 +330,16 @@ onMounted(init)
 .tab {
   flex-shrink: 0;
   padding: 0.6rem 1.4rem;
-  border: 1px solid var(--border-insight-card);
-  border-radius: 8px;
-  background: var(--bg-tab);
-  color: var(--color-nav-link);
-  font-family: var(--font-display);
+  border: 1px solid var(--glass-outline-border);
+  border-radius: var(--radius-btn);
   font-size: 0.85rem;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s;
 }
-.tab:hover { border-color: rgba(0, 212, 255, 0.5); color: var(--color-primary); }
+.tab:hover { border-color: var(--color-primary); }
 .tab.active {
-  background: var(--bg-btn-hover);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  box-shadow: 0 0 15px var(--border-insight-card);
+  background: var(--glass-btn-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border-color: var(--color-accent);
+  color: var(--glass-btn-color);
 }
 
 .loading-state {

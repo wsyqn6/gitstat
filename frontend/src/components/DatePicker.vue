@@ -1,6 +1,6 @@
 <template>
   <div class="dp-wrapper">
-    <div class="dp-trigger" @click.stop="open = !open">
+    <div class="dp-trigger btn-outline" @click.stop="open = !open">
       <span class="dp-label">{{ label }}</span>
       <span class="dp-value" :class="{ empty: !start }">
         {{ start ? `${start} ~ ${end}` : placeholder || t('datePicker.placeholder') }}
@@ -11,9 +11,9 @@
       <div v-if="open" class="dp-overlay" @click.stop="open = false">
         <div class="dp-dropdown" :style="dropdownStyle" @click.stop>
           <div class="dp-nav-row">
-            <button @click="navMonth(-1)" class="dp-nav-btn">‹</button>
+            <button @click="navMonth(-1)" class="dp-nav-btn btn-ghost">‹</button>
             <span class="dp-nav-title">{{ leftLabel }} — {{ rightLabel }}</span>
-            <button @click="navMonth(1)" class="dp-nav-btn">›</button>
+            <button @click="navMonth(1)" class="dp-nav-btn btn-ghost">›</button>
           </div>
           <div class="dp-months">
             <div class="dp-month">
@@ -50,7 +50,7 @@
             <span class="dp-info-dates">{{ localStart || '____-__-__' }} ~ {{ localEnd || '____-__-__' }}</span>
           </div>
           <div class="dp-actions">
-            <button class="dp-clear-btn" @click="clearRange">{{ t('datePicker.clear') }}</button>
+            <button class="dp-clear-btn btn-ghost" @click="clearRange">{{ t('datePicker.clear') }}</button>
           </div>
         </div>
       </div>
@@ -219,7 +219,7 @@ function clearRange() {
 }
 .dp-trigger:hover {
   border-color: var(--border-card-hover);
-  box-shadow: 0 0 15px rgba(0, 245, 255, 0.15);
+  box-shadow: 0 0 15px rgba(var(--color-accent-rgb), 0.15);
 }
 .dp-label {
   font-size: 0.65rem;
@@ -252,7 +252,7 @@ function clearRange() {
 .dp-dropdown {
   background: var(--bg-tooltip);
   backdrop-filter: blur(var(--blur-card));
-  border: 1px solid rgba(0, 245, 255, 0.25);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.25);
   border-radius: 8px;
   padding: 0.75rem;
   box-shadow: var(--shadow-lg-black), var(--shadow-glow);
@@ -271,14 +271,12 @@ function clearRange() {
   margin-bottom: 0.75rem;
 }
 .dp-nav-btn {
-  background: none;
   border: 1px solid var(--border-nav-btn);
   border-radius: 4px;
   color: var(--color-accent);
   width: 28px;
   height: 28px;
   font-size: 1rem;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -399,10 +397,8 @@ function clearRange() {
   font-size: 0.72rem;
   font-weight: 600;
   border-radius: 4px;
-  cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid var(--border-clear);
-  background: transparent;
   color: var(--color-text-muted);
 }
 .dp-clear-btn:hover {

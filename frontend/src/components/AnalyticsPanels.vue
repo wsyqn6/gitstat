@@ -230,7 +230,7 @@ const insights = computed(() => {
 }
 
 .insight-card:hover {
-  border-color: rgba(0, 212, 255, 0.5);
+  border-color: rgba(var(--color-primary-rgb), 0.5);
   transform: translateY(-2px);
   box-shadow: var(--shadow-glow-card);
 }
@@ -240,7 +240,7 @@ const insights = computed(() => {
 }
 
 .insight-card.clickable:hover {
-  border-color: rgba(0, 212, 255, 0.5);
+  border-color: rgba(var(--color-primary-rgb), 0.5);
   transform: translateY(-2px);
   box-shadow: var(--shadow-glow-card);
 }

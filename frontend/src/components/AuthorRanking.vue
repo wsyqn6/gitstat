@@ -86,7 +86,7 @@ defineProps({
   padding: 0.75rem 1rem;
   border-radius: 8px;
   transition: all 0.3s;
-  border-bottom: 1px solid rgba(0, 212, 255, 0.08);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.08);
 }
 
 .rank-row:last-child {

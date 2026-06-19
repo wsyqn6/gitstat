@@ -310,7 +310,7 @@ const codeChangeOption = computed(() => {
       textStyle: { color: chartCfg.value.tooltipText },
       axisPointer: {
         type: 'shadow',
-        shadowStyle: { color: 'rgba(0, 245, 255, 0.1)' }
+        shadowStyle: { color: `rgba(${chartCfg.value.accentRgb}, 0.1)` }
       },
       formatter: (params) => {
         let result = `<div style="font-weight:bold;margin-bottom:5px">${params[0].axisValue}</div>`
@@ -491,7 +491,7 @@ const heatmapOption = computed(() => {
       emphasis: {
         itemStyle: {
           shadowBlur: 10,
-          shadowColor: 'rgba(0, 245, 255, 0.5)'
+          shadowColor: `rgba(${chartCfg.value.accentRgb}, 0.5)`
         }
       }
     }]
@@ -550,7 +550,7 @@ const hourlyOption = computed(() => {
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: chartCfg.value.primary },
-            { offset: 1, color: 'rgba(0, 212, 255, 0.15)' }
+            { offset: 1, color: `rgba(${chartCfg.value.primaryRgb}, 0.15)` }
           ]),
           borderRadius: [3, 3, 0, 0]
         }
@@ -602,11 +602,11 @@ const repoComparisonOption = computed(() => {
       splitNumber: 4,
       axisName: { color: chartCfg.value.axisLabel },
       splitLine: {
-        lineStyle: { color: 'rgba(0, 245, 255, 0.2)' }
+        lineStyle: { color: `rgba(${chartCfg.value.accentRgb}, 0.2)` }
       },
       splitArea: {
         areaStyle: {
-          color: ['rgba(0, 245, 255, 0.05)', 'rgba(0, 245, 255, 0.1)']
+          color: [`rgba(${chartCfg.value.accentRgb}, 0.05)`, `rgba(${chartCfg.value.accentRgb}, 0.1)`]
         }
       }
     },

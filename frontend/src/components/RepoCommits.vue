@@ -15,7 +15,7 @@
     <div v-else-if="!commitsLoaded" class="cta-body">
       <div class="cta-icon">⎔</div>
       <p class="cta-text">{{ t('repo.commitsCta') }}</p>
-      <button class="cta-btn" :disabled="commitsLoading" @click="emit('loadCommits')">
+      <button class="cta-btn btn-outline" :disabled="commitsLoading" @click="emit('loadCommits')">
         <span v-if="commitsLoading" class="spinner"></span>
         <span v-else>{{ t('repo.loadCommits') }}</span>
       </button>
@@ -45,7 +45,7 @@
       <div class="load-more-wrap">
         <button
           v-if="hasMore"
-          class="load-more-btn"
+          class="load-more-btn btn-outline"
           :disabled="commitsLoading"
           @click="emit('loadMore')"
         >
@@ -115,17 +115,9 @@ function toggleCommit(hash) {
 .cta-text { color: var(--color-text-muted); font-size: 0.9rem; font-family: var(--font-body); }
 .cta-btn {
   padding: 0.6rem 1.6rem;
-  border: 1px solid var(--border-input);
-  border-radius: 8px;
-  background: rgba(var(--color-primary-rgb), 0.08);
-  color: var(--color-primary);
-  font-family: var(--font-display);
   font-size: 0.85rem;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s;
 }
-.cta-btn:hover:not(:disabled) { background: var(--bg-cta-hover); border-color: var(--color-primary); }
+.cta-btn:hover:not(:disabled) { background: var(--glass-outline-hover-bg); backdrop-filter: blur(var(--glass-blur)); }
 .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .empty-body { padding: 2rem; text-align: center; color: var(--color-text-muted); }
@@ -158,7 +150,7 @@ function toggleCommit(hash) {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--color-nav-link);
-  border-bottom: 1px solid rgba(0, 212, 255, 0.06);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.06);
   white-space: pre-wrap;
 }
 
@@ -169,17 +161,9 @@ function toggleCommit(hash) {
 }
 .load-more-btn {
   padding: 0.5rem 2rem;
-  border: 1px solid var(--border-card);
-  border-radius: 6px;
-  background: var(--bg-row-hover);
-  color: var(--color-primary);
-  font-family: var(--font-display);
   font-size: 0.85rem;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s;
 }
-.load-more-btn:hover:not(:disabled) { background: var(--bg-cta-intense); border-color: var(--color-primary); }
+.load-more-btn:hover:not(:disabled) { background: var(--glass-outline-hover-bg); backdrop-filter: blur(var(--glass-blur)); }
 .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .all-loaded { color: var(--color-all-loaded); font-size: 0.8rem; }
 
@@ -190,7 +174,7 @@ function toggleCommit(hash) {
   padding: 0.55rem 0.5rem;
   align-items: center;
   gap: 0.3rem;
-  border-bottom: 1px solid rgba(0, 212, 255, 0.06);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.06);
 }
 
 .spinner {

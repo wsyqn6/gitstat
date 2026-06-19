@@ -208,14 +208,14 @@ const monthDetail = computed(() => {
   backdrop-filter: blur(var(--blur-card));
   border: 1px solid var(--border-card-subtle);
   border-radius: 12px;
-  padding: 1.25rem 1rem;
+  padding: 1.5rem;
   text-align: center;
   cursor: pointer;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .year-month-card:hover:not(.future-month) {
-  border-color: rgba(0, 245, 255, 0.5);
+  border-color: rgba(var(--color-accent-rgb), 0.5);
   box-shadow: var(--shadow-glow-card), var(--shadow-inset-card-hover);
   transform: translateY(-3px);
 }
