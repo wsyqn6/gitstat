@@ -204,10 +204,10 @@ const monthDetail = computed(() => {
 }
 .year-month-card {
   position: relative;
-  background: var(--bg-cal-month-card);
+  background: var(--bg-card);
   backdrop-filter: blur(var(--blur-card));
-  border: 1px solid var(--border-card-subtle);
-  border-radius: 12px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
   padding: 1.5rem;
   text-align: center;
   cursor: pointer;
@@ -215,9 +215,8 @@ const monthDetail = computed(() => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .year-month-card:hover:not(.future-month) {
-  border-color: rgba(var(--color-accent-rgb), 0.5);
-  box-shadow: var(--shadow-glow-card), var(--shadow-inset-card-hover);
-  transform: translateY(-3px);
+  border-color: var(--border-card-hover);
+  transform: translateY(-2px);
 }
 .year-month-card::before {
   content: '';
@@ -247,7 +246,6 @@ const monthDetail = computed(() => {
 }
 .year-month-card.selected {
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-selected), inset 0 0 20px rgba(var(--color-accent-rgb), 0.05);
 }
 .year-month-card.selected::before {
   left: 5%;

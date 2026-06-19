@@ -149,11 +149,11 @@ const insights = computed(() => {
 
 <style scoped>
 .expand-panel {
-  background: var(--bg-panel);
+  background: var(--bg-card);
   backdrop-filter: blur(var(--blur-card));
-  border: 1px solid var(--border-insight-card);
-  border-radius: 12px;
-  padding: 1.25rem;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
   margin-top: 1rem;
   animation: slideDown 0.25s ease;
   overflow-x: auto;
@@ -217,37 +217,28 @@ const insights = computed(() => {
 }
 
 .insight-card {
-  background: var(--bg-tab);
+  background: var(--bg-card);
   backdrop-filter: blur(var(--blur-card));
-  border: 1px solid var(--border-insight-card);
-  border-radius: 12px;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
   transition: all 0.3s;
-  min-height: 100px;
 }
 
 .insight-card:hover {
-  border-color: rgba(var(--color-primary-rgb), 0.5);
+  border-color: var(--border-card-hover);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-card);
 }
 
 .insight-card.clickable {
   cursor: pointer;
 }
 
-.insight-card.clickable:hover {
-  border-color: rgba(var(--color-primary-rgb), 0.5);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-card);
-}
-
 .insight-card.clickable.expanded {
   border-color: var(--color-accent);
-  box-shadow: 0 0 20px var(--border-dropdown), inset 0 0 20px var(--bg-tag-section);
 }
 
 .insight-icon {

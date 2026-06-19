@@ -111,19 +111,17 @@ const timePeriodLabel = computed(() => {
   background: var(--bg-card);
   backdrop-filter: blur(var(--blur-card));
   border: 1px solid var(--border-card);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
   transition: all 0.3s;
-  min-height: 120px;
 }
 
 .stat-card:hover {
   border-color: var(--border-card-hover);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-card);
 }
 
 .stat-card.clickable {
@@ -132,7 +130,6 @@ const timePeriodLabel = computed(() => {
 
 .stat-card.clickable.expanded {
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-accent-soft), inset 0 0 20px var(--bg-insight-hover);
 }
 
 .stat-icon {

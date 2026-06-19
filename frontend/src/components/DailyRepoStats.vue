@@ -77,11 +77,11 @@ defineProps({
 
 .repo-daily-card {
   margin-bottom: 2rem;
-  padding: 0;
   overflow: hidden;
 }
 
 .repo-daily-header {
+  margin: -1.5rem -1.5rem 1rem;
   padding: 1.5rem 2rem;
   background: var(--bg-row-hover);
   border-bottom: 1px solid var(--border-insight-card);

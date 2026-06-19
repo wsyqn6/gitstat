@@ -277,16 +277,14 @@ function toggleContributor() {
   backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem;
   border-radius: var(--radius-card);
-  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
+  border: 1px solid var(--border-card);
   text-align: center;
   transition: all 0.3s;
 }
-.info-card.dim { border-color: rgba(var(--color-primary-rgb), 0.08); }
-.info-card.dim.has-data { border-color: rgba(var(--color-primary-rgb), 0.15); }
+.info-card.dim { opacity: 0.5; }
 .info-card.clickable { cursor: pointer; }
 .info-card.clickable:hover, .info-card.expanded {
-  border-color: rgba(var(--color-primary-rgb), 0.4);
-  box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.1);
+  border-color: var(--color-accent);
   transform: translateY(-2px);
 }
 

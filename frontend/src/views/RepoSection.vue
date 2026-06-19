@@ -395,12 +395,12 @@ onMounted(init)
 .info-card {
   background: var(--bg-card);
   backdrop-filter: blur(var(--blur-card));
-  padding: 1.5rem 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--bg-cta-hover);
+  padding: 1.5rem;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-card);
   text-align: center;
 }
-.info-card.dim { border-color: rgba(var(--color-primary-rgb), 0.08); }
+.info-card.dim { opacity: 0.5; }
 
 .stats-cta {
   margin-bottom: 1.5rem;
