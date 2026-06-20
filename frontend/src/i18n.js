@@ -202,10 +202,10 @@ const messages = {
       cumulativeGrowth: '项目成长曲线',
       hourlyDistribution: '提交时段分布',
       weekLabel: '周',
-      noChartData: '暂无提交数据'
+      noChartData: '暂无提交数据',
+      authorRank: '贡献者排行'
     },
     settings: {
-      title: '设置',
       theme: '主题',
       themeDark: '暗色',
       themeLight: '亮色',
@@ -424,7 +424,8 @@ const messages = {
       cumulativeGrowth: 'Cumulative Growth',
       hourlyDistribution: 'Hourly Distribution',
       weekLabel: 'W',
-      noChartData: 'No commit data'
+      noChartData: 'No commit data',
+      authorRank: 'Top Contributors'
     },
     settings: {
       title: 'Settings',

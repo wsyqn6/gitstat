@@ -92,15 +92,19 @@
               :analysis-loading="analysisLoading"
               @analyze="doAnalyze"
             />
-            <RepoCommits
-              :commits="commits"
-              :commits-loading="commitsLoading"
-              :commits-loaded="commitsLoaded"
-              :has-more="commitsHasMore"
-              @load-commits="loadCommits"
-              @load-more="loadMoreCommits"
+            <RepoAuthorRank
+              :contributors="detail.contributors"
+              :loading="!statsLoaded"
             />
           </div>
+          <RepoCommits
+            :commits="commits"
+            :commits-loading="commitsLoading"
+            :commits-loaded="commitsLoaded"
+            :has-more="commitsHasMore"
+            @load-commits="loadCommits"
+            @load-more="loadMoreCommits"
+          />
 
         </template>
       </div>
@@ -115,6 +119,7 @@ import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, f
 import Skeleton from '../components/Skeleton.vue'
 import RepoInfoCards from '../components/RepoInfoCards.vue'
 import RepoLangChart from '../components/RepoLangChart.vue'
+import RepoAuthorRank from '../components/RepoAuthorRank.vue'
 import RepoCommits from '../components/RepoCommits.vue'
 
 const { t } = useI18n()

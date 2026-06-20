@@ -125,7 +125,7 @@ function toggleCommit(hash) {
 .commit-list { width: 100%; }
 .commit-main {
   display: grid;
-  grid-template-columns: 1fr 2.5fr 1fr 1fr 1.2fr;
+  grid-template-columns: 0.5fr 4fr 0.7fr 0.5fr 1fr;
   padding: 0.55rem 0.5rem;
   align-items: center;
   gap: 0.3rem;
@@ -170,7 +170,7 @@ function toggleCommit(hash) {
 .commit-skeleton { padding: 0.25rem 0; }
 .skel-commit-row {
   display: grid;
-  grid-template-columns: 1fr 2.5fr 1fr 1fr 1.2fr;
+  grid-template-columns: 0.5fr 4fr 0.7fr 0.5fr 1fr;
   padding: 0.55rem 0.5rem;
   align-items: center;
   gap: 0.3rem;
