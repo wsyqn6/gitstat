@@ -11,27 +11,17 @@
     <div v-if="loading" class="chart-placeholder">
       <span class="spinner"></span>
     </div>
-    <div v-else-if="activeYear" class="cal-container">
-      <div class="cal-months">
-    <span v-for="m in activeYear.monthLabels" :key="m.label"
-          class="cal-month-label" :style="{ gridColumn: 'span ' + m.span }">{{ m.label }}</span>
-      </div>
-      <div class="cal-body">
-        <div class="cal-days">
-          <span v-for="d in dayLabels" :key="d" class="cal-day-label">{{ d }}</span>
-        </div>
+    <div v-else-if="activeYear" ref="calContainer" class="cal-container" :style="{ ...calColors, '--cell-size': cellSize + 'px' }">
         <div class="cal-grid">
-          <div v-for="cell in activeYear.cells" :key="cell.date"
-               class="cal-cell"
-               :style="{ backgroundColor: cell.outOfYear ? 'transparent' : cell.color }"
-               :title="cell.outOfYear ? '' : cell.date + ' · ' + cell.count + ' ' + commitsLabel">
-          </div>
+          <div v-for="item in gridItems" :key="item.key"
+               :class="item.cls"
+               :style="item.style"
+               :title="item.title">{{ item.text }}</div>
         </div>
-      </div>
       <div class="cal-footer">
         <span class="cal-legend-label">{{ lessLabel }}</span>
         <span v-for="l in 5" :key="l" class="cal-legend-cell"
-              :style="{ backgroundColor: getCalColor(l - 1) }"></span>
+              :style="{ background: 'var(--cal-lvl' + (l - 1) + ')' }"></span>
         <span class="cal-legend-label">{{ moreLabel }}</span>
       </div>
     </div>
@@ -55,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import { getChartConfig } from '../utils/constants'
 import { useTheme } from '../composables/useTheme'
@@ -71,9 +61,6 @@ const props = defineProps({
   loading: Boolean
 })
 
-const cellSize = 11
-const cellGap = 3
-
 const commitsLabel = computed(() => t('repo.charts.commitsUnit'))
 const lessLabel = computed(() => t('repo.charts.less'))
 const moreLabel = computed(() => t('repo.charts.more'))
@@ -84,13 +71,12 @@ const monthNames = computed(() => t('calendar.monthNames'))
 
 const selectedYear = ref('')
 
-function getCalColor(count) {
-  const levels = chartCfg.value.calLevels
-  if (count === 0) return levels[0]
-  if (count <= 2) return levels[1]
-  if (count <= 5) return levels[2]
-  if (count <= 10) return levels[3]
-  return levels[4]
+function getLevel(count) {
+  if (count === 0) return 0
+  if (count <= 2) return 1
+  if (count <= 5) return 2
+  if (count <= 10) return 3
+  return 4
 }
 
 const calYears = computed(() => {
@@ -123,12 +109,12 @@ const calYears = computed(() => {
         date.setDate(monday.getDate() + w * 7 + d)
         const dateStr = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
         const count = dayMap.get(dateStr) || 0
-        const outOfYear = date.getFullYear() !== year || dateStr > lastDate
         cells.push({
           date: dateStr,
           count,
-          outOfYear,
-          color: getCalColor(count)
+          outOfYear: date.getFullYear() !== year || dateStr > lastDate,
+          row: d + 2,
+          col: w + 2
         })
       }
     }
@@ -160,6 +146,84 @@ const availableYears = computed(() =>
 const activeYear = computed(() =>
   calYears.value.find(y => y.year === selectedYear.value) || null
 )
+
+const calColors = computed(() => {
+  const lv = chartCfg.value.calLevels
+  return {
+    '--cal-lvl0': lv[0],
+    '--cal-lvl1': lv[1],
+    '--cal-lvl2': lv[2],
+    '--cal-lvl3': lv[3],
+    '--cal-lvl4': lv[4],
+  }
+})
+
+const gridItems = computed(() => {
+  const y = activeYear.value
+  if (!y) return []
+  const dl = dayLabels.value
+  const cl = commitsLabel.value
+  const items = []
+  for (const m of y.monthLabels) {
+    items.push({
+      key: 'm' + m.week,
+      cls: 'cal-month',
+      style: 'grid-row:1;grid-column:' + (m.week + 2) + '/span ' + m.span,
+      text: m.label
+    })
+  }
+  for (let i = 0; i < 7; i++) {
+    if (dl[i]) {
+      items.push({
+        key: 'd' + i,
+        cls: 'cal-day',
+        style: 'grid-row:' + (i + 2) + ';grid-column:1',
+        text: dl[i]
+      })
+    }
+  }
+  for (const c of y.cells) {
+    const o = c.outOfYear
+    items.push({
+      key: c.date,
+      cls: 'cal-cell' + (o ? ' cal-out' : ' cal-lvl' + getLevel(c.count)),
+      style: 'grid-row:' + c.row + ';grid-column:' + c.col
+    })
+    if (!o) {
+      items[items.length - 1].title = c.date + ' · ' + c.count + ' ' + cl
+    }
+  }
+  return items
+})
+
+const cellSize = ref(12)
+const calContainer = ref(null)
+
+function updateCellSize() {
+  const el = calContainer.value
+  if (!el) return
+  const w = el.clientWidth
+  const fontPx = parseFloat(getComputedStyle(el).fontSize) || 14
+  const avail = w - 2 * fontPx - 53 * 2
+  cellSize.value = Math.max(6, Math.floor(avail / 53))
+}
+
+let ro = null
+onMounted(() => {
+  if (activeYear.value && calContainer.value) {
+    updateCellSize()
+    ro = new ResizeObserver(updateCellSize)
+    ro.observe(calContainer.value)
+  }
+})
+watch(activeYear, (y) => {
+  ro?.disconnect(); ro = null
+  if (!y || !calContainer.value) return
+  updateCellSize()
+  ro = new ResizeObserver(updateCellSize)
+  ro.observe(calContainer.value)
+}, { flush: 'post' })
+onUnmounted(() => ro?.disconnect())
 
 watch(() => props.data, () => {
   const years = availableYears.value
@@ -311,31 +375,20 @@ const hourlyOption = computed(() => {
 .cal-container {
   margin-bottom: 2rem;
 }
-.cal-months {
+.cal-grid {
   display: grid;
-  grid-template-columns: repeat(53, 1fr);
+  grid-template-columns: 2em repeat(53, var(--cell-size, 12px));
+  grid-template-rows: auto repeat(7, var(--cell-size, 12px));
   gap: 2px;
-  padding-left: 32px;
-  margin-bottom: 2px;
 }
-.cal-month-label {
+.cal-month {
   font-size: 0.65rem;
   color: var(--color-text-muted);
   font-family: var(--font-body);
   text-align: left;
   white-space: nowrap;
 }
-.cal-body {
-  display: flex;
-  gap: 4px;
-}
-.cal-days {
-  display: grid;
-  grid-template-rows: repeat(7, 1fr);
-  gap: 2px;
-  padding-top: 0;
-}
-.cal-day-label {
+.cal-day {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -344,25 +397,24 @@ const hourlyOption = computed(() => {
   font-family: var(--font-body);
   padding-right: 2px;
 }
-.cal-grid {
-  display: grid;
-  grid-template-rows: repeat(7, 1fr);
-  grid-auto-flow: column;
-  gap: 2px;
-  width: 100%;
-}
 .cal-cell {
-  aspect-ratio: 1;
   border-radius: 2px;
-  transition: all 0.15s;
+  transition: transform 0.15s;
   cursor: default;
-  min-width: 0;
 }
 .cal-cell:hover {
   transform: scale(1.3);
   outline: var(--outline-primary);
   outline-offset: 1px;
+  z-index: 1;
+  position: relative;
 }
+.cal-lvl0 { background: var(--cal-lvl0); }
+.cal-lvl1 { background: var(--cal-lvl1); }
+.cal-lvl2 { background: var(--cal-lvl2); }
+.cal-lvl3 { background: var(--cal-lvl3); }
+.cal-lvl4 { background: var(--cal-lvl4); }
+.cal-out { background: transparent; }
 .cal-footer {
   display: flex;
   align-items: center;

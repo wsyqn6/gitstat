@@ -418,7 +418,6 @@ onMounted(init)
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  align-items: start;
 }
 .section { padding: 1.5rem; }
 </style>
