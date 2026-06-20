@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading" class="stats-grid">
-    <div v-for="i in 6" :key="i" class="stat-card-ph">
+    <div v-for="i in 6" :key="i" class="glass stat-card-ph">
       <Skeleton circle class="stat-ph-icon" />
       <Skeleton w="40" class="stat-ph-value" />
       <Skeleton w="60" class="stat-ph-label" />
@@ -46,12 +46,8 @@ const repositoryCount = computed(() => props.overviewStats?.repositoryCount ?? 0
 }
 
 .stat-card-ph {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem;
-  border-radius: var(--radius-card);
   text-align: center;
-  border: 1px solid var(--border-insight-card);
   display: flex;
   flex-direction: column;
   align-items: center;

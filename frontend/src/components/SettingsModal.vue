@@ -16,10 +16,10 @@
         <div class="section toggles-section">
           <div class="toggle-row">
             <span class="toggle-label">{{ t('settings.theme') }}</span>
-            <div class="segment-group" :class="{ 'slide-right': theme === 'ios26' }">
+            <div class="segment-group" :class="{ 'slide-right': theme === 'light' }">
               <div class="segment-slider"></div>
               <button :class="{ active: theme === 'neon' }" @click="setTheme('neon')">{{ t('settings.themeDark') }}</button>
-              <button :class="{ active: theme === 'ios26' }" @click="setTheme('ios26')">{{ t('settings.themeLight') }}</button>
+              <button :class="{ active: theme === 'light' }" @click="setTheme('light')">{{ t('settings.themeLight') }}</button>
             </div>
           </div>
           <div class="toggle-row">

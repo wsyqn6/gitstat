@@ -1,5 +1,5 @@
 <template>
-  <div class="cal-week-view card">
+  <div class="cal-week-view glass card">
     <div class="cal-header">
       <span class="cal-title">{{ weekRangeLabel }}</span>
     </div>

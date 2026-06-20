@@ -1,29 +1,29 @@
 <template>
   <div>
     <div class="card-row l1-row">
-      <div class="info-card">
+      <div class="glass info-card">
         <span class="info-icon" style="color:var(--color-primary)">⑂</span>
         <span class="info-value">{{ detail.currentBranch }}</span>
         <span class="info-label">{{ t('repo.currentBranch') }}</span>
       </div>
-      <div class="info-card clickable" :class="{ expanded: expandedBranch }" @click="toggleBranch">
+      <div class="glass info-card clickable" :class="{ expanded: expandedBranch }" @click="toggleBranch">
         <span class="info-icon" style="color:var(--color-purple-soft)">⑂</span>
         <span class="info-value">{{ localBranchCount }}</span>
         <span class="info-label">{{ t('repo.branchCount') }} <span class="expand-icon">{{ expandedBranch ? '▼' : '▶' }}</span></span>
       </div>
-      <div class="info-card">
+      <div class="glass info-card">
         <span class="info-icon" style="color:var(--color-amber)">◈</span>
         <span class="info-value">{{ detail.fileCount ?? '--' }}</span>
         <span class="info-label">{{ t('repo.fileCount') }}</span>
       </div>
-      <div class="info-card clickable" :class="{ expanded: expandedTags }" @click="toggleTags">
+      <div class="glass info-card clickable" :class="{ expanded: expandedTags }" @click="toggleTags">
         <span class="info-icon" style="color:var(--color-emerald)">◉</span>
         <span class="info-value">{{ detail.tagCount ?? '--' }}</span>
         <span class="info-label">{{ t('repo.tags') }} <span class="expand-icon">{{ expandedTags ? '▼' : '▶' }}</span></span>
       </div>
     </div>
 
-    <div v-if="expandedBranch" class="expand-panel card">
+    <div v-if="expandedBranch" class="expand-panel glass card">
       <h4>{{ t('repo.allBranches') }}</h4>
       <div class="branch-groups">
         <div v-if="detail.branchCount > 0" class="branch-group">
@@ -50,7 +50,7 @@
       </div>
     </div>
 
-    <div v-if="expandedTags" class="expand-panel card">
+    <div v-if="expandedTags" class="expand-panel glass card">
       <h4>{{ t('repo.tags') }}</h4>
       <div v-if="tagsLoading && tags.length === 0" class="expand-hint">
         <span class="spinner" style="display:inline-block;width:14px;height:14px;margin-right:0.5rem;vertical-align:middle"></span>{{ t('repo.statsLoading') }}
@@ -68,7 +68,7 @@
     </div>
 
     <div class="card-row l2-row">
-      <div class="info-card dim" :class="{ 'has-data': statsLoaded && detail.repoSize > 0 }">
+      <div class="glass info-card dim" :class="{ 'has-data': statsLoaded && detail.repoSize > 0 }">
         <span class="info-icon" style="color:var(--color-cyan)">◆</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</template>
@@ -76,7 +76,7 @@
         </span>
         <span class="info-label">{{ t('repo.diskSize') }}</span>
       </div>
-      <div class="info-card clickable dim" :class="statsLoaded ? { expanded: expandedContributor, 'has-data': hasCommits } : {}" @click="toggleContributor">
+      <div class="glass info-card clickable dim" :class="statsLoaded ? { expanded: expandedContributor, 'has-data': hasCommits } : {}" @click="toggleContributor">
         <span class="info-icon" style="color:var(--color-purple-soft)">⊕</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ hasCommits ? detail.contributors.length : '--' }}</template>
@@ -84,7 +84,7 @@
         </span>
         <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
       </div>
-      <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.earliestCommitAuthor }">
+      <div class="glass info-card dim" :class="{ 'has-data': statsLoaded && !!detail.earliestCommitAuthor }">
         <span class="info-icon" style="color:var(--color-amber)">◎</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ formatDate(detail.earliestDate) }}</template>
@@ -92,7 +92,7 @@
         </span>
         <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
       </div>
-      <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.lastCommitTime }">
+      <div class="glass info-card dim" :class="{ 'has-data': statsLoaded && !!detail.lastCommitTime }">
         <span class="info-icon" style="color:var(--color-emerald)">◉</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ formatTimeAgo(detail.lastCommitTime) }}</template>
@@ -103,7 +103,7 @@
     </div>
 
     <template v-if="statsLoaded">
-      <div v-if="expandedContributor" class="expand-panel card">
+      <div v-if="expandedContributor" class="expand-panel glass card">
         <h4>{{ t('repo.contributors') }}</h4>
         <div class="contrib-table">
           <div class="contrib-header">
@@ -135,11 +135,11 @@
           </div>
           <Skeleton chart h="160" mb="2rem" radius="12" />
           <div class="chart-row-skel">
-            <div class="card" style="flex:1;padding:1rem;min-height:300px">
+            <div class="glass card" style="flex:1;padding:1rem;min-height:300px">
               <Skeleton w="40" h="20" radius="6" mb="1rem" />
               <Skeleton chart h="240" />
             </div>
-            <div class="card" style="flex:1;padding:1rem;min-height:300px">
+            <div class="glass card" style="flex:1;padding:1rem;min-height:300px">
               <Skeleton w="40" h="20" radius="6" mb="1rem" />
               <Skeleton chart h="240" />
             </div>
@@ -280,13 +280,8 @@ function toggleContributor() {
 .l2-row { grid-template-columns: repeat(4, 1fr); }
 
 .info-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem;
-  border-radius: var(--radius-card);
-  border: 1px solid var(--border-card);
   text-align: center;
-  transition: all 0.3s;
 }
 .info-card.dim { opacity: 0.5; }
 .info-card.dim.has-data { opacity: 1; }

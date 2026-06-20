@@ -1,6 +1,6 @@
 <template>
   <div class="repo-page">
-    <div v-if="state.reposInfo.length === 0" class="empty-state card">
+    <div v-if="state.reposInfo.length === 0" class="empty-state glass card">
       <span class="empty-icon">▤</span>
       <p>{{ t('repo.empty') }}</p>
     </div>
@@ -28,13 +28,13 @@
               <Skeleton w="40" h="32" radius="6" />
             </div>
             <div class="card-row l1-row">
-              <div v-for="i in 4" :key="i" class="info-card">
+              <div v-for="i in 4" :key="i" class="glass info-card">
                 <Skeleton circle h="36" center mb="0.5rem" />
                 <Skeleton w="35" h="22" radius="6" center mb="0.4rem" />
                 <Skeleton w="55" center />
               </div>
             </div>
-            <div class="card stats-cta">
+            <div class="glass card stats-cta">
               <div class="stats-cta-content">
                 <Skeleton circle h="40" />
                 <div style="flex:1;display:flex;flex-direction:column;gap:0.3rem">
@@ -45,20 +45,20 @@
               </div>
             </div>
             <div class="card-row l2-row">
-              <div v-for="i in 4" :key="i" class="info-card dim">
+              <div v-for="i in 4" :key="i" class="glass info-card dim">
                 <Skeleton w="40" h="22" radius="6" center mb="0.3rem" />
                 <Skeleton w="65" center />
               </div>
             </div>
             <div class="section-group">
-              <div class="section card">
+              <div class="section glass card">
                 <Skeleton w="50" h="20" radius="6" mb="1rem" />
                 <Skeleton w="100" h="10" radius="5" mb="0.75rem" />
                 <div style="display:flex;flex-direction:column;gap:0.5rem">
                   <Skeleton v-for="i in 5" :key="i" w="70" />
                 </div>
               </div>
-              <div class="section card">
+              <div class="section glass card">
                 <Skeleton w="50" h="20" radius="6" mb="1rem" />
                 <Skeleton v-for="i in 5" :key="i" w="85" mb="0.5rem" />
               </div>
@@ -389,11 +389,7 @@ onMounted(init)
 .l2-row { grid-template-columns: repeat(4, 1fr); }
 
 .info-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem;
-  border-radius: var(--radius-card);
-  border: 1px solid var(--border-card);
   text-align: center;
 }
 .info-card.dim { opacity: 0.5; }

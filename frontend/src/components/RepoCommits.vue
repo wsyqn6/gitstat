@@ -1,5 +1,5 @@
 <template>
-  <div class="section card">
+  <div class="section glass card">
     <h3 class="section-title">{{ t('repo.recentCommits') }}</h3>
 
     <div v-if="commitsLoading && !commitsLoaded" class="commit-skeleton">

@@ -1,5 +1,5 @@
 <template>
-  <div class="cal-month-view card">
+  <div class="cal-month-view glass card">
     <div class="cal-header">
       <span class="cal-title">{{ monthYearLabel }}</span>
     </div>

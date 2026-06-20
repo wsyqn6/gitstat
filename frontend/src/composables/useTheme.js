@@ -5,12 +5,12 @@ const theme = ref(localStorage.getItem(STORAGE_KEY) || 'neon')
 
 watch(theme, (val) => {
   localStorage.setItem(STORAGE_KEY, val)
-  document.documentElement.dataset.theme = val === 'ios26' ? 'ios26' : ''
+  document.documentElement.dataset.theme = val === 'light' ? 'light' : ''
 }, { immediate: true })
 
 export function useTheme() {
   function toggleTheme() {
-    theme.value = theme.value === 'neon' ? 'ios26' : 'neon'
+    theme.value = theme.value === 'neon' ? 'light' : 'neon'
   }
 
   function setTheme(val) {

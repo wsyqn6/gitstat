@@ -1,5 +1,5 @@
 <template>
-  <div class="stat-card" :style="cardStyle">
+  <div class="glass stat-card" :style="cardStyle">
     <div class="stat-icon">{{ icon }}</div>
     <div class="stat-value">{{ value }}</div>
     <div class="stat-label">{{ label }}</div>
@@ -24,18 +24,8 @@ const cardStyle = computed(() => ({
 
 <style scoped>
 .stat-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
   padding: 1.5rem;
-  border-radius: var(--radius-card);
   text-align: center;
-  box-shadow: 
-    var(--shadow-card),
-    var(--shadow-inset);
-  border: 1px solid var(--border-card);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stat-card::before {

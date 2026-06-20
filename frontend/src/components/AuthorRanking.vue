@@ -1,5 +1,5 @@
 <template>
-  <div class="insight-card card">
+  <div class="insight-card glass card">
     <div class="insight-header">
       <h3>{{ t('dashboard.authorRank') }} <span class="range-hint">{{ weekRange }}</span></h3>
     </div>

@@ -2,7 +2,7 @@
   <div v-if="overviewStats" class="overview-section">
     <div class="overview-period-label">{{ timePeriodLabel }}{{ t('analytics.overviewTitle') }}</div>
     <div class="overview-cards">
-      <div class="stat-card">
+      <div class="glass stat-card">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
@@ -13,7 +13,7 @@
           <div class="stat-value">{{ overviewStats.totalCommits }}</div>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="glass stat-card">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="19" x2="12" y2="5"></line>
@@ -25,7 +25,7 @@
           <div class="stat-value">{{ overviewStats.totalAdditions }}</div>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="glass stat-card">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -37,7 +37,7 @@
           <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
         </div>
       </div>
-      <div class="stat-card clickable" :class="{ expanded: expandedSection === 'authors' }" @click="emit('toggle-section', 'authors')">
+      <div class="glass stat-card clickable" :class="{ expanded: expandedSection === 'authors' }" @click="emit('toggle-section', 'authors')">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -108,15 +108,10 @@ const timePeriodLabel = computed(() => {
 }
 
 .stat-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-card);
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: all 0.3s;
 }
 
 .stat-card:hover {

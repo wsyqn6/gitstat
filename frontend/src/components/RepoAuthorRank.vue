@@ -1,5 +1,5 @@
 <template>
-  <div class="section card author-rank">
+  <div class="section glass card author-rank">
     <h3 class="section-title">{{ t('repo.authorRank') }}</h3>
     <div v-if="loading" class="author-skeleton">
       <div v-for="i in 5" :key="i" class="skel-row">

@@ -1,5 +1,5 @@
 <template>
-  <div class="section card lang-card">
+  <div class="section glass card lang-card">
     <h3 class="section-title">{{ t('repo.langDistribution') }}</h3>
     <div v-if="analysisLoading" class="lang-skeleton">
       <Skeleton w="30" h="14" mb="0.75rem" />

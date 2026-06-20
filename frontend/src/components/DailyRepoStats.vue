@@ -5,7 +5,7 @@
     </div>
 
     <div v-if="loading" class="skeleton-daily">
-      <div v-for="i in 2" :key="i" class="repo-daily-card card">
+      <div v-for="i in 2" :key="i" class="repo-daily-card glass card">
         <div class="repo-daily-header">
           <Skeleton w="50" />
           <div style="margin-top:8px"><Skeleton w="30" /></div>
@@ -20,7 +20,7 @@
       </div>
     </div>
     <template v-else-if="dailyStats && dailyStats.length > 0">
-      <div v-for="repo in dailyStats" :key="repo.repoPath" class="repo-daily-card card">
+      <div v-for="repo in dailyStats" :key="repo.repoPath" class="repo-daily-card glass card">
         <div class="repo-daily-header">
           <div class="repo-info">
             <h4>{{ repo.repoName }}</h4>
@@ -55,7 +55,7 @@
         </div>
       </div>
     </template>
-    <div v-else class="card card-empty">
+    <div v-else class="glass card card-empty">
       <div class="card-empty-text">{{ t('dashboard.noDailyStats') }}</div>
     </div>
   </div>

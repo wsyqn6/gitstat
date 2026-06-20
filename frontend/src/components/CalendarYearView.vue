@@ -1,12 +1,12 @@
 <template>
-  <div class="cal-year-view card">
+  <div class="cal-year-view glass card">
     <div class="cal-header">
       <span class="cal-title">{{ yearLabel }}</span>
     </div>
     <div v-if="yearData.length === 0" class="cal-empty">{{ t('analytics.noData') }}</div>
     <div v-else class="year-grid">
       <div v-for="month in yearData" :key="month.month"
-        class="year-month-card"
+        class="glass year-month-card"
         :class="{ 'future-month': month.isFuture, 'selected': selectedMonth?.key === month.key }"
         :style="{ '--bg-alpha': month.commits ? (0.05 + Math.min(month.commits / yearMaxCommits, 1) * 0.55).toFixed(2) : '0' }"
         @click="!month.isFuture && (selectedMonth = selectedMonth?.key === month.key ? null : month)"
@@ -203,16 +203,9 @@ const monthDetail = computed(() => {
   gap: 1rem;
 }
 .year-month-card {
-  position: relative;
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-card);
   padding: 1.5rem;
   text-align: center;
   cursor: pointer;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .year-month-card:hover:not(.future-month) {
   border-color: var(--border-card-hover);

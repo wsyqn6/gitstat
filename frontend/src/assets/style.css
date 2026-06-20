@@ -245,8 +245,8 @@
   --gradient-page-title: linear-gradient(135deg, #00f5ff 0%, #ff00ff 50%, #ffd700 100%);
 }
 
-/* ============ Theme: iOS26 Liquid Glass ============ */
-[data-theme="ios26"] {
+/* ============ Theme: Light ============ */
+[data-theme="light"] {
   --color-primary: #007AFF;
   --color-accent: #AF52DE;
   --color-purple: #AF52DE;
@@ -266,7 +266,8 @@
   --color-gold-rgb: 255, 149, 0;
   --color-silver-rgb: 199, 199, 204;
   --color-bronze-rgb: 205, 127, 50;
-  --blur-card: 24px;
+  --blur-card: 50px;
+  --backdrop-glass: saturate(160%) blur(50px);
 
   --bg-body: #F2F2F7;
   --bg-body-mid: #FFFFFF;
@@ -275,7 +276,7 @@
   --bg-glow-1: rgba(0, 122, 255, 0.04);
   --bg-glow-2: rgba(175, 82, 222, 0.04);
   --bg-glow-3: rgba(255, 149, 0, 0.02);
-  --bg-card: rgba(255, 255, 255, 0.7);
+  --bg-card: rgba(255, 255, 255, 0.78);
   --bg-card-header: rgba(0, 122, 255, 0.04);
   --bg-nav: rgba(255, 255, 255, 0.8);
   --bg-input: rgba(255, 255, 255, 0.8);
@@ -324,8 +325,8 @@
   --bg-range-edge: rgba(0, 122, 255, 0.3);
   --bg-date-cell-hover: rgba(0, 122, 255, 0.2);
 
-  --border-card: rgba(60, 60, 67, 0.12);
-  --border-card-hover: rgba(60, 60, 67, 0.2);
+  --border-card: rgba(60, 60, 67, 0.06);
+  --border-card-hover: rgba(60, 60, 67, 0.1);
   --border-input: rgba(60, 60, 67, 0.15);
   --border-input-focus: var(--color-primary);
   --border-nav: rgba(60, 60, 67, 0.08);
@@ -361,13 +362,13 @@
   --border-panel: rgba(60, 60, 67, 0.1);
   --border-chart-card: rgba(60, 60, 67, 0.1);
 
-  --shadow-card: 0 2px 20px rgba(60, 60, 67, 0.06);
-  --shadow-card-hover: 0 8px 30px rgba(60, 60, 67, 0.1);
-  --shadow-card-hover-dark: 0 8px 30px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 3px rgba(60, 60, 67, 0.04);
+  --shadow-card-hover: 0 2px 8px rgba(60, 60, 67, 0.06);
+  --shadow-card-hover-dark: 0 2px 8px rgba(0, 0, 0, 0.03);
   --shadow-btn: 0 4px 15px rgba(0, 122, 255, 0.3);
   --shadow-btn-hover: 0 6px 20px rgba(0, 122, 255, 0.4);
   --shadow-nav: 0 1px 0 rgba(60, 60, 67, 0.08);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-inset: inset 0 0.5px 0 rgba(255, 255, 255, 0.5);
   --shadow-inset-hover: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --shadow-dropdown: 0 8px 30px rgba(60, 60, 67, 0.12);
   --shadow-glow: 0 0 20px rgba(0, 122, 255, 0.08);
@@ -497,18 +498,23 @@ body::before {
   50% { opacity: 0.7; }
 }
 
-.card {
+.glass {
   background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
-  border-radius: var(--radius-card);
-  padding: 1.5rem;
-  box-shadow:
-    var(--shadow-card),
-    var(--shadow-inset);
+  -webkit-backdrop-filter: var(--backdrop-glass, blur(var(--blur-card)));
+  backdrop-filter: var(--backdrop-glass, blur(var(--blur-card)));
   border: 1px solid var(--border-card);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card), var(--shadow-inset);
   position: relative;
   overflow: hidden;
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card {
+  padding: 1.5rem;
 }
 
 .card::before {
@@ -532,6 +538,14 @@ body::before {
     var(--shadow-card-hover),
     var(--shadow-inset-hover);
   transform: translateY(-2px);
+}
+
+[data-theme="light"] .card::before {
+  display: none;
+}
+
+[data-theme="light"] .card:hover {
+  transform: translateY(-1px);
 }
 
 .btn {

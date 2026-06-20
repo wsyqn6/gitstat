@@ -21,7 +21,7 @@ export const THEMES = {
     ],
     heatmapColors: ['rgba(0, 245, 255, 0.1)', 'rgba(0, 245, 255, 0.4)', 'rgba(0, 245, 255, 0.7)', '#00f5ff']
   },
-  ios26: {
+  light: {
     chartColors: ['#007AFF', '#AF52DE', '#FF9500', '#34C759', '#FF2D55', '#FFCC00'],
     chartColors8: ['#007AFF', '#FF2D55', '#34C759', '#FF9500', '#AF52DE', '#FFCC00', '#5AC8FA', '#FF3B30'],
     primary: '#007AFF',

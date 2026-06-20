@@ -3,7 +3,7 @@
     <div class="section-header">
       <h3>{{ t('dashboard.repoComparison') }} <span class="range-hint">{{ weekRange }}</span></h3>
     </div>
-    <div v-if="loading" class="comparison-table card">
+    <div v-if="loading" class="comparison-table glass card">
       <div v-for="i in 3" :key="i" class="cmp-row">
         <Skeleton w="40" />
         <Skeleton w="15" />
@@ -13,7 +13,7 @@
         <Skeleton w="15" />
       </div>
     </div>
-    <div v-else-if="repoComparison.length > 0" class="comparison-table card">
+    <div v-else-if="repoComparison.length > 0" class="comparison-table glass card">
       <div class="cmp-header">
         <div class="cmp-col-name">{{ t('dashboard.repo') }}</div>
         <div class="cmp-col-num">{{ t('dashboard.commits') }}</div>
@@ -31,7 +31,7 @@
         <div class="cmp-col-num">{{ repo.avgCommitsPerDay }}</div>
       </div>
     </div>
-    <div v-else class="card card-empty">
+    <div v-else class="glass card card-empty">
       <div class="card-empty-text">{{ t('dashboard.noComparison') }}</div>
     </div>
   </div>

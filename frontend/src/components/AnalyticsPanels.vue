@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="expandedSection === 'authors' && overviewStats?.authors" class="expand-panel">
+    <div v-if="expandedSection === 'authors' && overviewStats?.authors" class="glass expand-panel">
       <div class="expand-panel-header">{{ timePeriodPrefix }}{{ t('dashboard.authorRank') }} · {{ t('calendar.total') }} {{ overviewStats.authors.length }} </div>
       <table class="expand-table">
         <thead>
@@ -28,7 +28,7 @@
       <div
         v-for="(insight, idx) in insights"
         :key="insight.section"
-        class="insight-card"
+        class="glass insight-card"
         :class="{ clickable: insight.clickable, expanded: insight.clickable && expandedSection === insight.section }"
         @click="insight.clickable && emit('toggle-section', insight.section)"
       >
@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <div v-if="expandedSection === 'repos' && repoComparison.length > 0" class="expand-panel">
+    <div v-if="expandedSection === 'repos' && repoComparison.length > 0" class="glass expand-panel">
       <div class="expand-panel-header">{{ timePeriodPrefix }}{{ t('analytics.panels.activeReposTitle') }} · {{ t('calendar.total') }} {{ repoComparison.filter(r => r.commits > 0).length }} </div>
       <table class="expand-table">
         <thead>
@@ -149,10 +149,6 @@ const insights = computed(() => {
 
 <style scoped>
 .expand-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-card);
   padding: 1.5rem;
   margin-top: 1rem;
   animation: slideDown 0.25s ease;
@@ -217,15 +213,10 @@ const insights = computed(() => {
 }
 
 .insight-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(var(--blur-card));
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-card);
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: all 0.3s;
 }
 
 .insight-card:hover {

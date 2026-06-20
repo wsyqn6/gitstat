@@ -1,5 +1,5 @@
 <template>
-  <div class="chart-container card">
+  <div class="chart-container glass card">
     <div class="chart-header">
       <div class="title-section">
         <h3>{{ title }}</h3>
