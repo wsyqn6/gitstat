@@ -30,7 +30,9 @@ const messages = {
       author: '作者',
       commits: '提交数',
       changes: '变更',
-      me: '我'
+      me: '我',
+      noComparison: '选择仓库后查看对比',
+      noDailyStats: '今日暂无提交活动'
     },
     datePicker: {
       range: '范围',
@@ -206,6 +208,7 @@ const messages = {
       authorRank: '贡献者排行'
     },
     settings: {
+      title: '设置',
       theme: '主题',
       themeDark: '暗色',
       themeLight: '亮色',
@@ -252,7 +255,9 @@ const messages = {
       author: 'Author',
       commits: 'Commits',
       changes: 'Changes',
-      me: 'ME'
+      me: 'ME',
+      noComparison: 'Select repos to compare',
+      noDailyStats: 'No activity today'
     },
     scan: {
       title: 'Scan Git Repositories',

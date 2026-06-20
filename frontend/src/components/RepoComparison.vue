@@ -31,6 +31,9 @@
         <div class="cmp-col-num">{{ repo.avgCommitsPerDay }}</div>
       </div>
     </div>
+    <div v-else class="card card-empty">
+      <div class="card-empty-text">{{ t('dashboard.noComparison') }}</div>
+    </div>
   </div>
 </template>
 

@@ -11,7 +11,9 @@
       <Skeleton w="70" />
       <Skeleton w="50" />
     </div>
-    <div v-else-if="repoDailyTrend.length === 0" class="insight-empty">{{ t('analytics.noData') }}</div>
+    <div v-else-if="repoDailyTrend.length === 0" class="card-empty">
+      <div class="card-empty-text">{{ t('analytics.noData') }}</div>
+    </div>
     <template v-else>
       <div ref="trendChartRef" class="trend-chart"></div>
       <div v-if="repoDailyTrend.length > 1" class="chart-legend">

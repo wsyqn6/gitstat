@@ -743,6 +743,23 @@ body::before {
   letter-spacing: 1px;
 }
 
+.card-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: var(--color-text-muted);
+}
+
+.card-empty-text {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
 .detail-panel {
   margin-top: 1rem;
   animation: slideDown 0.25s ease;

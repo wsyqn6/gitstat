@@ -55,6 +55,9 @@
         </div>
       </div>
     </template>
+    <div v-else class="card card-empty">
+      <div class="card-empty-text">{{ t('dashboard.noDailyStats') }}</div>
+    </div>
   </div>
 </template>
 

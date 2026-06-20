@@ -33,7 +33,9 @@
         </template>
       </div>
     </template>
-    <div v-else class="insight-empty">{{ t('analytics.noData') }}</div>
+    <div v-else class="card-empty">
+      <div class="card-empty-text">{{ t('analytics.noData') }}</div>
+    </div>
   </div>
 </template>
 
