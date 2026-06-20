@@ -74,14 +74,14 @@
           <RepoInfoCards
             :detail="detail"
             :stats-loaded="statsLoaded"
-            :loading-stats="loadingStats"
             :chart-data="chartData"
             :chart-loading="chartLoading"
+            :chart-loaded="chartLoaded"
             :tags="tags"
             :tags-loading="tagsLoading"
             :tags-has-more="tagsHasMore"
             :tags-loaded="tagsLoaded"
-            @load-stats="loadStats"
+            @load-chart="loadChart"
             @load-tags="loadTags"
             @load-more-tags="loadMoreTags"
           />
@@ -123,10 +123,10 @@ const activePath = ref(localStorage.getItem('activeRepoPath') || '')
 const loading = ref(false)
 const detail = ref(null)
 const statsLoaded = ref(false)
-const loadingStats = ref(false)
 const analysisLoading = ref(false)
 const chartData = ref(null)
 const chartLoading = ref(false)
+const chartLoaded = ref(false)
 const commits = ref([])
 const commitsLoading = ref(false)
 const commitsLoaded = ref(false)
@@ -142,6 +142,7 @@ const tagsLoaded = ref(false)
 async function loadDetail(path) {
   loading.value = true
   statsLoaded.value = false
+  chartLoaded.value = false
   chartData.value = null
   tags.value = []
   tagsLoaded.value = false
@@ -159,16 +160,18 @@ async function loadDetail(path) {
     fetchRepoTagsCount(path).then(res => {
       if (detail.value) detail.value.tagCount = res.tagCount ?? 0
     })
-    if (state.repoStatsCache.has(path)) {
-      detail.value = { ...detail.value, ...state.repoStatsCache.get(path) }
-      statsLoaded.value = true
-      fetchChartData()
-    }
+    fetchRepoStats(path).then(stats => {
+      if (detail.value) {
+        detail.value = { ...detail.value, ...stats }
+        statsLoaded.value = true
+      }
+    }).catch(err => console.error('Failed to load stats:', err))
     if (state.analyzeCache.has(path)) {
       detail.value.analysis = state.analyzeCache.get(path)
     }
     if (state.repoChartCache.has(path)) {
       chartData.value = state.repoChartCache.get(path)
+      chartLoaded.value = true
     }
   } catch (err) {
     console.error('Failed to load info:', err)
@@ -177,26 +180,13 @@ async function loadDetail(path) {
   }
 }
 
-async function loadStats() {
-  if (!activePath.value || loadingStats.value) return
-  loadingStats.value = true
-  try {
-    const stats = await fetchRepoStats(activePath.value)
-    detail.value = { ...detail.value, ...stats }
-    statsLoaded.value = true
-    fetchChartData()
-  } catch (err) {
-    console.error('Failed to load stats:', err)
-  } finally {
-    loadingStats.value = false
-  }
-}
-
-async function fetchChartData() {
+async function loadChart() {
+  if (!activePath.value || chartLoading.value) return
   chartLoading.value = true
   try {
     const data = await fetchRepoChart(activePath.value)
     chartData.value = data
+    chartLoaded.value = true
   } catch (err) {
     console.error('Failed to load chart data:', err)
   } finally {

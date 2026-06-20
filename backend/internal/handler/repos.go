@@ -177,8 +177,6 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	remoteBranches, _ := scanner.GetRemoteBranches(path)
-
 	stats := model.RepoStats{
 		Path:                 cache.Path,
 		Name:                 cache.Name,
@@ -188,7 +186,6 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		EarliestCommitAuthor: earliestAuthor,
 		RepoSize:             repoSize,
 		Contributors:         contributors,
-		RemoteBranches:       remoteBranches,
 	}
 
 	if cache.Analyzed {

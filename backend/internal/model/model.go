@@ -180,7 +180,6 @@ type RepoStats struct {
 	EarliestCommitAuthor string            `json:"earliestCommitAuthor"`
 	RepoSize             int64             `json:"repoSize"`
 	Contributors         []ContributorStat `json:"contributors"`
-	RemoteBranches       []string          `json:"remoteBranches"`
 	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
 }
 

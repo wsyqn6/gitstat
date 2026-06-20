@@ -67,89 +67,96 @@
       <p v-else class="expand-hint">--</p>
     </div>
 
-    <div class="stats-group">
-      <div class="card-row l2-row">
-        <div class="info-card dim" :class="{ 'has-data': statsLoaded && detail.repoSize > 0 }">
-          <span class="info-value">
-            <template v-if="statsLoaded">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</template>
-            <Skeleton v-else w="40" h="22" radius="6" center />
-          </span>
-          <span class="info-label">{{ t('repo.diskSize') }}</span>
-        </div>
-        <div class="info-card clickable dim" :class="statsLoaded ? { expanded: expandedContributor, 'has-data': hasCommits } : {}" @click="toggleContributor">
-          <span class="info-value">
-            <template v-if="statsLoaded">{{ hasCommits ? detail.contributors.length : '--' }}</template>
-            <Skeleton v-else w="30" h="22" radius="6" center />
-          </span>
-          <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
-        </div>
-        <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.earliestCommitAuthor }">
-          <span class="info-value">
-            <template v-if="statsLoaded">{{ formatDate(detail.earliestDate) }}</template>
-            <Skeleton v-else w="55" h="22" radius="6" center />
-          </span>
-          <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
-        </div>
-        <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.lastCommitTime }">
-          <span class="info-value">
-            <template v-if="statsLoaded">{{ formatTimeAgo(detail.lastCommitTime) }}</template>
-            <Skeleton v-else w="45" h="22" radius="6" center />
-          </span>
-          <span class="info-label">{{ t('repo.lastCommit') }}</span>
-        </div>
+    <div class="card-row l2-row">
+      <div class="info-card dim" :class="{ 'has-data': statsLoaded && detail.repoSize > 0 }">
+        <span class="info-icon" style="color:var(--color-cyan)">◆</span>
+        <span class="info-value">
+          <template v-if="statsLoaded">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</template>
+          <Skeleton v-else w="40" h="22" radius="6" center />
+        </span>
+        <span class="info-label">{{ t('repo.diskSize') }}</span>
       </div>
+      <div class="info-card clickable dim" :class="statsLoaded ? { expanded: expandedContributor, 'has-data': hasCommits } : {}" @click="toggleContributor">
+        <span class="info-icon" style="color:var(--color-purple-soft)">⊕</span>
+        <span class="info-value">
+          <template v-if="statsLoaded">{{ hasCommits ? detail.contributors.length : '--' }}</template>
+          <Skeleton v-else w="30" h="22" radius="6" center />
+        </span>
+        <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
+      </div>
+      <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.earliestCommitAuthor }">
+        <span class="info-icon" style="color:var(--color-amber)">◎</span>
+        <span class="info-value">
+          <template v-if="statsLoaded">{{ formatDate(detail.earliestDate) }}</template>
+          <Skeleton v-else w="55" h="22" radius="6" center />
+        </span>
+        <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
+      </div>
+      <div class="info-card dim" :class="{ 'has-data': statsLoaded && !!detail.lastCommitTime }">
+        <span class="info-icon" style="color:var(--color-emerald)">◉</span>
+        <span class="info-value">
+          <template v-if="statsLoaded">{{ formatTimeAgo(detail.lastCommitTime) }}</template>
+          <Skeleton v-else w="45" h="22" radius="6" center />
+        </span>
+        <span class="info-label">{{ t('repo.lastCommit') }}</span>
+      </div>
+    </div>
 
-      <template v-if="statsLoaded">
-        <div v-if="expandedContributor" class="expand-panel card">
-          <h4>{{ t('repo.contributors') }}</h4>
-          <div class="contrib-table">
-            <div class="contrib-header">
-              <span>{{ t('repo.author') }}</span>
-              <span>{{ t('repo.commits') }}</span>
-              <span class="add">{{ t('repo.additions') }}</span>
-              <span class="del">{{ t('repo.deletions') }}</span>
-              <span>{{ t('repo.lastCommit') }}</span>
-            </div>
-            <div v-for="ct in detail.contributors" :key="ct.email" class="contrib-row">
-              <span class="contrib-name">{{ ct.author }}</span>
-              <span>{{ ct.commitCount }}</span>
-              <span class="add">+{{ ct.additions }}</span>
-              <span class="del">-{{ ct.deletions }}</span>
-              <span class="contrib-time">{{ ct.lastCommitDate?.slice(0, 10) }}</span>
-            </div>
+    <template v-if="statsLoaded">
+      <div v-if="expandedContributor" class="expand-panel card">
+        <h4>{{ t('repo.contributors') }}</h4>
+        <div class="contrib-table">
+          <div class="contrib-header">
+            <span>{{ t('repo.author') }}</span>
+            <span>{{ t('repo.commits') }}</span>
+            <span class="add">{{ t('repo.additions') }}</span>
+            <span class="del">{{ t('repo.deletions') }}</span>
+            <span>{{ t('repo.lastCommit') }}</span>
+          </div>
+          <div v-for="ct in detail.contributors" :key="ct.email" class="contrib-row">
+            <span class="contrib-name">{{ ct.author }}</span>
+            <span>{{ ct.commitCount }}</span>
+            <span class="add">+{{ ct.additions }}</span>
+            <span class="del">-{{ ct.deletions }}</span>
+            <span class="contrib-time">{{ ct.lastCommitDate?.slice(0, 10) }}</span>
           </div>
         </div>
+      </div>
+    </template>
+
+    <div class="charts-wrapper">
+      <template v-if="chartLoaded">
         <RepoCharts :data="chartData" :loading="chartLoading" />
       </template>
-
-      <div v-if="!statsLoaded" class="charts-section-skel">
-        <div class="section-header">
-          <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
-        </div>
-        <Skeleton chart h="160" mb="2rem" radius="12" />
-        <div class="chart-row-skel">
-          <div class="card" style="flex:1;padding:1rem;min-height:300px">
-            <Skeleton w="40" h="20" radius="6" mb="1rem" />
-            <Skeleton chart h="240" />
+      <template v-else>
+        <div class="charts-section-skel">
+          <div class="section-header">
+            <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
           </div>
-          <div class="card" style="flex:1;padding:1rem;min-height:300px">
-            <Skeleton w="40" h="20" radius="6" mb="1rem" />
-            <Skeleton chart h="240" />
+          <Skeleton chart h="160" mb="2rem" radius="12" />
+          <div class="chart-row-skel">
+            <div class="card" style="flex:1;padding:1rem;min-height:300px">
+              <Skeleton w="40" h="20" radius="6" mb="1rem" />
+              <Skeleton chart h="240" />
+            </div>
+            <div class="card" style="flex:1;padding:1rem;min-height:300px">
+              <Skeleton w="40" h="20" radius="6" mb="1rem" />
+              <Skeleton chart h="240" />
+            </div>
           </div>
         </div>
-      </div>
-
-      <div v-if="!statsLoaded" class="stats-group-overlay" @click="emit('load-stats')">
-        <div class="stats-group-overlay-content">
-          <span class="stats-cta-icon">▦</span>
-          <h4>{{ t('repo.statsTitle') }}</h4>
-          <p>{{ t('repo.statsDesc') }}</p>
-          <button class="btn" :disabled="loadingStats" @click.stop="emit('load-stats')">
-            <span v-if="loadingStats" class="spinner"></span>
-            {{ loadingStats ? t('repo.statsLoading') : t('repo.statsBtn') }}
-          </button>
+        <div class="chart-overlay" @click="emit('load-chart')">
+          <div class="chart-overlay-content">
+            <span class="chart-cta-icon">▦</span>
+            <h4>{{ t('repo.chartTitle') }}</h4>
+            <p>{{ t('repo.chartDesc') }}</p>
+            <button class="btn" :disabled="chartLoading" @click.stop="emit('load-chart')">
+              <span v-if="chartLoading" class="spinner"></span>
+              {{ chartLoading ? t('repo.statsLoading') : t('repo.chartBtn') }}
+            </button>
+          </div>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -165,16 +172,16 @@ const { t } = useI18n()
 const props = defineProps({
   detail: { type: Object, required: true },
   statsLoaded: Boolean,
-  loadingStats: Boolean,
   chartData: { default: null },
   chartLoading: Boolean,
+  chartLoaded: Boolean,
   tags: { type: Array, default: () => [] },
   tagsLoading: Boolean,
   tagsHasMore: Boolean,
   tagsLoaded: Boolean
 })
 
-const emit = defineEmits(['load-stats', 'load-tags', 'load-more-tags'])
+const emit = defineEmits(['load-chart', 'load-tags', 'load-more-tags'])
 
 const expandedBranch = ref(false)
 const expandedTags = ref(false)
@@ -282,6 +289,7 @@ function toggleContributor() {
   transition: all 0.3s;
 }
 .info-card.dim { opacity: 0.5; }
+.info-card.dim.has-data { opacity: 1; }
 .info-card.clickable { cursor: pointer; }
 .info-card.clickable:hover, .info-card.expanded {
   border-color: var(--color-accent);
@@ -444,11 +452,11 @@ function toggleContributor() {
   vertical-align: middle;
 }
 
-.stats-group {
+.charts-wrapper {
   position: relative;
   margin-bottom: 1.5rem;
 }
-.stats-group-overlay {
+.chart-overlay {
   position: absolute;
   inset: 0;
   display: flex;
@@ -461,29 +469,29 @@ function toggleContributor() {
   z-index: 2;
   transition: all 0.3s;
 }
-.stats-group-overlay:hover {
+.chart-overlay:hover {
   background: var(--bg-overlay-hover);
   backdrop-filter: blur(var(--blur-card));
 }
-.stats-group-overlay-content {
+.chart-overlay-content {
   text-align: center;
   padding: 1.5rem;
 }
-.stats-group-overlay-content h4 {
+.chart-overlay-content h4 {
   font-family: var(--font-display);
   font-size: 1rem;
   color: var(--color-primary);
   letter-spacing: 1px;
   margin: 0.5rem 0 0.3rem 0;
 }
-.stats-group-overlay-content p {
+.chart-overlay-content p {
   color: var(--color-nav-link);
   font-size: 0.85rem;
   margin: 0 0 1rem 0;
   font-family: var(--font-body);
 }
 
-.stats-cta-icon {
+.chart-cta-icon {
   display: block;
   font-size: 2.5rem;
   color: var(--color-primary);
