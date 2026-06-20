@@ -258,8 +258,7 @@ onUnmounted(() => {
 }
 
 .analyze-btn.can-analyze:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-btn-hover);
+  transform: translateY(var(--btn-hover-lift));
 }
 
 .analyze-btn:disabled {
@@ -346,12 +345,10 @@ onUnmounted(() => {
 
 .repo-dropdown-btn:hover {
   border-color: var(--color-accent);
-  box-shadow: var(--shadow-glow-btn);
 }
 
 .repo-dropdown-btn.active {
   border-color: var(--color-accent);
-  box-shadow: 0 0 20px var(--border-card-hover);
 }
 
 .btn-text {

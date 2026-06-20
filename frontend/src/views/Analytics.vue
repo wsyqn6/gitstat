@@ -290,7 +290,7 @@ onMounted(async () => {
 .analytics {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 1.5rem 2rem;
+  padding: 0 2rem 1.5rem;
 }
 
 .header-section {
@@ -401,7 +401,7 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .analytics {
-    padding: 1rem;
+    padding: 0 1rem 1rem;
   }
 
   .page-title {

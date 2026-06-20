@@ -319,7 +319,7 @@ onMounted(init)
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
-  overflow-x: auto;
+  overflow-x: clip;
   padding-bottom: 0.5rem;
 }
 .tab {
@@ -328,6 +328,7 @@ onMounted(init)
   border: 1px solid var(--glass-outline-border);
   border-radius: var(--radius-btn);
   font-size: 0.85rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .tab:hover { border-color: var(--color-primary); }
 .tab.active {

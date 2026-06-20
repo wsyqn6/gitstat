@@ -219,7 +219,6 @@ function clearRange() {
 }
 .dp-trigger:hover {
   border-color: var(--border-card-hover);
-  box-shadow: 0 0 15px rgba(var(--color-accent-rgb), 0.15);
 }
 .dp-label {
   font-size: 0.65rem;

@@ -560,7 +560,7 @@ body::before {
 }
 
 .btn:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
@@ -592,7 +592,7 @@ body::before {
 }
 .btn-outline:active {
   background: var(--glass-outline-active-bg);
-  transform: translateY(0);
+  transform: scale(0.97);
 }
 .btn-outline.active,
 .btn-outline[aria-pressed="true"] {
@@ -618,15 +618,17 @@ body::before {
   font-size: 0.9rem;
   letter-spacing: var(--btn-letter-spacing);
   text-transform: var(--btn-text-transform);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-ghost:hover {
   background: var(--glass-ghost-hover-bg);
   backdrop-filter: blur(8px);
   color: var(--btn-ghost-hover-color);
+  transform: translateY(var(--btn-hover-lift));
 }
 .btn-ghost:active {
   background: var(--glass-outline-active-bg);
+  transform: scale(0.97);
 }
 .btn-ghost.active {
   background: var(--glass-btn-bg);

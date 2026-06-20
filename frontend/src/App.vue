@@ -221,7 +221,7 @@ function setView(view) {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .header-right {
