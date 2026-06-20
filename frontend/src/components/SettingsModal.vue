@@ -10,14 +10,16 @@
         <div class="section toggles-section">
           <div class="toggle-row">
             <span class="toggle-label">{{ t('settings.theme') }}</span>
-            <div class="segment-group">
-              <button :class="{ active: theme === 'neon' }" @click="setTheme('neon')">Neon</button>
-              <button :class="{ active: theme === 'ios26' }" @click="setTheme('ios26')">iOS26</button>
+            <div class="segment-group" :class="{ 'slide-right': theme === 'ios26' }">
+              <div class="segment-slider"></div>
+              <button :class="{ active: theme === 'neon' }" @click="setTheme('neon')">{{ t('settings.themeDark') }}</button>
+              <button :class="{ active: theme === 'ios26' }" @click="setTheme('ios26')">{{ t('settings.themeLight') }}</button>
             </div>
           </div>
           <div class="toggle-row">
             <span class="toggle-label">{{ t('settings.language') }}</span>
-            <div class="segment-group">
+            <div class="segment-group" :class="{ 'slide-right': locale === 'en' }">
+              <div class="segment-slider"></div>
               <button :class="{ active: locale === 'zh' }" @click="setLocale('zh')">中文</button>
               <button :class="{ active: locale === 'en' }" @click="setLocale('en')">EN</button>
             </div>
@@ -226,6 +228,26 @@ async function handleExport() {
   border-radius: var(--radius-btn);
   padding: 2px;
   gap: 2px;
+  position: relative;
+}
+
+.segment-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 3px);
+  height: calc(100% - 4px);
+  border-radius: calc(var(--radius-btn) - 2px);
+  background: var(--glass-btn-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-btn-shadow), var(--glass-btn-inner);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.segment-group.slide-right .segment-slider {
+  transform: translateX(calc(100% + 2px));
 }
 
 .segment-group button {
@@ -238,14 +260,17 @@ async function handleExport() {
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color 0.25s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.segment-group button:active {
+  transform: scale(0.95);
 }
 
 .segment-group button.active {
-  background: var(--glass-btn-bg);
-  backdrop-filter: blur(var(--glass-blur));
   color: var(--glass-btn-color);
-  box-shadow: var(--glass-btn-shadow);
 }
 
 .segment-group button:hover:not(.active) {

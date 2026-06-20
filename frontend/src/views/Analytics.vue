@@ -24,6 +24,7 @@
       </div>
       <div class="view-toggle-bar">
         <div class="view-toggle-inner">
+          <div class="toggle-slider" :class="viewMode"></div>
           <button
             @click="viewMode = 'chart'"
             class="view-toggle-btn btn-ghost"
@@ -340,6 +341,26 @@ onMounted(async () => {
   border-radius: calc(var(--radius-btn) + 2px);
   padding: 3px;
   gap: 2px;
+  position: relative;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 4px);
+  height: calc(100% - 6px);
+  border-radius: calc(var(--radius-btn) - 2px);
+  background: var(--glass-btn-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-btn-shadow), var(--glass-btn-inner);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.toggle-slider.calendar {
+  transform: translateX(calc(100% + 2px));
 }
 
 .view-toggle-btn {
@@ -348,17 +369,27 @@ onMounted(async () => {
   gap: 6px;
   padding: 0.5rem 1.2rem;
   font-size: 0.8rem;
+  transition: color 0.25s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.view-toggle-btn:active {
+  transform: scale(0.95);
 }
 
 .view-toggle-btn.active {
-  background: var(--glass-btn-bg);
-  backdrop-filter: blur(var(--glass-blur));
   color: var(--glass-btn-color);
 }
 
 .toggle-icon {
   width: 16px;
   height: 16px;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.view-toggle-btn.active .toggle-icon {
+  transform: rotate(6deg);
 }
 
 @media (max-width: 1200px) {

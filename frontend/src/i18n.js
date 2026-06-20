@@ -204,6 +204,8 @@ const messages = {
     settings: {
       title: '设置',
       theme: '主题',
+      themeDark: '暗色',
+      themeLight: '亮色',
       language: '语言',
       scanConfig: '扫描配置',
       directoryPath: '目录路径',
@@ -421,6 +423,8 @@ const messages = {
     settings: {
       title: 'Settings',
       theme: 'Theme',
+      themeDark: 'Dark',
+      themeLight: 'Light',
       language: 'Language',
       scanConfig: 'Scan Configuration',
       directoryPath: 'Directory Path',
