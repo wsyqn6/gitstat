@@ -397,19 +397,6 @@ function toggleContributor() {
 .btn-sm {
   padding: 0.3rem 1rem;
   font-size: 0.8rem;
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  background: var(--bg-cta);
-  color: var(--color-nav-link);
-  cursor: pointer;
-  font-family: var(--font-display);
-  letter-spacing: 0.5px;
-  transition: all 0.2s;
-}
-.btn-sm:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--bg-cta-hover);
 }
 
 .contrib-table { width: 100%; }

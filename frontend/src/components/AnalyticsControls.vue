@@ -9,14 +9,14 @@
               v-for="option in timeOptions"
               :key="option.value"
               @click="selectTimeRange(option.value)"
-               class="cyber-time-btn btn-outline"
+               class="cyber-time-btn btn"
               :class="{ active: selectedTimeRange === option.value }"
             >
               <span class="btn-text-cyber">{{ t(option.labelKey) }}</span>
             </button>
             <button
               @click.stop="emit('update:showCustomPicker', !showCustomPicker)"
-               class="cyber-time-btn custom-btn btn-outline"
+               class="cyber-time-btn custom-btn btn"
               :class="{ active: selectedTimeRange === 'custom' }"
             >
               <span class="btn-text-cyber">{{ t('analytics.customPeriod') }}</span>
@@ -39,7 +39,7 @@
         <div v-if="repositories.length > 1" class="repo-dropdown">
           <button
             @click.stop="showDropdown = !showDropdown"
-            class="repo-dropdown-btn btn-outline"
+            class="repo-dropdown-btn btn"
             :class="{ active: showDropdown, 'has-selection': selectedRepos.length > 0 }"
           >
             <span class="btn-text">
@@ -296,19 +296,12 @@ onUnmounted(() => {
 
 .cyber-time-btn {
   border-radius: 4px;
-  padding: 0.6rem 1.2rem;
   min-width: 80px;
-}
-
-.btn-text-cyber {
-  position: relative;
-  z-index: 1;
 }
 
 .cyber-time-btn.custom-btn {
   min-width: 70px;
   font-size: 0.78rem;
-  padding: 0.6rem 0.8rem;
 }
 
 .custom-picker-popup {
@@ -326,29 +319,11 @@ onUnmounted(() => {
 }
 
 .repo-dropdown-btn {
-  background: var(--bg-panel);
-  border: 2px solid var(--border-dropdown);
-  border-radius: 8px;
-  padding: 0.6rem 1rem;
-  color: var(--color-input-text);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  outline: none;
   min-width: 180px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  font-family: var(--font-body);
-}
-
-.repo-dropdown-btn:hover {
-  border-color: var(--color-accent);
-}
-
-.repo-dropdown-btn.active {
-  border-color: var(--color-accent);
 }
 
 .btn-text {
@@ -403,20 +378,10 @@ onUnmounted(() => {
 }
 
 .select-all-btn {
-  background: transparent;
-  border: 1px solid var(--shadow-active);
-  border-radius: 6px;
   padding: 0.35rem 0.75rem;
-  color: var(--color-accent);
   font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-body);
-}
-
-.select-all-btn:hover {
-  background: var(--bg-insight-hover);
-  border-color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: 6px;
 }
 
 .selected-count {

@@ -4,7 +4,7 @@
       <h3 class="section-title">{{ t('repo.commitCalendar') }}</h3>
       <div v-if="availableYears.length > 1" class="year-tabs">
         <button v-for="y in availableYears" :key="y"
-                :class="['year-tab btn-ghost', { active: y === selectedYear }]"
+                :class="['year-tab btn', { active: y === selectedYear }]"
                 @click="selectedYear = y">{{ y }}</button>
       </div>
     </div>
@@ -352,15 +352,8 @@ const hourlyOption = computed(() => {
 }
 .year-tab {
   padding: 0.2rem 0.6rem;
-  border: 1px solid var(--glass-outline-border);
   border-radius: 4px;
   font-size: 0.7rem;
-}
-.year-tab.active {
-  background: var(--glass-btn-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  border-color: var(--color-accent);
-  color: var(--glass-btn-color);
 }
 
 /* Loading */

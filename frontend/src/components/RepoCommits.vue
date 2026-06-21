@@ -15,7 +15,7 @@
     <div v-else-if="!commitsLoaded" class="cta-body">
       <div class="cta-icon">⎔</div>
       <p class="cta-text">{{ t('repo.commitsCta') }}</p>
-      <button class="cta-btn btn-outline" :disabled="commitsLoading" @click="emit('loadCommits')">
+      <button class="cta-btn btn" :disabled="commitsLoading" @click="emit('loadCommits')">
         <span v-if="commitsLoading" class="spinner"></span>
         <span v-else>{{ t('repo.loadCommits') }}</span>
       </button>
@@ -45,7 +45,7 @@
       <div class="load-more-wrap">
         <button
           v-if="hasMore"
-          class="load-more-btn btn-outline"
+          class="load-more-btn btn"
           :disabled="commitsLoading"
           @click="emit('loadMore')"
         >
@@ -117,8 +117,6 @@ function toggleCommit(hash) {
   padding: 0.6rem 1.6rem;
   font-size: 0.85rem;
 }
-.cta-btn:hover:not(:disabled) { background: var(--glass-outline-hover-bg); backdrop-filter: blur(var(--glass-blur)); }
-.cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .empty-body { padding: 2rem; text-align: center; color: var(--color-text-muted); }
 
@@ -163,8 +161,6 @@ function toggleCommit(hash) {
   padding: 0.5rem 2rem;
   font-size: 0.85rem;
 }
-.load-more-btn:hover:not(:disabled) { background: var(--glass-outline-hover-bg); backdrop-filter: blur(var(--glass-blur)); }
-.load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .all-loaded { color: var(--color-all-loaded); font-size: 0.8rem; }
 
 .commit-skeleton { padding: 0.25rem 0; }

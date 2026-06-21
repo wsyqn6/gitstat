@@ -27,7 +27,7 @@
           <div class="toggle-slider" :class="viewMode"></div>
           <button
             @click="viewMode = 'chart'"
-            class="view-toggle-btn btn-ghost"
+            class="view-toggle-btn btn"
             :class="{ active: viewMode === 'chart' }"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
@@ -37,7 +37,7 @@
           </button>
           <button
             @click="viewMode = 'calendar'"
-            class="view-toggle-btn btn-ghost"
+            class="view-toggle-btn btn"
             :class="{ active: viewMode === 'calendar' }"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
@@ -369,17 +369,7 @@ onMounted(async () => {
   gap: 6px;
   padding: 0.5rem 1.2rem;
   font-size: 0.8rem;
-  transition: color 0.25s ease;
-  position: relative;
   z-index: 1;
-}
-
-.view-toggle-btn:active {
-  transform: scale(0.95);
-}
-
-.view-toggle-btn.active {
-  color: var(--glass-btn-color);
 }
 
 .toggle-icon {

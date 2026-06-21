@@ -1,6 +1,6 @@
 <template>
   <div class="dp-wrapper">
-    <div class="dp-trigger btn-outline" @click.stop="open = !open">
+    <div class="dp-trigger btn" @click.stop="open = !open">
       <span class="dp-label">{{ label }}</span>
       <span class="dp-value" :class="{ empty: !start }">
         {{ start ? `${start} ~ ${end}` : placeholder || t('datePicker.placeholder') }}
@@ -11,9 +11,9 @@
       <div v-if="open" class="dp-overlay" @click.stop="open = false">
         <div class="dp-dropdown" :style="dropdownStyle" @click.stop>
           <div class="dp-nav-row">
-            <button @click="navMonth(-1)" class="dp-nav-btn btn-ghost">‹</button>
+            <button @click="navMonth(-1)" class="dp-nav-btn btn">‹</button>
             <span class="dp-nav-title">{{ leftLabel }} — {{ rightLabel }}</span>
-            <button @click="navMonth(1)" class="dp-nav-btn btn-ghost">›</button>
+            <button @click="navMonth(1)" class="dp-nav-btn btn">›</button>
           </div>
           <div class="dp-months">
             <div class="dp-month">
@@ -50,7 +50,7 @@
             <span class="dp-info-dates">{{ localStart || '____-__-__' }} ~ {{ localEnd || '____-__-__' }}</span>
           </div>
           <div class="dp-actions">
-            <button class="dp-clear-btn btn-ghost" @click="clearRange">{{ t('datePicker.clear') }}</button>
+            <button class="dp-clear-btn btn" @click="clearRange">{{ t('datePicker.clear') }}</button>
           </div>
         </div>
       </div>
@@ -208,17 +208,9 @@ function clearRange() {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-trigger);
-  border-radius: 4px;
   padding: 0.5rem 0.6rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
   min-width: 200px;
   white-space: nowrap;
-}
-.dp-trigger:hover {
-  border-color: var(--border-card-hover);
 }
 .dp-label {
   font-size: 0.65rem;
@@ -270,20 +262,14 @@ function clearRange() {
   margin-bottom: 0.75rem;
 }
 .dp-nav-btn {
-  border: 1px solid var(--border-nav-btn);
-  border-radius: 4px;
-  color: var(--color-accent);
   width: 28px;
   height: 28px;
-  font-size: 1rem;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-}
-.dp-nav-btn:hover {
-  background: rgba(var(--color-accent-rgb), 0.1);
-  border-color: var(--border-card-hover);
+  font-size: 1rem;
+  border-radius: 4px;
 }
 .dp-nav-title {
   font-family: var(--font-display);
@@ -392,16 +378,7 @@ function clearRange() {
 }
 .dp-clear-btn {
   padding: 0.3rem 1rem;
-  font-family: var(--font-body);
   font-size: 0.72rem;
-  font-weight: 600;
   border-radius: 4px;
-  transition: all 0.2s ease;
-  border: 1px solid var(--border-clear);
-  color: var(--color-text-muted);
-}
-.dp-clear-btn:hover {
-  background: var(--bg-clear-btn-hover);
-  border-color: var(--border-clear-hover);
 }
 </style>
