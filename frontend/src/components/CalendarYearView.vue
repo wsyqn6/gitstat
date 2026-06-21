@@ -184,6 +184,8 @@ const monthDetail = computed(() => {
   padding: 1.5rem;
   text-align: center;
   cursor: pointer;
+  content-visibility: auto;
+  contain-intrinsic-size: 120px;
 }
 .year-month-card.selected {
   border-color: var(--border-card-hover);

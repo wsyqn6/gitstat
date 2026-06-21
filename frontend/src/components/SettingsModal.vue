@@ -145,6 +145,11 @@ async function handleExport() {
   animation: fadeIn 0.2s ease;
 }
 
+[data-theme="light"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+}
+
 .modal-panel {
   width: 520px;
   max-width: 92vw;
@@ -158,6 +163,13 @@ async function handleExport() {
   flex-direction: column;
   animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+}
+
+[data-theme="light"] .modal-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px);
+  border-color: rgba(60, 60, 67, 0.1);
+  box-shadow: var(--shadow-dropdown), 0 0 40px rgba(60, 60, 67, 0.08);
 }
 
 .modal-header {

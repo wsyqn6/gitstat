@@ -275,7 +275,7 @@
   --backdrop-glass: saturate(130%) blur(24px) brightness(1.1);
 
   --bg-body: #EAEAEF;
-  --bg-body-mid: #F5F5F7;
+  --bg-body-mid: #F0F0F5;
   --bg-body-end: #E2E2E7;
   --bg-body-gradient: linear-gradient(135deg, var(--bg-body) 0%, var(--bg-body-mid) 50%, var(--bg-body-end) 100%);
   --bg-glow-1: rgba(0, 122, 255, 0.08);
@@ -330,8 +330,8 @@
   --bg-range-edge: rgba(0, 122, 255, 0.3);
   --bg-date-cell-hover: rgba(0, 122, 255, 0.2);
 
-  --border-card: rgba(60, 60, 67, 0.06);
-  --border-card-hover: rgba(60, 60, 67, 0.1);
+  --border-card: rgba(60, 60, 67, 0.12);
+  --border-card-hover: rgba(60, 60, 67, 0.18);
   --border-input: rgba(60, 60, 67, 0.15);
   --border-input-focus: var(--color-primary);
   --border-nav: rgba(60, 60, 67, 0.08);
@@ -367,8 +367,8 @@
   --border-panel: rgba(60, 60, 67, 0.1);
   --border-chart-card: rgba(60, 60, 67, 0.1);
 
-  --shadow-card: 0 1px 3px rgba(60, 60, 67, 0.04);
-  --shadow-card-hover: 0 2px 8px rgba(60, 60, 67, 0.06);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 24px rgba(0, 122, 255, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-card-hover-dark: 0 2px 8px rgba(0, 0, 0, 0.03);
   --shadow-btn: 0 4px 15px rgba(0, 122, 255, 0.3);
   --shadow-btn-hover: 0 6px 20px rgba(0, 122, 255, 0.4);
@@ -505,11 +505,20 @@ body::before {
 
 [data-theme="light"] body::before {
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0,0,0,0.015) 20px, rgba(0,0,0,0.015) 21px),
-    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.015) 20px, rgba(0,0,0,0.015) 21px),
+    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0,0,0,0.03) 20px, rgba(0,0,0,0.03) 21px),
+    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.03) 20px, rgba(0,0,0,0.03) 21px),
     radial-gradient(circle at 30% 50%, rgba(0, 122, 255, 0.04) 0%, transparent 55%),
     radial-gradient(circle at 70% 70%, rgba(175, 82, 222, 0.03) 0%, transparent 55%),
     radial-gradient(circle at 50% 20%, rgba(255, 149, 0, 0.02) 0%, transparent 50%);
+}
+
+[data-theme="light"] .glass::before {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, transparent 25%);
+}
+
+[data-theme="light"] .glass::after {
+  background:
+    radial-gradient(ellipse at 45% 35%, rgba(0, 122, 255, 0.015) 0%, transparent 35%);
 }
 
 .glass {
@@ -517,6 +526,7 @@ body::before {
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card), var(--shadow-inset);
   position: relative;
+  contain: paint layout style;
   transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -547,12 +557,16 @@ body::before {
   border-radius: inherit;
   pointer-events: none;
   z-index: -2;
-  -webkit-backdrop-filter: blur(4px) saturate(120%);
-  backdrop-filter: blur(4px) saturate(120%);
-  filter: url(#glass-lensing);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
   background:
-    radial-gradient(ellipse at 45% 35%, rgba(0, 212, 255, 0.04) 0%, transparent 50%),
-    rgba(255, 255, 255, 0.008);
+    radial-gradient(ellipse at 45% 35%, rgba(0, 212, 255, 0.015) 0%, transparent 35%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass {
+    transition: none;
+  }
 }
 
 .card {
