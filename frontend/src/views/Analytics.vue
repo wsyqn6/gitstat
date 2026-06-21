@@ -27,7 +27,7 @@
           <div class="toggle-slider" :class="viewMode"></div>
           <button
             @click="viewMode = 'chart'"
-            class="view-toggle-btn btn"
+            class="view-toggle-btn"
             :class="{ active: viewMode === 'chart' }"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
@@ -37,7 +37,7 @@
           </button>
           <button
             @click="viewMode = 'calendar'"
-            class="view-toggle-btn btn"
+            class="view-toggle-btn"
             :class="{ active: viewMode === 'calendar' }"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
@@ -351,7 +351,7 @@ onMounted(async () => {
   width: calc(50% - 4px);
   height: calc(100% - 6px);
   border-radius: calc(var(--radius-btn) - 2px);
-  background: var(--glass-btn-bg);
+  background: var(--glass-btn-hover-bg);
   backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--glass-btn-shadow), var(--glass-btn-inner);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -368,18 +368,29 @@ onMounted(async () => {
   align-items: center;
   gap: 6px;
   padding: 0.5rem 1.2rem;
-  font-size: 0.8rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  position: relative;
   z-index: 1;
+}
+
+.view-toggle-btn.active {
+  color: var(--glass-btn-color);
+}
+
+.view-toggle-btn:hover:not(.active) {
+  color: var(--color-text-secondary);
 }
 
 .toggle-icon {
   width: 16px;
   height: 16px;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.view-toggle-btn.active .toggle-icon {
-  transform: rotate(6deg);
 }
 
 @media (max-width: 1200px) {

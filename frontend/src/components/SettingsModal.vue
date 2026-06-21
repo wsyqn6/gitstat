@@ -238,8 +238,10 @@ async function handleExport() {
 
 .segment-group {
   display: flex;
-  background: var(--bg-tab);
-  border: 1px solid var(--border-card);
+  background: var(--glass-btn-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-btn-border);
   border-radius: var(--radius-btn);
   padding: 2px;
   gap: 2px;
@@ -253,7 +255,7 @@ async function handleExport() {
   width: calc(50% - 3px);
   height: calc(100% - 4px);
   border-radius: calc(var(--radius-btn) - 2px);
-  background: var(--glass-btn-bg);
+  background: var(--glass-btn-hover-bg);
   backdrop-filter: blur(var(--glass-blur));
   box-shadow: var(--glass-btn-shadow), var(--glass-btn-inner);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);

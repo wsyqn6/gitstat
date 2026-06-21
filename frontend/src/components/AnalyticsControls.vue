@@ -295,7 +295,6 @@ onUnmounted(() => {
 }
 
 .cyber-time-btn {
-  border-radius: 4px;
   min-width: 80px;
 }
 
