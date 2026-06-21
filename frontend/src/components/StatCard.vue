@@ -3,7 +3,6 @@
     <div class="stat-icon">{{ icon }}</div>
     <div class="stat-value">{{ value }}</div>
     <div class="stat-label">{{ label }}</div>
-    <div class="stat-glow"></div>
   </div>
 </template>
 
@@ -28,35 +27,10 @@ const cardStyle = computed(() => ({
   text-align: center;
 }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--accent-color);
-  box-shadow: 
-    var(--shadow-card-hover-dark),
-    0 0 30px var(--accent-color);
-}
-
-.stat-card:hover::before {
-  opacity: 0.1;
-}
-
 .stat-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
   color: var(--accent-color);
-  filter: drop-shadow(0 0 10px var(--accent-color));
   animation: float 3s ease-in-out infinite;
 }
 
@@ -86,16 +60,5 @@ const cardStyle = computed(() => ({
   text-transform: uppercase;
   position: relative;
   z-index: 1;
-}
-
-.stat-glow {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
-  box-shadow: 0 0 10px var(--accent-color);
 }
 </style>

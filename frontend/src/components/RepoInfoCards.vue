@@ -287,8 +287,7 @@ function toggleContributor() {
 .info-card.dim.has-data { opacity: 1; }
 .info-card.clickable { cursor: pointer; }
 .info-card.clickable:hover, .info-card.expanded {
-  border-color: var(--color-accent);
-  transform: translateY(-2px);
+  border-color: var(--border-card-hover);
 }
 
 .info-icon { display: block; font-size: 1.8rem; margin-bottom: 0.5rem; }

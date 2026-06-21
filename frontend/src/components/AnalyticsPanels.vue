@@ -219,17 +219,8 @@ const insights = computed(() => {
   gap: 1rem;
 }
 
-.insight-card:hover {
-  border-color: var(--border-card-hover);
-  transform: translateY(-2px);
-}
-
 .insight-card.clickable {
   cursor: pointer;
-}
-
-.insight-card.clickable.expanded {
-  border-color: var(--color-accent);
 }
 
 .insight-icon {
@@ -240,7 +231,6 @@ const insights = computed(() => {
   align-items: center;
   justify-content: center;
   color: var(--color-accent);
-  filter: drop-shadow(0 0 6px var(--shadow-active));
 }
 
 .icon-star::after  { content: '★'; font-size: 20px; }

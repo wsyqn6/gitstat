@@ -209,7 +209,6 @@ const monthDetail = computed(() => {
 }
 .year-month-card:hover:not(.future-month) {
   border-color: var(--border-card-hover);
-  transform: translateY(-2px);
 }
 .year-month-card::before {
   content: '';

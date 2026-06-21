@@ -114,17 +114,8 @@ const timePeriodLabel = computed(() => {
   gap: 1rem;
 }
 
-.stat-card:hover {
-  border-color: var(--border-card-hover);
-  transform: translateY(-2px);
-}
-
 .stat-card.clickable {
   cursor: pointer;
-}
-
-.stat-card.clickable.expanded {
-  border-color: var(--color-accent);
 }
 
 .stat-icon {
@@ -135,7 +126,6 @@ const timePeriodLabel = computed(() => {
   align-items: center;
   justify-content: center;
   color: var(--color-accent);
-  filter: drop-shadow(var(--shadow-accent-drop));
 }
 
 .stat-icon svg {
