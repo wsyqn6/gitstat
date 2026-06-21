@@ -5,6 +5,10 @@
 - Frontend: `cd frontend && bun run dev` — Vite proxies `/api` → `http://localhost:12580`
 - Version sync: `bun run sync-version` — reads `git describe --tags`
 
+## Git
+- Commits via `git-commit` skill.
+- Message: single line, concise, conventional commit format.
+
 ## Test
 - `cd backend && go test ./...` — no frontend tests, no lint
 
