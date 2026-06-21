@@ -165,7 +165,6 @@
   --gradient-detail-divider: linear-gradient(90deg, transparent, rgba(160, 100, 200, 0.3), transparent);
   --gradient-scrollbar: linear-gradient(180deg, #00f5ff, #ff00ff);
   --gradient-skeleton: linear-gradient(90deg, rgba(0,212,255,0.06) 25%, rgba(0,212,255,0.15) 50%, rgba(0,212,255,0.06) 75%);
-  --gradient-header-bar: linear-gradient(90deg, transparent, #00f5ff, #ff00ff, transparent);
   --gradient-nav-glow: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
   --gradient-btn-glow: linear-gradient(45deg, #00f5ff, #ff00ff, #00f5ff);
   --gradient-section-header: var(--gradient-primary);
@@ -410,7 +409,6 @@
   --gradient-detail-divider: linear-gradient(90deg, transparent, rgba(60, 60, 67, 0.15), transparent);
   --gradient-scrollbar: linear-gradient(180deg, #007AFF, #AF52DE);
   --gradient-skeleton: linear-gradient(90deg, rgba(60,60,67,0.04) 25%, rgba(60,60,67,0.1) 50%, rgba(60,60,67,0.04) 75%);
-  --gradient-header-bar: linear-gradient(90deg, transparent, #007AFF, #AF52DE, transparent);
   --gradient-nav-glow: radial-gradient(circle, rgba(0, 122, 255, 0.15) 0%, transparent 70%);
   --gradient-btn-glow: linear-gradient(45deg, #007AFF, #AF52DE, #007AFF);
   --gradient-section-header: var(--gradient-primary);

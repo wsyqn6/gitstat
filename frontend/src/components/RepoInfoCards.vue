@@ -286,7 +286,7 @@ function toggleContributor() {
 .info-card.dim { opacity: 0.5; }
 .info-card.dim.has-data { opacity: 1; }
 .info-card.clickable { cursor: pointer; }
-.info-card.clickable:hover, .info-card.expanded {
+.info-card.expanded {
   border-color: var(--border-card-hover);
 }
 

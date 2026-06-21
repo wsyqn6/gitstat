@@ -232,21 +232,7 @@ const netChange = computed(() => {
 </script>
 
 <style scoped>
-.cal-month-view.card {
-  position: relative;
-}
-.cal-month-view.card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  background: var(--gradient-header-bar);
-  border-radius: 2px;
-  opacity: 0.45;
-  pointer-events: none;
-}
+
 
 .cal-header {
   margin-bottom: 1.25rem;

@@ -8,7 +8,7 @@
       <div v-for="month in yearData" :key="month.month"
         class="glass year-month-card"
         :class="{ 'future-month': month.isFuture, 'selected': selectedMonth?.key === month.key }"
-        :style="{ '--bg-alpha': month.commits ? (0.05 + Math.min(month.commits / yearMaxCommits, 1) * 0.55).toFixed(2) : '0' }"
+
         @click="!month.isFuture && (selectedMonth = selectedMonth?.key === month.key ? null : month)"
       >
         <div class="ym-header">{{ month.name }}</div>
@@ -131,14 +131,6 @@ const yearData = computed(() => {
   return result
 })
 
-const yearMaxCommits = computed(() => {
-  let m = 0
-  for (const month of yearData.value) {
-    if (month.commits > m) m = month.commits
-  }
-  return m
-})
-
 const monthDetail = computed(() => {
   if (!selectedMonth.value) return []
   const key = selectedMonth.value.key
@@ -163,21 +155,7 @@ const monthDetail = computed(() => {
 </script>
 
 <style scoped>
-.cal-year-view.card {
-  position: relative;
-}
-.cal-year-view.card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  background: var(--gradient-header-bar);
-  border-radius: 2px;
-  opacity: 0.45;
-  pointer-events: none;
-}
+
 
 .cal-header {
   margin-bottom: 1.25rem;
@@ -207,42 +185,8 @@ const monthDetail = computed(() => {
   text-align: center;
   cursor: pointer;
 }
-.year-month-card:hover:not(.future-month) {
-  border-color: var(--border-card-hover);
-}
-.year-month-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 15%;
-  right: 15%;
-  height: 2px;
-  background: var(--gradient-header-bar);
-  border-radius: 2px;
-  opacity: 0.4;
-  transition: all 0.4s ease;
-  pointer-events: none;
-}
-.year-month-card:hover::before {
-  left: 5%;
-  right: 5%;
-  opacity: 0.8;
-}
-.year-month-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(var(--color-primary-rgb), calc(var(--bg-alpha, 0)));
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
 .year-month-card.selected {
-  border-color: var(--color-accent);
-}
-.year-month-card.selected::before {
-  left: 5%;
-  right: 5%;
-  opacity: 1;
+  border-color: var(--border-card-hover);
 }
 .year-month-card.future-month {
   opacity: 0.3;
