@@ -6,7 +6,7 @@
     <div v-if="yearData.length === 0" class="cal-empty">{{ t('analytics.noData') }}</div>
     <div v-else class="year-grid">
       <div v-for="month in yearData" :key="month.month"
-        class="glass year-month-card"
+        class="year-month-card"
         :class="{ 'future-month': month.isFuture, 'selected': selectedMonth?.key === month.key }"
 
         @click="!month.isFuture && (selectedMonth = selectedMonth?.key === month.key ? null : month)"
@@ -181,6 +181,9 @@ const monthDetail = computed(() => {
   gap: 1rem;
 }
 .year-month-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
   padding: 1.5rem;
   text-align: center;
   cursor: pointer;

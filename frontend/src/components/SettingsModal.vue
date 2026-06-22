@@ -140,21 +140,16 @@ async function handleExport() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-overlay);
   backdrop-filter: blur(4px);
   animation: fadeIn 0.2s ease;
-}
-
-[data-theme="light"] .modal-overlay {
-  background: rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(8px);
 }
 
 .modal-panel {
   width: 520px;
   max-width: 92vw;
   max-height: 85vh;
-  background: var(--bg-card);
+  background: var(--modal-bg);
   backdrop-filter: blur(var(--blur-card));
   border: 1px solid var(--border-card);
   border-radius: 20px;
@@ -166,8 +161,6 @@ async function handleExport() {
 }
 
 [data-theme="light"] .modal-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(40px);
   border-color: rgba(60, 60, 67, 0.1);
   box-shadow: var(--shadow-dropdown), 0 0 40px rgba(60, 60, 67, 0.08);
 }
