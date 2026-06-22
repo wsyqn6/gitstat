@@ -47,7 +47,8 @@ var GlobalStore = &Store{
 }
 
 // MergeCommits 增量合并提交，并检查上限
-func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
+// forward=true 时新提交时间更新（最新在前），prepend；否则 append
+func (s *Store) MergeCommits(path string, newCommits []model.Commit, forward bool) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -79,7 +80,11 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 		return false
 	}
 
-	cache.Commits = append(cache.Commits, uniqueCommits...)
+	if forward {
+		cache.Commits = append(uniqueCommits, cache.Commits...)
+	} else {
+		cache.Commits = append(cache.Commits, uniqueCommits...)
+	}
 	s.updateDateRange(cache, uniqueCommits)
 	return true
 }
