@@ -79,13 +79,26 @@ const expandedCommit = ref(null)
 function formatTimeAgo(s) {
   if (!s) return '-'
   const d = new Date(s)
-  const now = Date.now()
-  const diff = (now - d.getTime()) / 1000
-  if (diff < 60) return Math.round(diff) + 's'
-  if (diff < 3600) return Math.round(diff / 60) + 'm'
-  if (diff < 86400) return Math.round(diff / 3600) + 'h'
-  if (diff < 604800) return Math.round(diff / 86400) + 'd'
-  return s.slice(0, 10)
+  const now = new Date()
+  const pad = n => String(n).padStart(2, '0')
+  const hm = pad(d.getHours()) + ':' + pad(d.getMinutes())
+  const diffSec = (now - d.getTime()) / 1000
+
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  if (d >= startOfToday) {
+    if (diffSec < 60) return Math.round(diffSec) + 's'
+    if (diffSec < 3600) return Math.round(diffSec / 60) + 'm'
+    return Math.round(diffSec / 3600) + 'h'
+  }
+
+  const startOfYesterday = new Date(startOfToday)
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1)
+  if (d >= startOfYesterday) return t('repo.yesterday') + ' ' + hm
+
+  const y = d.getFullYear()
+  const mo = pad(d.getMonth() + 1)
+  const dd = pad(d.getDate())
+  return `${y}-${mo}-${dd} ${hm}`
 }
 
 function toggleCommit(hash) {
@@ -123,7 +136,7 @@ function toggleCommit(hash) {
 .commit-list { width: 100%; }
 .commit-main {
   display: grid;
-  grid-template-columns: 0.5fr 4fr 0.7fr 0.5fr 1fr;
+  grid-template-columns: 0.5fr 4fr 0.7fr 0.9fr 0.7fr;
   padding: 0.55rem 0.5rem;
   align-items: center;
   gap: 0.3rem;
@@ -166,7 +179,7 @@ function toggleCommit(hash) {
 .commit-skeleton { padding: 0.25rem 0; }
 .skel-commit-row {
   display: grid;
-  grid-template-columns: 0.5fr 4fr 0.7fr 0.5fr 1fr;
+  grid-template-columns: 0.5fr 4fr 0.7fr 0.9fr 0.7fr;
   padding: 0.55rem 0.5rem;
   align-items: center;
   gap: 0.3rem;
