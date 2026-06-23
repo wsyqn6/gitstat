@@ -14,13 +14,9 @@
       :loading="loading"
       class="chart-card secondary"
     />
-    <ChartContainer
-      :title="t('analytics.charts.devRank.title')"
-      :subtitle="t('analytics.charts.devRank.subtitle')"
-      :option="authorRankOption"
-      :loading="loading"
-      class="chart-card tertiary"
-    />
+    <div class="chart-card rank-card">
+      <RepoAuthorRank :contributors="contributors" :loading="loading" />
+    </div>
     <ChartContainer
       :title="t('analytics.charts.heatmap.title')"
       :subtitle="t('analytics.charts.heatmap.subtitle')"
@@ -50,6 +46,7 @@ import { computed } from 'vue'
 import { useI18n } from '../i18n'
 import echarts from '../utils/echarts'
 import ChartContainer from './ChartContainer.vue'
+import RepoAuthorRank from './RepoAuthorRank.vue'
 import { getChartConfig } from '../utils/constants'
 import { useTheme } from '../composables/useTheme'
 
@@ -132,6 +129,13 @@ const granularityPrefix = computed(() => {
     default: return t('analytics.daily')
   }
 })
+
+const contributors = computed(() =>
+  (props.authorRank || []).map(a => ({
+    ...a,
+    commitCount: a.commits
+  }))
+)
 
 const commitTrendTitle = computed(() => granularityPrefix.value + t('analytics.commitTrend'))
 const codeChangeTitle = computed(() => granularityPrefix.value + t('analytics.codeChange'))
@@ -233,10 +237,35 @@ const commitTrendOption = computed(() => {
   }
 })
 
-const codeChangeOption = computed(() => {
-  const { dates, authors } = processedStats.value
+const dateAggMap = computed(() => {
+  const { dates } = processedStats.value
+  const map = {}
+  for (const date of dates) {
+    let totalAdditions = 0
+    let totalDeletions = 0
+    const authorAddMap = {}
+    const authorDelMap = {}
+    filteredStats.value.forEach(repo => {
+      repo.authors?.forEach(author => {
+        if (!author.dailyData) return
+        const day = author.dailyData.find(d => d.date === date)
+        if (!day) return
+        totalAdditions += day.additions
+        totalDeletions += day.deletions
+        const name = author.author || author.email
+        authorAddMap[name] = (authorAddMap[name] || 0) + day.additions
+        authorDelMap[name] = (authorDelMap[name] || 0) + day.deletions
+      })
+    })
+    map[date] = { totalAdditions, totalDeletions, authorAddMap, authorDelMap }
+  }
+  return map
+})
 
-  if (dates.length === 0 || authors.length === 0) {
+const codeChangeOption = computed(() => {
+  const { dates } = processedStats.value
+
+  if (dates.length === 0) {
     return {
       title: {
         text: t('analytics.noData'),
@@ -248,59 +277,11 @@ const codeChangeOption = computed(() => {
   }
 
   const colors = chartCfg.value.chartColors
-  const series = []
+  const addColor = colors[0]
+  const delColor = colors[1]
 
-  authors.forEach((author, idx) => {
-    const baseColor = colors[idx % colors.length]
-
-    const netData = dates.map(date => {
-      let additions = 0
-      let deletions = 0
-      filteredStats.value.forEach(repo => {
-        const authorStat = repo.authors?.find(a => a.email === author.email)
-        if (authorStat && authorStat.dailyData) {
-          const dayData = authorStat.dailyData.find(d => d.date === date)
-          if (dayData) {
-            additions += dayData.additions
-            deletions += dayData.deletions
-          }
-        }
-      })
-      return { additions, deletions }
-    })
-
-    series.push({
-      name: author.name,
-      type: 'bar',
-      stack: 'total',
-      barWidth: '40%',
-      emphasis: { focus: 'series' },
-      data: netData.map(item => item.additions),
-      itemStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: baseColor },
-          { offset: 1, color: adjustColor(baseColor, -30) }
-        ]),
-        borderRadius: [4, 4, 0, 0]
-      }
-    })
-
-    series.push({
-      name: `${author.name} - ${t('analytics.charts.deletions')}`,
-      type: 'bar',
-      stack: 'total',
-      barWidth: '40%',
-      emphasis: { focus: 'series' },
-      data: netData.map(item => -item.deletions),
-      itemStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: adjustColor(baseColor, -60) },
-          { offset: 1, color: adjustColor(baseColor, -90) }
-        ]),
-        borderRadius: [0, 0, 4, 4]
-      }
-    })
-  })
+  const additionsData = dates.map(d => dateAggMap.value[d]?.totalAdditions || 0)
+  const deletionsData = dates.map(d => -(dateAggMap.value[d]?.totalDeletions || 0))
 
   return {
     tooltip: {
@@ -313,20 +294,27 @@ const codeChangeOption = computed(() => {
         shadowStyle: { color: `rgba(${chartCfg.value.accentRgb}, 0.1)` }
       },
       formatter: (params) => {
-        let result = `<div style="font-weight:bold;margin-bottom:5px">${params[0].axisValue}</div>`
-        params.forEach(param => {
-          const value = Math.abs(param.value)
-          const type = param.value >= 0 ? t('analytics.charts.additions') : t('analytics.charts.deletions')
-          result += `<div>${param.seriesName}: <span style="color:${param.color}">${value}</span> (${type})</div>`
-        })
-        return result
+        const date = params[0].axisValue
+        const agg = dateAggMap.value[date]
+        if (!agg) return ''
+        let html = `<div style="font-weight:bold;margin-bottom:6px">${date}</div>`
+        html += `<div style="margin-bottom:4px">${t('analytics.charts.additions')}: <span style="color:${addColor}">+${agg.totalAdditions}</span></div>`
+        const sortedAdd = Object.entries(agg.authorAddMap).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+        for (const [name, val] of sortedAdd) {
+          html += `<div style="padding-left:12px;font-size:0.85em;color:${chartCfg.value.tooltipText}">${name}: +${val}</div>`
+        }
+        html += `<div style="margin-top:4px;margin-bottom:4px">${t('analytics.charts.deletions')}: <span style="color:${delColor}">-${agg.totalDeletions}</span></div>`
+        const sortedDel = Object.entries(agg.authorDelMap).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+        for (const [name, val] of sortedDel) {
+          html += `<div style="padding-left:12px;font-size:0.85em;color:${chartCfg.value.tooltipText}">${name}: -${val}</div>`
+        }
+        return html
       }
     },
     legend: {
-      data: series.map(s => s.name),
+      data: [t('analytics.charts.additions'), t('analytics.charts.deletions')],
       textStyle: { color: chartCfg.value.axisLabel },
-      top: 10,
-      type: 'scroll'
+      top: 10
     },
     grid: { containLabel: true },
     xAxis: {
@@ -353,77 +341,38 @@ const codeChangeOption = computed(() => {
         }
       }
     },
-    series
-  }
-})
-
-const authorRankOption = computed(() => {
-  if (!props.authorRank || props.authorRank.length === 0) {
-    return {
-      title: {
-        text: t('analytics.noData'),
-        left: 'center',
-        top: 'center',
-        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
-      }
-    }
-  }
-
-  const topAuthors = props.authorRank.slice(0, 10)
-  const colors = chartCfg.value.chartColors
-
-  return {
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: chartCfg.value.tooltipBg,
-      borderColor: chartCfg.value.accent,
-      textStyle: { color: chartCfg.value.tooltipText },
-      axisPointer: { type: 'shadow' },
-      formatter: (params) => {
-        const item = params[0]
-        const author = topAuthors[item.dataIndex]
-        return `
-          <div style="font-weight:bold;margin-bottom:5px">${author.author}</div>
-          <div>${t('analytics.charts.tooltipCommits').replace('{0}', author.commits)}</div>
-          <div>${t('analytics.charts.tooltipAdditions').replace('{0}', author.additions)}</div>
-          <div>${t('analytics.charts.tooltipDeletions').replace('{0}', author.deletions)}</div>
-          <div>${t('analytics.charts.tooltipNetChange').replace('{0}', (author.netChange > 0 ? '+' : '') + author.netChange)}</div>
-        `
-      }
-    },
-    grid: { containLabel: true },
-    xAxis: {
-      type: 'value',
-      axisLine: { show: false },
-      axisLabel: { color: chartCfg.value.axisLabel },
-      splitLine: {
-        lineStyle: {
-          color: chartCfg.value.splitLine,
-          type: 'dashed'
-        }
-      }
-    },
-    yAxis: {
-      type: 'category',
-      data: topAuthors.map(a => a.author),
-      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
-      axisLabel: { color: chartCfg.value.axisLabel },
-      inverse: true
-    },
-    series: [{
-      type: 'bar',
-      data: topAuthors.map((a, idx) => ({
-        value: a.commits,
+    series: [
+      {
+        name: t('analytics.charts.additions'),
+        type: 'bar',
+        stack: 'total',
+        barMaxWidth: 60,
+        emphasis: { focus: 'series' },
+        data: additionsData,
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-            { offset: 0, color: colors[idx % colors.length] },
-            { offset: 1, color: adjustColor(colors[idx % colors.length], -40) }
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: addColor },
+            { offset: 1, color: adjustColor(addColor, -30) }
           ]),
-          borderRadius: [0, 4, 4, 0]
+          borderRadius: [4, 4, 0, 0]
         }
-      })),
-      barWidth: '60%'
-    }]
+      },
+      {
+        name: t('analytics.charts.deletions'),
+        type: 'bar',
+        stack: 'total',
+        barMaxWidth: 60,
+        emphasis: { focus: 'series' },
+        data: deletionsData,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: adjustColor(delColor, -60) },
+            { offset: 1, color: adjustColor(delColor, -90) }
+          ]),
+          borderRadius: [0, 0, 4, 4]
+        }
+      }
+    ]
   }
 })
 
@@ -643,6 +592,18 @@ const repoComparisonOption = computed(() => {
 .chart-card {
   min-height: 450px;
   height: 450px;
+}
+
+.rank-card {
+  min-height: 450px;
+  height: 450px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.rank-card :deep(.author-rank) {
+  flex: 1;
 }
 
 @media (max-width: 1200px) {
