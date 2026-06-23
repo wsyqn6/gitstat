@@ -2,39 +2,6 @@
   <div class="controls-section">
     <div class="controls-inline">
       <div class="control-item">
-        <label class="control-label">{{ t('analytics.timeRange') }}</label>
-        <div class="time-selector-cyber">
-          <div class="quick-options-cyber">
-            <button
-              v-for="option in timeOptions"
-              :key="option.value"
-              @click="selectTimeRange(option.value)"
-               class="cyber-time-btn btn"
-              :class="{ active: selectedTimeRange === option.value }"
-            >
-              <span class="btn-text-cyber">{{ t(option.labelKey) }}</span>
-            </button>
-            <button
-              @click.stop="emit('update:showCustomPicker', !showCustomPicker)"
-               class="cyber-time-btn custom-btn btn"
-              :class="{ active: selectedTimeRange === 'custom' }"
-            >
-              <span class="btn-text-cyber">{{ t('analytics.customPeriod') }}</span>
-            </button>
-          </div>
-
-          <div v-if="showCustomPicker" class="custom-picker-popup" @click.stop>
-            <DatePicker
-              :start="customStartDate"
-              :end="customEndDate"
-              @update:start="onCustomStart"
-              @update:end="onCustomEnd"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="control-item">
         <label class="control-label">{{ t('analytics.repoFilter') }}</label>
         <div v-if="repositories.length > 1" class="repo-dropdown">
           <button
@@ -72,13 +39,46 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
-                <span class="option-text">{{ repo.name }}</span>
+                <span class="option-text" :title="repo.name">{{ repo.name }}</span>
               </button>
             </div>
           </div>
         </div>
         <div v-else-if="repositories.length === 1" class="single-repo-label">
           {{ repositories[0].name }}
+        </div>
+      </div>
+
+      <div class="control-item">
+        <label class="control-label">{{ t('analytics.timeRange') }}</label>
+        <div class="time-selector-cyber">
+          <div class="quick-options-cyber">
+            <button
+              v-for="option in timeOptions"
+              :key="option.value"
+              @click="selectTimeRange(option.value)"
+               class="cyber-time-btn btn"
+              :class="{ active: selectedTimeRange === option.value }"
+            >
+              <span class="btn-text-cyber">{{ t(option.labelKey) }}</span>
+            </button>
+            <button
+              @click.stop="emit('update:showCustomPicker', !showCustomPicker)"
+               class="cyber-time-btn custom-btn btn"
+              :class="{ active: selectedTimeRange === 'custom' }"
+            >
+              <span class="btn-text-cyber">{{ t('analytics.customPeriod') }}</span>
+            </button>
+          </div>
+
+          <div v-if="showCustomPicker" class="custom-picker-popup" @click.stop>
+            <DatePicker
+              :start="customStartDate"
+              :end="customEndDate"
+              @update:start="onCustomStart"
+              @update:end="onCustomEnd"
+            />
+          </div>
         </div>
       </div>
 
@@ -345,7 +345,9 @@ onUnmounted(() => {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  right: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 90vw;
   background: var(--bg-dropdown-full);
   backdrop-filter: blur(var(--blur-card));
   border: 2px solid var(--border-dropdown);
