@@ -97,14 +97,24 @@ const filteredStats = computed(() => {
     : source.filter(stat => props.selectedRepos.includes(stat.repoPath))
 })
 
+const normalizedStats = computed(() =>
+  filteredStats.value.map(repo => ({
+    ...repo,
+    authors: repo.authors?.map(a => ({
+      ...a,
+      dailyData: a.dailyData || a.periodData
+    }))
+  }))
+)
+
 const processedStats = computed(() => {
-  const data = filteredStats.value
+  const data = normalizedStats.value
   const dateSet = new Set()
   const authorMap = new Map()
 
   data.forEach(repo => {
     repo.authors?.forEach(author => {
-      (author.dailyData || author.periodData)?.forEach(day => dateSet.add(day.date))
+      author.dailyData?.forEach(day => dateSet.add(day.date))
       if (!authorMap.has(author.email)) {
         authorMap.set(author.email, {
           name: author.author,
@@ -158,10 +168,10 @@ const commitTrendOption = computed(() => {
   const series = authors.map((author, idx) => {
     const data = dates.map(date => {
       let commits = 0
-      filteredStats.value.forEach(repo => {
+      normalizedStats.value.forEach(repo => {
         const authorStat = repo.authors?.find(a => a.email === author.email)
-        if (authorStat) {
-          const dayData = (authorStat.dailyData || authorStat.periodData)?.find(d => d.date === date)
+        if (authorStat && authorStat.dailyData) {
+          const dayData = authorStat.dailyData.find(d => d.date === date)
           if (dayData) commits += dayData.commits
         }
       })
@@ -245,11 +255,10 @@ const dateAggMap = computed(() => {
     let totalDeletions = 0
     const authorAddMap = {}
     const authorDelMap = {}
-    filteredStats.value.forEach(repo => {
+    normalizedStats.value.forEach(repo => {
       repo.authors?.forEach(author => {
-        const dataArr = author.dailyData || author.periodData
-        if (!dataArr) return
-        const day = dataArr.find(d => d.date === date)
+        if (!author.dailyData) return
+        const day = author.dailyData.find(d => d.date === date)
         if (!day) return
         totalAdditions += day.additions
         totalDeletions += day.deletions
