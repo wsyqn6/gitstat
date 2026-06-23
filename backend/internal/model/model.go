@@ -70,7 +70,7 @@ type AuthorPeriodStats struct {
 	Additions  int               `json:"additions"`
 	Deletions  int               `json:"deletions"`
 	IsMe       bool              `json:"-"`
-	PeriodData []PeriodCommitData `json:"dailyData,omitempty"`
+	PeriodData []PeriodCommitData `json:"periodData,omitempty"`
 }
 
 type RepositoryPeriodStats struct {

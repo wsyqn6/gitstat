@@ -104,7 +104,7 @@ const processedStats = computed(() => {
 
   data.forEach(repo => {
     repo.authors?.forEach(author => {
-      author.dailyData?.forEach(day => dateSet.add(day.date))
+      (author.dailyData || author.periodData)?.forEach(day => dateSet.add(day.date))
       if (!authorMap.has(author.email)) {
         authorMap.set(author.email, {
           name: author.author,
@@ -160,8 +160,8 @@ const commitTrendOption = computed(() => {
       let commits = 0
       filteredStats.value.forEach(repo => {
         const authorStat = repo.authors?.find(a => a.email === author.email)
-        if (authorStat && authorStat.dailyData) {
-          const dayData = authorStat.dailyData.find(d => d.date === date)
+        if (authorStat) {
+          const dayData = (authorStat.dailyData || authorStat.periodData)?.find(d => d.date === date)
           if (dayData) commits += dayData.commits
         }
       })
@@ -247,8 +247,9 @@ const dateAggMap = computed(() => {
     const authorDelMap = {}
     filteredStats.value.forEach(repo => {
       repo.authors?.forEach(author => {
-        if (!author.dailyData) return
-        const day = author.dailyData.find(d => d.date === date)
+        const dataArr = author.dailyData || author.periodData
+        if (!dataArr) return
+        const day = dataArr.find(d => d.date === date)
         if (!day) return
         totalAdditions += day.additions
         totalDeletions += day.deletions

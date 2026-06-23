@@ -90,6 +90,10 @@ func resolveUserEmail(repos []model.Repository, email string) string {
 	return ""
 }
 
+func writeSuccess(w http.ResponseWriter, tag string, data interface{}) {
+	writeJSON(w, tag, model.ApiResponse{Code: 200, Data: data})
+}
+
 func writeJSON(w http.ResponseWriter, tag string, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 

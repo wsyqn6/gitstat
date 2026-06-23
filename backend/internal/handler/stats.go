@@ -15,7 +15,7 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
 	stats := aggregator.AggregateOverview(repos, userEmail, startDate, endDate)
-	writeJSON(w, "Overview", stats)
+	writeSuccess(w, "Overview", stats)
 }
 
 func GetStatsHandler(period string) http.HandlerFunc {
@@ -30,16 +30,16 @@ func GetStatsHandler(period string) http.HandlerFunc {
 		switch period {
 		case "daily":
 			stats := aggregator.AggregateDailyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeJSON(w, "Daily", stats)
+			writeSuccess(w, "Daily", stats)
 		case "weekly":
 			stats := aggregator.AggregateWeeklyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeJSON(w, "Weekly", stats)
+			writeSuccess(w, "Weekly", stats)
 		case "monthly":
 			stats := aggregator.AggregateMonthlyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeJSON(w, "Monthly", stats)
+			writeSuccess(w, "Monthly", stats)
 		case "yearly":
 			stats := aggregator.AggregateYearlyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeJSON(w, "Yearly", stats)
+			writeSuccess(w, "Yearly", stats)
 		default:
 			writeError(w, ErrCodeInvalidRequest, "invalid period", http.StatusBadRequest)
 		}
@@ -55,7 +55,7 @@ func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
 	rank := aggregator.AggregateAuthorRank(repos, userEmail, startDate, endDate)
-	writeJSON(w, "AuthorRank", rank)
+	writeSuccess(w, "AuthorRank", rank)
 }
 
 func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +67,7 @@ func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
 	heatmap := aggregator.AggregateActivityHeatmap(repos, userEmail, startDate, endDate)
-	writeJSON(w, "Heatmap", heatmap)
+	writeSuccess(w, "Heatmap", heatmap)
 }
 
 func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
@@ -79,5 +79,5 @@ func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
 	comparison := aggregator.AggregateRepoComparison(repos, userEmail, startDate, endDate)
-	writeJSON(w, "RepoComparison", comparison)
+	writeSuccess(w, "RepoComparison", comparison)
 }

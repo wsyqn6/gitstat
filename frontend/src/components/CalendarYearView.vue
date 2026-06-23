@@ -105,7 +105,7 @@ const yearData = computed(() => {
 
   for (const repo of props.periodStats) {
     for (const author of repo.authors) {
-      for (const period of author.dailyData) {
+      for (const period of (author.periodData || [])) {
         if (monthMap.has(period.date)) {
           const data = monthMap.get(period.date)
           data.commits += period.commits
@@ -137,7 +137,7 @@ const monthDetail = computed(() => {
   const items = []
   for (const repo of props.periodStats) {
     for (const author of repo.authors) {
-      for (const period of author.dailyData) {
+      for (const period of (author.periodData || [])) {
         if (period.date === key && period.commits > 0) {
           items.push({
             repoName: repo.repoName,

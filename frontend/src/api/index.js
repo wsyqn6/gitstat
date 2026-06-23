@@ -15,7 +15,8 @@ export async function getScanPath() {
 
 export async function getOverviewStats(startDate, endDate, repos = []) {
   const params = buildParams({ startDate, endDate, repos })
-  return request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats' })
+  const res = await request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats' })
+  return res.data
 }
 
 export async function getRepositories() {
@@ -28,37 +29,44 @@ export async function exportData() {
 
 export async function getDailyStats(email, timeRange = 'week', repos = [], startDate, endDate) {
   const params = buildParams({ email, timeRange, repos, startDate, endDate })
-  return request(`${BASE}/stats/daily?${params}`, { errorMsg: 'Failed to fetch daily stats' })
+  const res = await request(`${BASE}/stats/daily?${params}`, { errorMsg: 'Failed to fetch daily stats' })
+  return res.data
 }
 
 export async function getAuthorRank(repos = [], startDate, endDate, timeRange = 'week') {
   const params = buildParams({ repos, startDate, endDate, timeRange })
-  return request(`${BASE}/stats/authors?${params}`, { errorMsg: 'Failed to fetch author rank' })
+  const res = await request(`${BASE}/stats/authors?${params}`, { errorMsg: 'Failed to fetch author rank' })
+  return res.data
 }
 
 export async function getWeeklyStats(email, timeRange = 'week', repos = [], startDate, endDate) {
   const params = buildParams({ email, timeRange, repos, startDate, endDate })
-  return request(`${BASE}/stats/weekly?${params}`, { errorMsg: 'Failed to fetch weekly stats' })
+  const res = await request(`${BASE}/stats/weekly?${params}`, { errorMsg: 'Failed to fetch weekly stats' })
+  return res.data
 }
 
 export async function getMonthlyStats(email, timeRange = 'month', repos = [], startDate, endDate) {
   const params = buildParams({ email, timeRange, repos, startDate, endDate })
-  return request(`${BASE}/stats/monthly?${params}`, { errorMsg: 'Failed to fetch monthly stats' })
+  const res = await request(`${BASE}/stats/monthly?${params}`, { errorMsg: 'Failed to fetch monthly stats' })
+  return res.data
 }
 
 export async function getYearlyStats(email, timeRange = 'year', repos = [], startDate, endDate) {
   const params = buildParams({ email, timeRange, repos, startDate, endDate })
-  return request(`${BASE}/stats/yearly?${params}`, { errorMsg: 'Failed to fetch yearly stats' })
+  const res = await request(`${BASE}/stats/yearly?${params}`, { errorMsg: 'Failed to fetch yearly stats' })
+  return res.data
 }
 
 export async function getActivityHeatmap(repos = [], startDate, endDate) {
   const params = buildParams({ repos, startDate, endDate })
-  return request(`${BASE}/stats/activity-heatmap?${params}`, { errorMsg: 'Failed to fetch activity heatmap' })
+  const res = await request(`${BASE}/stats/activity-heatmap?${params}`, { errorMsg: 'Failed to fetch activity heatmap' })
+  return res.data
 }
 
 export async function getRepoComparison(repos = [], startDate, endDate, timeRange = 'week') {
   const params = buildParams({ repos, startDate, endDate, timeRange })
-  return request(`${BASE}/stats/repo-comparison?${params}`, { errorMsg: 'Failed to fetch repo comparison' })
+  const res = await request(`${BASE}/stats/repo-comparison?${params}`, { errorMsg: 'Failed to fetch repo comparison' })
+  return res.data
 }
 
 export async function getReposList() {
