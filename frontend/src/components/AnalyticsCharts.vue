@@ -137,10 +137,6 @@ const netChangeOption = computed(() => {
       backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
-      axisPointer: {
-        type: 'shadow',
-        shadowStyle: { color: `rgba(${chartCfg.value.accentRgb}, 0.1)` }
-      },
       formatter: (params) => {
         const d = data[params[0].dataIndex]
         return [
@@ -149,11 +145,6 @@ const netChangeOption = computed(() => {
           `<div>${t('analytics.charts.deletions')}: <span style="color:${green}">-${d.deletions}</span></div>`
         ].join('')
       }
-    },
-    legend: {
-      data: [t('analytics.charts.additions'), t('analytics.charts.deletions')],
-      textStyle: { color: chartCfg.value.axisLabel },
-      top: 10
     },
     grid: { containLabel: true },
     xAxis: {
@@ -174,33 +165,22 @@ const netChangeOption = computed(() => {
         lineStyle: { color: chartCfg.value.splitLine, type: 'dashed' }
       }
     },
-    series: [
-      {
-        name: t('analytics.charts.additions'),
-        type: 'bar',
-        barMaxWidth: 30,
-        data: data.map(d => d.additions),
+    series: [{
+      type: 'bar',
+      barMaxWidth: 60,
+      data: data.map(d => ({
+        value: d.net,
         itemStyle: {
-          color: 'transparent',
-          borderColor: red,
-          borderWidth: 2,
-          borderRadius: [4, 4, 0, 0]
-        }
-      },
-      {
-        name: t('analytics.charts.deletions'),
-        type: 'bar',
-        barMaxWidth: 30,
-        data: data.map(d => d.deletions),
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          color: d.net >= 0 ? 'transparent' : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: green },
             { offset: 1, color: adjustColor(green, -60) }
           ]),
-          borderRadius: [4, 4, 0, 0]
+          borderColor: d.net >= 0 ? red : 'transparent',
+          borderWidth: d.net >= 0 ? 2 : 0,
+          borderRadius: d.net >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4]
         }
-      }
-    ]
+      }))
+    }]
   }
 })
 
