@@ -31,13 +31,6 @@
       :loading="loading"
       class="chart-card tertiary"
     />
-    <ChartContainer
-      :title="t('analytics.charts.repoCompare.title')"
-      :subtitle="t('analytics.charts.repoCompare.subtitle')"
-      :option="repoComparisonOption"
-      :loading="loading"
-      class="chart-card quinary"
-    />
   </div>
 </template>
 
@@ -59,8 +52,7 @@ const props = defineProps({
   currentGranularity: String,
   selectedRepos: Array,
   authorRank: Array,
-  activityHeatmap: Array,
-  repoComparison: Array
+  activityHeatmap: Array
 })
 
 function formatPeriodLabel(period, granularity) {
@@ -518,78 +510,6 @@ const hourlyOption = computed(() => {
   }
 })
 
-const repoComparisonOption = computed(() => {
-  if (!props.repoComparison || props.repoComparison.length === 0) {
-    return {
-      title: {
-        text: t('analytics.noData'),
-        left: 'center',
-        top: 'center',
-        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
-      }
-    }
-  }
-
-  const repos = props.repoComparison.slice(0, 5)
-  const colors = chartCfg.value.chartColors
-
-  const maxCommits = Math.max(...repos.map(r => r.commits))
-  const maxAdditions = Math.max(...repos.map(r => r.additions))
-  const maxAuthors = Math.max(...repos.map(r => r.authors))
-  const maxActiveDays = Math.max(...repos.map(r => r.activeDays))
-
-  return {
-    tooltip: {
-      backgroundColor: chartCfg.value.tooltipBg,
-      borderColor: chartCfg.value.accent,
-      textStyle: { color: chartCfg.value.tooltipText }
-    },
-    legend: {
-      data: repos.map(r => r.repoName),
-      textStyle: { color: chartCfg.value.axisLabel },
-      top: 10
-    },
-    radar: {
-      indicator: [
-        { name: t('analytics.charts.commits'), max: 100 },
-        { name: t('analytics.charts.codeVolume'), max: 100 },
-        { name: t('analytics.charts.authorCount'), max: 100 },
-        { name: t('analytics.charts.activeDays'), max: 100 },
-        { name: t('analytics.charts.dailyAvg'), max: 100 }
-      ],
-      shape: 'polygon',
-      splitNumber: 4,
-      axisName: { color: chartCfg.value.axisLabel },
-      splitLine: {
-        lineStyle: { color: `rgba(${chartCfg.value.accentRgb}, 0.2)` }
-      },
-      splitArea: {
-        areaStyle: {
-          color: [`rgba(${chartCfg.value.accentRgb}, 0.05)`, `rgba(${chartCfg.value.accentRgb}, 0.1)`]
-        }
-      }
-    },
-    series: [{
-      type: 'radar',
-      data: repos.map((repo, idx) => {
-        const avgCommitsPerDayNormalized = repo.avgCommitsPerDay > 10 ? 100 : (repo.avgCommitsPerDay / 10) * 100
-        return {
-          value: [
-            (repo.commits / maxCommits) * 100,
-            (repo.additions / maxAdditions) * 100,
-            (repo.authors / maxAuthors) * 100,
-            (repo.activeDays / maxActiveDays) * 100,
-            avgCommitsPerDayNormalized
-          ],
-          name: repo.repoName,
-          lineStyle: { color: colors[idx % colors.length], width: 2 },
-          itemStyle: { color: colors[idx % colors.length] },
-          areaStyle: { opacity: 0.2, color: colors[idx % colors.length] }
-        }
-      })
-    }]
-  }
-})
 </script>
 
 <style scoped>

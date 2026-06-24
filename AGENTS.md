@@ -20,10 +20,14 @@
 - Backend: Go 1.26, chi router, 6 internal packages
 - Frontend: Vue 3 + Vite + ECharts, no Vue Router/Pinia, custom i18n (`src/i18n.js`)
 - API: REST under `/api/*`, query params: `startDate`, `endDate`, `range`, `repos`
+- Pages: 概览(Dashboard) / 趋势(Trends) / 仓库(RepoSection) / 对比(Compare)
+  - `Trends.vue` replaces old `Analytics.vue` — time-series charts only, no cross-repo compare
+  - `Compare.vue` (future) — cross-repo radar/table comparison
 
 ## Gotchas
 - No CI. `.gitignore` has `*.exe` (covers binary).
 - Lazy loading in `handler/lazy_load.go` — incremental forward/backward git log scan.
+- Page rename: old `analytics` localStorage key auto-migrates to `trends` in App.vue
 
 ## Frontend Conventions
 

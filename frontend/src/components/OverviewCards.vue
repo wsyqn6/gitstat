@@ -37,7 +37,7 @@
           <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
         </div>
       </div>
-      <div class="glass stat-card clickable" :class="{ expanded: expandedSection === 'authors' }" @click="emit('toggle-section', 'authors')">
+      <div class="glass stat-card clickable" :class="{ expanded: expanded }" @click="toggleExpand">
         <div class="stat-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -47,8 +47,28 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-label">{{ t('analytics.activeAuthors') }}</div>
+          <div class="stat-label">{{ t('analytics.activeAuthors') }} <span class="expand-icon">{{ expanded ? '▼' : '▶' }}</span></div>
           <div class="stat-value">{{ overviewStats.activeAuthors }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="expanded && overviewStats.authors" class="expand-panel glass card">
+      <h4>{{ timePeriodLabel }}{{ t('dashboard.authorRank') }} · {{ t('calendar.total') }} {{ overviewStats.authors.length }}</h4>
+      <div class="contrib-table">
+        <div class="contrib-header">
+          <span>{{ t('dashboard.author') }}</span>
+          <span>{{ t('dashboard.commits') }}</span>
+          <span class="add">{{ t('analytics.charts.additions') }}</span>
+          <span class="del">{{ t('analytics.charts.deletions') }}</span>
+          <span>{{ t('analytics.charts.netChange') }}</span>
+        </div>
+        <div v-for="author in overviewStats.authors" :key="author.email" class="contrib-row">
+          <span class="contrib-name">{{ author.author }}</span>
+          <span>{{ author.commits }}</span>
+          <span class="add">+{{ author.additions }}</span>
+          <span class="del">-{{ author.deletions }}</span>
+          <span :class="author.netChange >= 0 ? 'add' : 'del'">{{ author.netChange >= 0 ? '+' : '' }}{{ author.netChange }}</span>
         </div>
       </div>
     </div>
@@ -56,7 +76,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
@@ -64,12 +84,15 @@ const { t } = useI18n()
 const props = defineProps({
   overviewStats: Object,
   loadedTimeRange: String,
-  expandedSection: String,
   customStartDate: String,
   customEndDate: String
 })
 
-defineEmits(['toggle-section'])
+const expanded = ref(false)
+
+function toggleExpand() {
+  expanded.value = !expanded.value
+}
 
 const timePeriodLabel = computed(() => {
   switch (props.loadedTimeRange) {
@@ -118,6 +141,14 @@ const timePeriodLabel = computed(() => {
   cursor: pointer;
 }
 
+.stat-card.clickable:hover {
+  border-color: var(--border-card-hover);
+}
+
+.stat-card.expanded {
+  border-color: var(--border-card-hover);
+}
+
 .stat-icon {
   flex-shrink: 0;
   width: 24px;
@@ -151,5 +182,71 @@ const timePeriodLabel = computed(() => {
   font-size: 0.85rem;
   letter-spacing: 1px;
   margin-bottom: 0.25rem;
+}
+
+.expand-icon {
+  font-size: 0.6rem;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+}
+
+.expand-panel {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  animation: slideDown 0.25s ease;
+}
+
+.expand-panel h4 {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  letter-spacing: 1px;
+  margin: 0 0 1rem 0;
+}
+
+.contrib-table {
+  width: 100%;
+}
+
+.contrib-header,
+.contrib-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  padding: 0.6rem 0.5rem;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.contrib-header {
+  background: var(--bg-row-header);
+  border-bottom: 1px solid var(--border-card-subtle);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--color-nav-link);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.contrib-row {
+  border-bottom: 1px solid var(--border-row-subtle);
+  color: var(--color-text-primary);
+}
+
+.contrib-row:hover {
+  background: var(--bg-row-hover);
+}
+
+.contrib-name {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.add {
+  color: var(--color-green);
+}
+
+.del {
+  color: var(--color-red);
 }
 </style>

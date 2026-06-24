@@ -25,14 +25,14 @@
           </span>
           {{ t('nav.dashboard') }}
         </a>
-        <a @click="setView('analytics')" :class="{ active: currentView === 'analytics' }">
+        <a @click="setView('trends')" :class="{ active: currentView === 'trends' }">
           <span class="nav-icon">
             <svg viewBox="0 0 16 16" fill="currentColor">
               <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
               <circle cx="8" cy="8" r="2.5"/>
             </svg>
           </span>
-          {{ t('nav.analytics') }}
+          {{ t('nav.trends') }}
         </a>
         <a @click="setView('repos')" :class="{ active: currentView === 'repos' }">
           <span class="nav-icon">
@@ -83,14 +83,15 @@ import ToastContainer from './components/ToastContainer.vue'
 import SettingsModal from './components/SettingsModal.vue'
 
 const Dashboard = defineAsyncComponent(() => import('./views/Dashboard.vue'))
-const Analytics = defineAsyncComponent(() => import('./views/Analytics.vue'))
+const Trends = defineAsyncComponent(() => import('./views/Trends.vue'))
 const RepoSection = defineAsyncComponent(() => import('./views/RepoSection.vue'))
 
-const componentMap = { dashboard: Dashboard, analytics: Analytics, repos: RepoSection }
+const componentMap = { dashboard: Dashboard, trends: Trends, repos: RepoSection }
 
 const { t } = useI18n()
 const { theme } = useTheme()
-const currentView = ref(localStorage.getItem('currentView') || 'dashboard')
+const savedView = localStorage.getItem('currentView')
+const currentView = ref(savedView === 'analytics' ? 'trends' : (savedView || 'dashboard'))
 const currentComponent = computed(() => componentMap[currentView.value])
 const showSettings = ref(false)
 const scanPath = ref('')

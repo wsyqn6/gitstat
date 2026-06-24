@@ -41,31 +41,6 @@
       </div>
     </div>
 
-    <div v-if="expandedSection === 'repos' && repoComparison.length > 0" class="glass expand-panel">
-      <div class="expand-panel-header">{{ timePeriodPrefix }}{{ t('analytics.panels.activeReposTitle') }} · {{ t('calendar.total') }} {{ repoComparison.filter(r => r.commits > 0).length }} </div>
-      <table class="expand-table">
-        <thead>
-          <tr>
-            <th>{{ t('analytics.repoName') }}</th>
-            <th>{{ t('dashboard.commits') }}</th>
-            <th>{{ t('analytics.charts.authorCount') }}</th>
-            <th>{{ t('analytics.charts.additions') }}</th>
-            <th>{{ t('analytics.charts.activeDays') }}</th>
-            <th>{{ t('analytics.charts.dailyAvg') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="repo in repoComparison" :key="repo.repoPath">
-            <td class="cell-author">{{ repo.repoName }}</td>
-            <td>{{ repo.commits }}</td>
-            <td>{{ repo.authors }}</td>
-            <td class="cell-additions">+{{ repo.additions }}</td>
-            <td>{{ repo.activeDays }}</td>
-            <td>{{ repo.avgCommitsPerDay }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
   </div>
 </template>
 
@@ -79,7 +54,6 @@ const props = defineProps({
   expandedSection: String,
   overviewStats: Object,
   loadedTimeRange: String,
-  repoComparison: Array,
   authorRank: Array
 })
 
@@ -128,18 +102,6 @@ const insights = computed(() => {
       title: t('analytics.panels.netGrowthTitle'),
       value: `${netChange > 0 ? '+' : ''}${netChange}`,
       description: t('analytics.panels.netGrowthDesc').replace('{prefix}', prefix).replace('{0}', netChange)
-    })
-  }
-
-  if (props.repoComparison && props.repoComparison.length > 0) {
-    const activeRepos = props.repoComparison.filter(r => r.commits > 0).length
-    result.push({
-      icon: 'folder',
-      title: t('analytics.panels.activeReposTitle'),
-      value: t('analytics.panels.activeReposValue').replace('{0}', activeRepos),
-      description: t('analytics.panels.activeReposDesc').replace('{prefix}', prefix).replace('{0}', activeRepos),
-      clickable: true,
-      section: 'repos'
     })
   }
 

@@ -4,7 +4,7 @@ const messages = {
   zh: {
     nav: {
       dashboard: '仪表盘',
-      analytics: '数据分析',
+      trends: '趋势分析',
       repos: '仓库信息',
       settings: '设置',
       github: 'GitHub'
@@ -46,6 +46,10 @@ const messages = {
       directoryPath: '目录路径',
       startScan: '开始扫描',
       scanning: '扫描中...'
+    },
+    trends: {
+      title: '趋势分析',
+      subtitle: '时间维度 · 变化洞察'
     },
     analytics: {
       title: '数据分析中心',
@@ -230,7 +234,7 @@ const messages = {
   en: {
     nav: {
       dashboard: 'Dashboard',
-      analytics: 'Analytics',
+      trends: 'Trends',
       repos: 'Repositories',
       settings: 'Settings',
       github: 'GitHub'
@@ -272,6 +276,10 @@ const messages = {
       placeholder: 'Select date range',
       monthFormat: '{m}/{y}',
       dayNames: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+    },
+    trends: {
+      title: 'Trends',
+      subtitle: 'Time Dimension · Change Insights'
     },
     analytics: {
       title: 'Data Analytics Center',
