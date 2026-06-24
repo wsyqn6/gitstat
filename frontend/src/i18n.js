@@ -49,7 +49,9 @@ const messages = {
     },
     trends: {
       title: '趋势分析',
-      subtitle: '时间维度 · 变化洞察'
+      subtitle: '时间维度 · 变化洞察',
+      timeSeriesTitle: '时间趋势',
+      authorAnalysis: '作者分析'
     },
     analytics: {
       title: '数据分析中心',
@@ -279,7 +281,9 @@ const messages = {
     },
     trends: {
       title: 'Trends',
-      subtitle: 'Time Dimension · Change Insights'
+      subtitle: 'Time Dimension · Change Insights',
+      timeSeriesTitle: 'Time Trends',
+      authorAnalysis: 'Author Analysis'
     },
     analytics: {
       title: 'Data Analytics Center',

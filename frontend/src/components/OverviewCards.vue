@@ -1,5 +1,5 @@
 <template>
-  <div v-if="overviewStats" class="overview-section">
+  <div class="overview-section">
     <div class="overview-period-label">{{ timePeriodLabel }}{{ t('analytics.overviewTitle') }}</div>
     <div class="overview-cards">
       <div class="glass stat-card">
@@ -10,7 +10,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-label">{{ t('analytics.totalCommits') }}</div>
-          <div class="stat-value">{{ overviewStats.totalCommits }}</div>
+          <div class="stat-value">{{ displayValue(overviewStats?.totalCommits) }}</div>
         </div>
       </div>
       <div class="glass stat-card">
@@ -22,7 +22,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-label">{{ t('analytics.totalAdditions') }}</div>
-          <div class="stat-value">{{ overviewStats.totalAdditions }}</div>
+          <div class="stat-value">{{ displayValue(overviewStats?.totalAdditions) }}</div>
         </div>
       </div>
       <div class="glass stat-card">
@@ -34,7 +34,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-label">{{ t('analytics.totalDeletions') }}</div>
-          <div class="stat-value">{{ overviewStats.totalDeletions }}</div>
+          <div class="stat-value">{{ displayValue(overviewStats?.totalDeletions) }}</div>
         </div>
       </div>
       <div class="glass stat-card clickable" :class="{ expanded: expanded }" @click="toggleExpand">
@@ -48,12 +48,12 @@
         </div>
         <div class="stat-content">
           <div class="stat-label">{{ t('analytics.activeAuthors') }} <span class="expand-icon">{{ expanded ? '▼' : '▶' }}</span></div>
-          <div class="stat-value">{{ overviewStats.activeAuthors }}</div>
+          <div class="stat-value">{{ displayValue(overviewStats?.activeAuthors) }}</div>
         </div>
       </div>
     </div>
 
-    <div v-if="expanded && overviewStats.authors" class="expand-panel glass card">
+    <div v-if="expanded && overviewStats?.authors" class="expand-panel glass card">
       <h4>{{ timePeriodLabel }}{{ t('dashboard.authorRank') }} · {{ t('calendar.total') }} {{ overviewStats.authors.length }}</h4>
       <div class="contrib-table">
         <div class="contrib-header">
@@ -92,6 +92,10 @@ const expanded = ref(false)
 
 function toggleExpand() {
   expanded.value = !expanded.value
+}
+
+function displayValue(val) {
+  return val !== undefined && val !== null ? val : '--'
 }
 
 const timePeriodLabel = computed(() => {

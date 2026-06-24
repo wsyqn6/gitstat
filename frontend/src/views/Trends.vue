@@ -22,34 +22,6 @@
           @analyze="loadData"
         />
       </div>
-      <div class="view-toggle-bar">
-        <div class="view-toggle-inner">
-          <div class="toggle-slider" :class="viewMode"></div>
-          <button
-            @click="viewMode = 'chart'"
-            class="view-toggle-btn"
-            :class="{ active: viewMode === 'chart' }"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-            </svg>
-            <span>{{ t('calendar.chartView') }}</span>
-          </button>
-          <button
-            @click="viewMode = 'calendar'"
-            class="view-toggle-btn"
-            :class="{ active: viewMode === 'calendar' }"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            <span>{{ t('calendar.calendarView') }}</span>
-          </button>
-        </div>
-      </div>
     </div>
 
     <OverviewCards
@@ -59,22 +31,63 @@
       :customEndDate="customEndDate"
     />
 
-    <AnalyticsCharts
-      v-show="viewMode === 'chart'"
-      :loading="loading"
-      :dailyStats="dailyStats"
-      :selectedRepos="selectedRepos"
-      :authorRank="authorRank"
-      :activityHeatmap="activityHeatmap"
-    />
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">{{ t('trends.timeSeriesTitle') }}</h3>
+        <div class="view-toggle-bar">
+          <div class="view-toggle-inner">
+            <div class="toggle-slider" :class="viewMode"></div>
+            <button
+              @click="viewMode = 'chart'"
+              class="view-toggle-btn"
+              :class="{ active: viewMode === 'chart' }"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>{{ t('calendar.chartView') }}</span>
+            </button>
+            <button
+              @click="viewMode = 'calendar'"
+              class="view-toggle-btn"
+              :class="{ active: viewMode === 'calendar' }"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span>{{ t('calendar.calendarView') }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <CalendarView
-      v-show="viewMode === 'calendar'"
-      :viewType="calendarViewType"
-      :dailyStats="dailyStats"
-      :startDate="currentStartDate"
-      :endDate="currentEndDate"
-    />
+      <TimeSeriesCharts
+        v-show="viewMode === 'chart'"
+        :loading="loading"
+        :dailyStats="dailyStats"
+        :selectedRepos="selectedRepos"
+      />
+
+      <CalendarView
+        v-show="viewMode === 'calendar'"
+        :viewType="calendarViewType"
+        :dailyStats="dailyStats"
+        :startDate="currentStartDate"
+        :endDate="currentEndDate"
+      />
+    </div>
+
+    <div class="section">
+      <h3 class="section-title">{{ t('trends.authorAnalysis') }}</h3>
+      <AnalyticsCharts
+        :loading="loading"
+        :authorRank="authorRank"
+        :activityHeatmap="activityHeatmap"
+      />
+    </div>
   </div>
 </template>
 
@@ -83,6 +96,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { getDailyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
+import TimeSeriesCharts from '../components/TimeSeriesCharts.vue'
 import AnalyticsCharts from '../components/AnalyticsCharts.vue'
 import CalendarView from '../components/CalendarView.vue'
 import { useI18n } from '../i18n'
@@ -210,7 +224,6 @@ onMounted(async () => {
     console.error('Failed to load repositories:', error)
   }
 })
-
 </script>
 
 <style scoped>
@@ -255,9 +268,30 @@ onMounted(async () => {
   margin: 0;
 }
 
+.section {
+  margin-top: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
 .view-toggle-bar {
-  text-align: center;
-  margin-top: 0.75rem;
+  flex-shrink: 0;
 }
 
 .view-toggle-inner {
@@ -322,6 +356,11 @@ onMounted(async () => {
 
 @media (max-width: 1200px) {
   .title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section-header {
     flex-direction: column;
     align-items: flex-start;
   }
