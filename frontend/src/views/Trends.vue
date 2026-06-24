@@ -14,6 +14,7 @@
           :customStartDate="customStartDate"
           :customEndDate="customEndDate"
           :loading="loading"
+          singleSelect
           @update:selectedRepos="selectedRepos = $event"
           @update:selectedTimeRange="selectedTimeRange = $event"
           @update:showCustomPicker="showCustomPicker = $event"

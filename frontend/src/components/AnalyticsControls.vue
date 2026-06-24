@@ -10,9 +10,11 @@
             :class="{ active: showDropdown, 'has-selection': selectedRepos.length > 0 }"
           >
             <span class="btn-text">
-              {{ selectedRepos.length === 0 ? t('analytics.selectRepo') :
-                 selectedRepos.length === repositories.length ? t('analytics.allRepos') :
-                 `${selectedRepos.length} ${t('analytics.reposSelected')}` }}
+              {{ singleSelect && selectedRepo
+                 ? selectedRepoName
+                 : selectedRepos.length === 0 ? t('analytics.selectRepo') :
+                   selectedRepos.length === repositories.length ? t('analytics.allRepos') :
+                   `${selectedRepos.length} ${t('analytics.reposSelected')}` }}
             </span>
             <svg class="dropdown-icon" :class="{ rotated: showDropdown }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -20,7 +22,7 @@
           </button>
 
           <div v-show="showDropdown" class="repo-dropdown-menu">
-            <div class="dropdown-header">
+            <div v-if="!singleSelect" class="dropdown-header">
               <button @click.stop="toggleAllRepos" class="select-all-btn btn-ghost">
                 {{ allReposSelected ? t('analytics.cancelSelectAll') : t('analytics.selectAll') }}
               </button>
@@ -34,7 +36,7 @@
                 class="repo-option btn-ghost"
                 :class="{ active: selectedRepos.includes(repo.path) }"
               >
-                <div class="option-checkbox">
+                <div v-if="!singleSelect" class="option-indicator">
                   <svg v-if="selectedRepos.includes(repo.path)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -115,7 +117,8 @@ const props = defineProps({
   showCustomPicker: Boolean,
   customStartDate: String,
   customEndDate: String,
-  loading: Boolean
+  loading: Boolean,
+  singleSelect: Boolean
 })
 
 const emit = defineEmits([
@@ -163,15 +166,32 @@ function onCustomEnd(v) {
 }
 
 function toggleRepo(repoPath) {
-  const idx = props.selectedRepos.indexOf(repoPath)
-  if (idx > -1) {
-    const next = [...props.selectedRepos]
-    next.splice(idx, 1)
+  if (props.singleSelect) {
+    const next = selectedRepo.value === repoPath ? [] : [repoPath]
     emit('update:selectedRepos', next)
+    showDropdown.value = false
   } else {
-    emit('update:selectedRepos', [...props.selectedRepos, repoPath])
+    const idx = props.selectedRepos.indexOf(repoPath)
+    if (idx > -1) {
+      const next = [...props.selectedRepos]
+      next.splice(idx, 1)
+      emit('update:selectedRepos', next)
+    } else {
+      emit('update:selectedRepos', [...props.selectedRepos, repoPath])
+    }
   }
 }
+
+const selectedRepo = computed(() => {
+  if (!props.singleSelect) return null
+  return props.selectedRepos.length === 1 ? props.selectedRepos[0] : null
+})
+
+const selectedRepoName = computed(() => {
+  if (!selectedRepo.value) return ''
+  const repo = props.repositories.find(r => r.path === selectedRepo.value)
+  return repo ? repo.name : selectedRepo.value
+})
 
 function toggleAllRepos() {
   if (allReposSelected.value) {
@@ -441,7 +461,7 @@ onUnmounted(() => {
   color: var(--color-accent);
 }
 
-.option-checkbox {
+.option-indicator {
   width: 18px;
   height: 18px;
   border: 2px solid rgba(148, 163, 184, 0.4);
@@ -453,12 +473,12 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.repo-option.active .option-checkbox {
+.repo-option.active .option-indicator {
   border-color: var(--color-accent);
   background: var(--border-card);
 }
 
-.option-checkbox svg {
+.option-indicator svg {
   width: 12px;
   height: 12px;
   color: var(--color-accent);
