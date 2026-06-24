@@ -19,10 +19,6 @@ export async function getOverviewStats(startDate, endDate, repos = []) {
   return res.data
 }
 
-export async function getRepositories() {
-  return request(`${BASE}/repositories`, { errorMsg: 'Failed to fetch repositories' })
-}
-
 export async function exportData() {
   return request(`${BASE}/export/json`, { errorMsg: 'Export failed', blob: true })
 }

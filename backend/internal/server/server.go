@@ -20,7 +20,7 @@ func NewServer() *chi.Mux {
 
 	r.Post("/api/scan/path", handler.SetScanPathHandler)
 	r.Get("/api/scan/path", handler.GetScanPathHandler)
-	r.Get("/api/repositories", handler.GetRepositoriesHandler)
+
 	r.Get("/api/stats/overview", handler.GetOverviewStatsHandler)
 	r.Get("/api/stats/daily", handler.GetStatsHandler("daily"))
 	r.Get("/api/stats/weekly", handler.GetStatsHandler("weekly"))

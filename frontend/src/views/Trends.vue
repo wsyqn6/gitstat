@@ -98,7 +98,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getDailyStats, getMonthlyStats, getRepositories, getOverviewStats, getActivityHeatmap } from '../api'
+import { getDailyStats, getMonthlyStats, getReposList, getOverviewStats, getActivityHeatmap } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
 import TimeSeriesCharts from '../components/TimeSeriesCharts.vue'
@@ -231,7 +231,7 @@ const loadData = async () => {
 
 onMounted(async () => {
   try {
-    repositories.value = await getRepositories()
+    repositories.value = await getReposList()
     if (repositories.value.length === 1) {
       selectedRepos.value = [repositories.value[0].path]
     }

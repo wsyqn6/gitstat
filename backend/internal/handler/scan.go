@@ -82,11 +82,6 @@ func SetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetRepositoriesHandler(w http.ResponseWriter, r *http.Request) {
-	repos := store.GlobalStore.GetRepositories()
-	writeJSON(w, "Repositories", repos)
-}
-
 // GetScanPathHandler 获取当前扫描路径和 Git 版本
 func GetScanPathHandler(w http.ResponseWriter, r *http.Request) {
 	path := store.GlobalStore.GetScanPath()
