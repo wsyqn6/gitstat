@@ -71,7 +71,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
 
 const props = defineProps({
-  periodStats: { type: Array, default: () => [] },
+  dailyStats: { type: Array, default: () => [] },
   startDate: { type: String, default: '' }
 })
 
@@ -103,14 +103,15 @@ const yearData = computed(() => {
     monthMap.set(key, { month: m, key, commits: 0, additions: 0, deletions: 0 })
   }
 
-  for (const repo of props.periodStats) {
+  for (const repo of props.dailyStats) {
     for (const author of repo.authors) {
-      for (const period of (author.periodData || [])) {
-        if (monthMap.has(period.date)) {
-          const data = monthMap.get(period.date)
-          data.commits += period.commits
-          data.additions += period.additions
-          data.deletions += period.deletions
+      for (const day of (author.dailyData || [])) {
+        const month = day.date.slice(0, 7)
+        if (monthMap.has(month)) {
+          const data = monthMap.get(month)
+          data.commits += day.commits
+          data.additions += day.additions
+          data.deletions += day.deletions
         }
       }
     }
@@ -135,16 +136,17 @@ const monthDetail = computed(() => {
   if (!selectedMonth.value) return []
   const key = selectedMonth.value.key
   const items = []
-  for (const repo of props.periodStats) {
+  for (const repo of props.dailyStats) {
     for (const author of repo.authors) {
-      for (const period of (author.periodData || [])) {
-        if (period.date === key && period.commits > 0) {
+      for (const day of (author.dailyData || [])) {
+        const month = day.date.slice(0, 7)
+        if (month === key && day.commits > 0) {
           items.push({
             repoName: repo.repoName,
             author: author.author,
-            commits: period.commits,
-            additions: period.additions,
-            deletions: period.deletions
+            commits: day.commits,
+            additions: day.additions,
+            deletions: day.deletions
           })
         }
       }

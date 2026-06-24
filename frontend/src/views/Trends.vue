@@ -60,21 +60,18 @@
     />
 
     <AnalyticsCharts
-      v-if="viewMode === 'chart'"
+      v-show="viewMode === 'chart'"
       :loading="loading"
       :dailyStats="dailyStats"
-      :periodStats="periodStats"
-      :currentGranularity="currentGranularity"
       :selectedRepos="selectedRepos"
       :authorRank="authorRank"
       :activityHeatmap="activityHeatmap"
     />
 
     <CalendarView
-      v-else
+      v-show="viewMode === 'calendar'"
       :viewType="calendarViewType"
       :dailyStats="dailyStats"
-      :periodStats="periodStats"
       :startDate="currentStartDate"
       :endDate="currentEndDate"
     />
@@ -82,8 +79,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
-import { getDailyStats, getWeeklyStats, getMonthlyStats, getYearlyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap } from '../api'
+import { ref, onMounted, nextTick } from 'vue'
+import { getDailyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
 import AnalyticsCharts from '../components/AnalyticsCharts.vue'
@@ -100,8 +97,6 @@ const showCustomPicker = ref(false)
 const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
-const periodStats = ref([])
-const currentGranularity = ref('day')
 const authorRank = ref([])
 const activityHeatmap = ref([])
 const viewMode = ref('chart')
@@ -127,13 +122,6 @@ function computeCalendarViewType() {
   if (days <= 31) return 'month'
   return 'year'
 }
-
-watch(viewMode, (newMode) => {
-  if (!currentStartDate.value || loading.value) return
-  if (newMode === 'calendar' && currentGranularity.value !== 'day') {
-    loadData()
-  }
-})
 
 const loadData = async () => {
   if (selectedRepos.value.length === 0) return
@@ -191,54 +179,14 @@ const loadData = async () => {
     currentStartDate.value = startDate
     currentEndDate.value = endDate
 
-    let granularity = 'day'
-    let statsPromise
-    const tr = selectedTimeRange.value
-
-    if (tr === 'today' || tr === 'week' || tr === 'lastWeek') {
-      granularity = 'day'
-      statsPromise = getDailyStats(null, tr === 'custom' ? '' : tr, selectedRepos.value, startDate, endDate)
-    } else if (tr === 'month' || tr === 'lastMonth') {
-      if (viewMode.value === 'calendar') {
-        granularity = 'day'
-        statsPromise = getDailyStats(null, tr, selectedRepos.value, startDate, endDate)
-      } else {
-        granularity = 'week'
-        statsPromise = getWeeklyStats(null, tr, selectedRepos.value, startDate, endDate)
-      }
-    } else if (tr === 'year') {
-      granularity = 'month'
-      statsPromise = getMonthlyStats(null, tr, selectedRepos.value, startDate, endDate)
-    } else {
-      const days = Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))
-      if (days <= 31) {
-        granularity = 'day'
-        statsPromise = getDailyStats(null, '', selectedRepos.value, startDate, endDate)
-      } else if (days <= 180 && viewMode.value !== 'calendar') {
-        granularity = 'week'
-        statsPromise = getWeeklyStats(null, '', selectedRepos.value, startDate, endDate)
-      } else {
-        granularity = 'month'
-        statsPromise = getMonthlyStats(null, '', selectedRepos.value, startDate, endDate)
-      }
-    }
-    currentGranularity.value = granularity
-
     const [overview, stats, authors, heatmap] = await Promise.all([
       getOverviewStats(startDate, endDate, selectedRepos.value),
-      statsPromise,
+      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, startDate, endDate),
       getAuthorRank(selectedRepos.value, startDate, endDate),
       getActivityHeatmap(selectedRepos.value, startDate, endDate)
     ])
     overviewStats.value = overview
-
-    if (granularity === 'day') {
-      dailyStats.value = stats || []
-      periodStats.value = []
-    } else {
-      periodStats.value = stats || []
-      dailyStats.value = []
-    }
+    dailyStats.value = stats || []
     authorRank.value = authors || []
     activityHeatmap.value = heatmap || []
 

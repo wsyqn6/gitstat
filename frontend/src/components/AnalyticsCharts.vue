@@ -48,24 +48,10 @@ const { t } = useI18n()
 const props = defineProps({
   loading: Boolean,
   dailyStats: Array,
-  periodStats: Array,
-  currentGranularity: String,
   selectedRepos: Array,
   authorRank: Array,
   activityHeatmap: Array
 })
-
-function formatPeriodLabel(period, granularity) {
-  if (granularity === 'week') {
-    const match = period.match(/-W(\d+)/)
-    return match ? t('analytics.charts.weekLabel').replace('{0}', match[1]) : period
-  }
-  if (granularity === 'month')
-    return t('analytics.charts.monthLabel').replace('{0}', period.slice(5))
-  if (granularity === 'year')
-    return t('analytics.charts.yearLabel').replace('{0}', period)
-  return period
-}
 
 function adjustColor(color, amount) {
   const num = parseInt(color.replace('#', ''), 16)
@@ -78,29 +64,14 @@ function adjustColor(color, amount) {
 const { theme } = useTheme()
 const chartCfg = computed(() => getChartConfig(theme.value))
 
-const activeStats = computed(() => {
-  return props.currentGranularity === 'day' ? props.dailyStats : props.periodStats
-})
-
 const filteredStats = computed(() => {
-  const source = activeStats.value
   return props.selectedRepos.length === 0
-    ? source
-    : source.filter(stat => props.selectedRepos.includes(stat.repoPath))
+    ? props.dailyStats
+    : props.dailyStats.filter(stat => props.selectedRepos.includes(stat.repoPath))
 })
-
-const normalizedStats = computed(() =>
-  filteredStats.value.map(repo => ({
-    ...repo,
-    authors: repo.authors?.map(a => ({
-      ...a,
-      dailyData: a.dailyData || a.periodData
-    }))
-  }))
-)
 
 const processedStats = computed(() => {
-  const data = normalizedStats.value
+  const data = filteredStats.value
   const dateSet = new Set()
   const authorMap = new Map()
 
@@ -123,15 +94,6 @@ const processedStats = computed(() => {
   }
 })
 
-const granularityPrefix = computed(() => {
-  switch (props.currentGranularity) {
-    case 'week': return t('analytics.weekly')
-    case 'month': return t('analytics.monthly')
-    case 'year': return t('analytics.yearly')
-    default: return t('analytics.daily')
-  }
-})
-
 const contributors = computed(() =>
   (props.authorRank || []).map(a => ({
     ...a,
@@ -139,8 +101,8 @@ const contributors = computed(() =>
   }))
 )
 
-const commitTrendTitle = computed(() => granularityPrefix.value + t('analytics.commitTrend'))
-const codeChangeTitle = computed(() => granularityPrefix.value + t('analytics.codeChange'))
+const commitTrendTitle = computed(() => t('analytics.daily') + t('analytics.commitTrend'))
+const codeChangeTitle = computed(() => t('analytics.daily') + t('analytics.codeChange'))
 
 const commitTrendOption = computed(() => {
   const { dates, authors } = processedStats.value
@@ -160,7 +122,7 @@ const commitTrendOption = computed(() => {
   const series = authors.map((author, idx) => {
     const data = dates.map(date => {
       let commits = 0
-      normalizedStats.value.forEach(repo => {
+      filteredStats.value.forEach(repo => {
         const authorStat = repo.authors?.find(a => a.email === author.email)
         if (authorStat && authorStat.dailyData) {
           const dayData = authorStat.dailyData.find(d => d.date === date)
@@ -219,8 +181,7 @@ const commitTrendOption = computed(() => {
       data: dates,
       axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
       axisLabel: {
-        color: chartCfg.value.axisLabel,
-        formatter: (value) => formatPeriodLabel(value, props.currentGranularity)
+        color: chartCfg.value.axisLabel
       },
       splitLine: { show: false }
     },
@@ -247,7 +208,7 @@ const dateAggMap = computed(() => {
     let totalDeletions = 0
     const authorAddMap = {}
     const authorDelMap = {}
-    normalizedStats.value.forEach(repo => {
+    filteredStats.value.forEach(repo => {
       repo.authors?.forEach(author => {
         if (!author.dailyData) return
         const day = author.dailyData.find(d => d.date === date)
@@ -324,8 +285,7 @@ const codeChangeOption = computed(() => {
       data: dates,
       axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
       axisLabel: {
-        color: chartCfg.value.axisLabel,
-        formatter: (value) => formatPeriodLabel(value, props.currentGranularity)
+        color: chartCfg.value.axisLabel
       },
       splitLine: { show: false }
     },
@@ -333,8 +293,7 @@ const codeChangeOption = computed(() => {
       type: 'value',
       axisLine: { show: false },
       axisLabel: {
-        color: chartCfg.value.axisLabel,
-        formatter: (value) => Math.abs(value)
+        color: chartCfg.value.axisLabel
       },
       splitLine: {
         lineStyle: {
