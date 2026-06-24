@@ -1,8 +1,12 @@
 <template>
   <div class="analysis-grid">
-    <div class="chart-card rank-card">
-      <RepoAuthorRank :contributors="contributors" :loading="loading" />
-    </div>
+    <ChartContainer
+      :title="t('analytics.charts.netChange.title')"
+      :subtitle="t('analytics.charts.netChange.subtitle')"
+      :option="netChangeOption"
+      :loading="loading"
+      class="chart-card"
+    />
     <ChartContainer
       :title="t('analytics.charts.hourly.title')"
       :subtitle="t('analytics.charts.hourly.subtitle')"
@@ -16,8 +20,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../i18n'
+import echarts from '../utils/echarts'
 import ChartContainer from './ChartContainer.vue'
-import RepoAuthorRank from './RepoAuthorRank.vue'
 import { getChartConfig } from '../utils/constants'
 import { useTheme } from '../composables/useTheme'
 
@@ -25,19 +29,117 @@ const { t } = useI18n()
 
 const props = defineProps({
   loading: Boolean,
-  authorRank: Array,
+  dailyStats: Array,
+  selectedRepos: Array,
   activityHeatmap: Array
 })
 
 const { theme } = useTheme()
 const chartCfg = computed(() => getChartConfig(theme.value))
 
-const contributors = computed(() =>
-  (props.authorRank || []).map(a => ({
-    ...a,
-    commitCount: a.commits
+const filteredStats = computed(() => {
+  return props.selectedRepos?.length
+    ? (props.dailyStats || []).filter(s => props.selectedRepos.includes(s.repoPath))
+    : (props.dailyStats || [])
+})
+
+const netChangeData = computed(() => {
+  const dateMap = {}
+  for (const repo of filteredStats.value) {
+    for (const author of (repo.authors || [])) {
+      for (const day of (author.dailyData || [])) {
+        if (!dateMap[day.date]) {
+          dateMap[day.date] = { additions: 0, deletions: 0 }
+        }
+        dateMap[day.date].additions += day.additions
+        dateMap[day.date].deletions += day.deletions
+      }
+    }
+  }
+  return Object.keys(dateMap).sort().map(d => ({
+    date: d,
+    additions: dateMap[d].additions,
+    deletions: dateMap[d].deletions,
+    net: dateMap[d].additions - dateMap[d].deletions
   }))
-)
+})
+
+const netChangeOption = computed(() => {
+  const data = netChangeData.value
+  if (data.length === 0) {
+    return {
+      title: {
+        text: t('analytics.noData'),
+        left: 'center',
+        top: 'center',
+        textStyle: { color: chartCfg.value.titleColor, fontSize: 16 }
+      }
+    }
+  }
+
+  const red = '#ff6b6b'
+  const green = '#00ff88'
+
+  return {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: chartCfg.value.tooltipBg,
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
+      formatter: (params) => {
+        const d = data[params[0].dataIndex]
+        return [
+          `<div style="font-weight:bold;margin-bottom:6px">${d.date}</div>`,
+          `<div>${t('analytics.charts.additions')}: <span style="color:${red}">+${d.additions}</span></div>`,
+          `<div>${t('analytics.charts.deletions')}: <span style="color:${green}">-${d.deletions}</span></div>`,
+          `<div style="margin-top:4px;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px">`,
+          `${t('analytics.charts.netChange')}: <span style="color:${d.net >= 0 ? red : green};font-weight:bold">${d.net >= 0 ? '+' : ''}${d.net}</span></div>`
+        ].join('')
+      }
+    },
+    grid: { containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: data.map(d => d.date),
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: {
+        color: chartCfg.value.axisLabel,
+        rotate: data.length > 14 ? 45 : 0
+      },
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisLabel: { color: chartCfg.value.axisLabel },
+      splitLine: {
+        lineStyle: { color: chartCfg.value.splitLine, type: 'dashed' }
+      }
+    },
+    series: [{
+      type: 'bar',
+      barMaxWidth: 60,
+      data: data.map(d => ({
+        value: d.net,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: d.net >= 0 ? red : green },
+            { offset: 1, color: d.net >= 0 ? adjustColor(red, -60) : adjustColor(green, -60) }
+          ]),
+          borderRadius: d.net >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4]
+        }
+      }))
+    }]
+  }
+})
+
+function adjustColor(color, amount) {
+  const num = parseInt(color.replace('#', ''), 16)
+  const r = Math.min(255, Math.max(0, (num >> 16) + amount))
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount))
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount))
+  return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`
+}
 
 const hourlyDistribution = computed(() => {
   const h = Array(24).fill(0)
@@ -111,18 +213,6 @@ const hourlyOption = computed(() => {
 .chart-card {
   min-height: 400px;
   height: 400px;
-}
-
-.rank-card {
-  min-height: 400px;
-  height: 400px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.rank-card :deep(.author-rank) {
-  flex: 1;
 }
 
 @media (max-width: 1200px) {

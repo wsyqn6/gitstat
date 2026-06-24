@@ -85,7 +85,8 @@
       <h3 class="section-title">{{ t('trends.authorAnalysis') }}</h3>
       <AnalyticsCharts
         :loading="loading"
-        :authorRank="authorRank"
+        :dailyStats="dailyStats"
+        :selectedRepos="selectedRepos"
         :activityHeatmap="activityHeatmap"
       />
     </div>
@@ -94,7 +95,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getDailyStats, getRepositories, getOverviewStats, getAuthorRank, getActivityHeatmap } from '../api'
+import { getDailyStats, getRepositories, getOverviewStats, getActivityHeatmap } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
 import TimeSeriesCharts from '../components/TimeSeriesCharts.vue'
@@ -112,7 +113,6 @@ const showCustomPicker = ref(false)
 const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
-const authorRank = ref([])
 const activityHeatmap = ref([])
 const viewMode = ref('chart')
 const currentStartDate = ref('')
@@ -194,15 +194,13 @@ const loadData = async () => {
     currentStartDate.value = startDate
     currentEndDate.value = endDate
 
-    const [overview, stats, authors, heatmap] = await Promise.all([
+    const [overview, stats, heatmap] = await Promise.all([
       getOverviewStats(startDate, endDate, selectedRepos.value),
       getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, startDate, endDate),
-      getAuthorRank(selectedRepos.value, startDate, endDate),
       getActivityHeatmap(selectedRepos.value, startDate, endDate)
     ])
     overviewStats.value = overview
     dailyStats.value = stats || []
-    authorRank.value = authors || []
     activityHeatmap.value = heatmap || []
 
     await nextTick()
