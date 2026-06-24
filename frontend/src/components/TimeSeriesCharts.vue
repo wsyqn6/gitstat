@@ -30,7 +30,37 @@ const { t } = useI18n()
 const props = defineProps({
   loading: Boolean,
   dailyStats: Array,
-  selectedRepos: Array
+  selectedRepos: Array,
+  startDate: String,
+  endDate: String
+})
+
+function eachDay(start, end) {
+  const days = []
+  const cur = new Date(start)
+  const endDate = new Date(end)
+  while (cur <= endDate) {
+    days.push(cur.toISOString().slice(0, 10))
+    cur.setDate(cur.getDate() + 1)
+  }
+  return days
+}
+
+function eachMonth(start, end) {
+  const months = []
+  const cur = new Date(start)
+  const endDate = new Date(end)
+  while (cur <= endDate) {
+    months.push(cur.toISOString().slice(0, 7))
+    cur.setMonth(cur.getMonth() + 1)
+  }
+  return months
+}
+
+const granularity = computed(() => {
+  if (!props.startDate || !props.endDate) return 'day'
+  const days = Math.round((new Date(props.endDate) - new Date(props.startDate)) / (1000 * 60 * 60 * 24))
+  return days > 31 ? 'month' : 'day'
 })
 
 function adjustColor(color, amount) {
@@ -68,14 +98,23 @@ const processedStats = computed(() => {
     })
   })
 
+  let dates
+  if (props.startDate && props.endDate) {
+    dates = granularity.value === 'month'
+      ? eachMonth(props.startDate, props.endDate)
+      : eachDay(props.startDate, props.endDate)
+  } else {
+    dates = Array.from(dateSet).sort()
+  }
+
   return {
-    dates: Array.from(dateSet).sort(),
+    dates,
     authors: Array.from(authorMap.values())
   }
 })
 
-const commitTrendTitle = computed(() => t('analytics.daily') + t('analytics.commitTrend'))
-const codeChangeTitle = computed(() => t('analytics.daily') + t('analytics.codeChange'))
+const commitTrendTitle = computed(() => t('analytics.commitTrend'))
+const codeChangeTitle = computed(() => t('analytics.codeChange'))
 
 const commitTrendOption = computed(() => {
   const { dates, authors } = processedStats.value
@@ -95,11 +134,18 @@ const commitTrendOption = computed(() => {
   const series = authors.map((author, idx) => {
     const data = dates.map(date => {
       let commits = 0
+      const isMonth = granularity.value === 'month'
       filteredStats.value.forEach(repo => {
         const authorStat = repo.authors?.find(a => a.email === author.email)
         if (authorStat && authorStat.dailyData) {
-          const dayData = authorStat.dailyData.find(d => d.date === date)
-          if (dayData) commits += dayData.commits
+          if (isMonth) {
+            commits += authorStat.dailyData
+              .filter(d => d.date.startsWith(date))
+              .reduce((s, d) => s + d.commits, 0)
+          } else {
+            const dayData = authorStat.dailyData.find(d => d.date === date)
+            if (dayData) commits += dayData.commits
+          }
         }
       })
       return commits
@@ -109,23 +155,26 @@ const commitTrendOption = computed(() => {
       name: author.name,
       type: 'line',
       smooth: true,
+      showSymbol: false,
       symbol: 'circle',
       symbolSize: 8,
       lineStyle: {
-        width: 3,
+        width: 2,
         color: colors[idx % colors.length]
       },
       itemStyle: {
-        color: colors[idx % colors.length],
-        borderWidth: 2,
-        borderColor: chartCfg.value.tooltipText
+        color: colors[idx % colors.length]
       },
       areaStyle: {
-        opacity: 0.1,
+        opacity: 0.08,
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           { offset: 0, color: colors[idx % colors.length] },
           { offset: 1, color: 'rgba(0,0,0,0)' }
         ])
+      },
+      emphasis: {
+        focus: 'series',
+        lineStyle: { width: 3.5 }
       },
       data
     }
@@ -175,22 +224,25 @@ const commitTrendOption = computed(() => {
 
 const dateAggMap = computed(() => {
   const { dates } = processedStats.value
+  const isMonth = granularity.value === 'month'
   const map = {}
   for (const date of dates) {
     let totalAdditions = 0
     let totalDeletions = 0
     const authorAddMap = {}
     const authorDelMap = {}
+    const match = d => isMonth ? d.date.startsWith(date) : d.date === date
     filteredStats.value.forEach(repo => {
       repo.authors?.forEach(author => {
         if (!author.dailyData) return
-        const day = author.dailyData.find(d => d.date === date)
-        if (!day) return
-        totalAdditions += day.additions
-        totalDeletions += day.deletions
-        const name = author.author || author.email
-        authorAddMap[name] = (authorAddMap[name] || 0) + day.additions
-        authorDelMap[name] = (authorDelMap[name] || 0) + day.deletions
+        const days = author.dailyData.filter(match)
+        for (const day of days) {
+          totalAdditions += day.additions
+          totalDeletions += day.deletions
+          const name = author.author || author.email
+          authorAddMap[name] = (authorAddMap[name] || 0) + day.additions
+          authorDelMap[name] = (authorDelMap[name] || 0) + day.deletions
+        }
       })
     })
     map[date] = { totalAdditions, totalDeletions, authorAddMap, authorDelMap }

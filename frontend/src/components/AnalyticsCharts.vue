@@ -1,8 +1,8 @@
 <template>
   <div class="analysis-grid">
     <ChartContainer
-      :title="t('analytics.charts.netChange.title')"
-      :subtitle="t('analytics.charts.netChange.subtitle')"
+:title="t('analytics.charts.netChangeChart.title')"
+:subtitle="t('analytics.charts.netChangeChart.subtitle')"
       :option="netChangeOption"
       :loading="loading"
       class="chart-card"
@@ -31,7 +31,9 @@ const props = defineProps({
   loading: Boolean,
   dailyStats: Array,
   selectedRepos: Array,
-  activityHeatmap: Array
+  activityHeatmap: Array,
+  startDate: String,
+  endDate: String
 })
 
 const { theme } = useTheme()
@@ -41,6 +43,34 @@ const filteredStats = computed(() => {
   return props.selectedRepos?.length
     ? (props.dailyStats || []).filter(s => props.selectedRepos.includes(s.repoPath))
     : (props.dailyStats || [])
+})
+
+function eachDay(start, end) {
+  const days = []
+  const cur = new Date(start)
+  const endDate = new Date(end)
+  while (cur <= endDate) {
+    days.push(cur.toISOString().slice(0, 10))
+    cur.setDate(cur.getDate() + 1)
+  }
+  return days
+}
+
+function eachMonth(start, end) {
+  const months = []
+  const cur = new Date(start)
+  const endDate = new Date(end)
+  while (cur <= endDate) {
+    months.push(cur.toISOString().slice(0, 7))
+    cur.setMonth(cur.getMonth() + 1)
+  }
+  return months
+}
+
+const granularity = computed(() => {
+  if (!props.startDate || !props.endDate) return 'day'
+  const days = Math.round((new Date(props.endDate) - new Date(props.startDate)) / (1000 * 60 * 60 * 24))
+  return days > 31 ? 'month' : 'day'
 })
 
 const netChangeData = computed(() => {
@@ -56,11 +86,32 @@ const netChangeData = computed(() => {
       }
     }
   }
-  return Object.keys(dateMap).sort().map(d => ({
+  const isMonth = granularity.value === 'month'
+  const dates = props.startDate && props.endDate
+    ? (isMonth ? eachMonth(props.startDate, props.endDate) : eachDay(props.startDate, props.endDate))
+    : Object.keys(dateMap).sort()
+  if (isMonth) {
+    const monthMap = {}
+    for (const d of dates) {
+      let add = 0, del = 0
+      Object.keys(dateMap).filter(k => k.startsWith(d)).forEach(k => {
+        add += dateMap[k].additions
+        del += dateMap[k].deletions
+      })
+      monthMap[d] = { additions: add, deletions: del }
+    }
+    return dates.map(d => ({
+      date: d,
+      additions: monthMap[d].additions,
+      deletions: monthMap[d].deletions,
+      net: monthMap[d].additions - monthMap[d].deletions
+    }))
+  }
+  return dates.map(d => ({
     date: d,
-    additions: dateMap[d].additions,
-    deletions: dateMap[d].deletions,
-    net: dateMap[d].additions - dateMap[d].deletions
+    additions: dateMap[d]?.additions || 0,
+    deletions: dateMap[d]?.deletions || 0,
+    net: (dateMap[d]?.additions || 0) - (dateMap[d]?.deletions || 0)
   }))
 })
 
@@ -86,16 +137,23 @@ const netChangeOption = computed(() => {
       backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: { color: `rgba(${chartCfg.value.accentRgb}, 0.1)` }
+      },
       formatter: (params) => {
         const d = data[params[0].dataIndex]
         return [
           `<div style="font-weight:bold;margin-bottom:6px">${d.date}</div>`,
           `<div>${t('analytics.charts.additions')}: <span style="color:${red}">+${d.additions}</span></div>`,
-          `<div>${t('analytics.charts.deletions')}: <span style="color:${green}">-${d.deletions}</span></div>`,
-          `<div style="margin-top:4px;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px">`,
-          `${t('analytics.charts.netChange')}: <span style="color:${d.net >= 0 ? red : green};font-weight:bold">${d.net >= 0 ? '+' : ''}${d.net}</span></div>`
+          `<div>${t('analytics.charts.deletions')}: <span style="color:${green}">-${d.deletions}</span></div>`
         ].join('')
       }
+    },
+    legend: {
+      data: [t('analytics.charts.additions'), t('analytics.charts.deletions')],
+      textStyle: { color: chartCfg.value.axisLabel },
+      top: 10
     },
     grid: { containLabel: true },
     xAxis: {
@@ -116,20 +174,33 @@ const netChangeOption = computed(() => {
         lineStyle: { color: chartCfg.value.splitLine, type: 'dashed' }
       }
     },
-    series: [{
-      type: 'bar',
-      barMaxWidth: 60,
-      data: data.map(d => ({
-        value: d.net,
+    series: [
+      {
+        name: t('analytics.charts.additions'),
+        type: 'bar',
+        barMaxWidth: 30,
+        data: data.map(d => d.additions),
+        itemStyle: {
+          color: 'transparent',
+          borderColor: red,
+          borderWidth: 2,
+          borderRadius: [4, 4, 0, 0]
+        }
+      },
+      {
+        name: t('analytics.charts.deletions'),
+        type: 'bar',
+        barMaxWidth: 30,
+        data: data.map(d => d.deletions),
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: d.net >= 0 ? red : green },
-            { offset: 1, color: d.net >= 0 ? adjustColor(red, -60) : adjustColor(green, -60) }
+            { offset: 0, color: green },
+            { offset: 1, color: adjustColor(green, -60) }
           ]),
-          borderRadius: d.net >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4]
+          borderRadius: [4, 4, 0, 0]
         }
-      }))
-    }]
+      }
+    ]
   }
 })
 

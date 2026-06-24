@@ -70,6 +70,8 @@
         :loading="loading"
         :dailyStats="dailyStats"
         :selectedRepos="selectedRepos"
+        :startDate="currentStartDate"
+        :endDate="currentEndDate"
       />
 
       <CalendarView
@@ -82,12 +84,13 @@
     </div>
 
     <div class="section">
-      <h3 class="section-title">{{ t('trends.authorAnalysis') }}</h3>
       <AnalyticsCharts
         :loading="loading"
         :dailyStats="dailyStats"
         :selectedRepos="selectedRepos"
         :activityHeatmap="activityHeatmap"
+        :startDate="currentStartDate"
+        :endDate="currentEndDate"
       />
     </div>
   </div>
@@ -95,7 +98,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getDailyStats, getRepositories, getOverviewStats, getActivityHeatmap } from '../api'
+import { getDailyStats, getMonthlyStats, getRepositories, getOverviewStats, getActivityHeatmap } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
 import TimeSeriesCharts from '../components/TimeSeriesCharts.vue'
@@ -194,13 +197,26 @@ const loadData = async () => {
     currentStartDate.value = startDate
     currentEndDate.value = endDate
 
-    const [overview, stats, heatmap] = await Promise.all([
+    const days = Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))
+    const isMonth = days > 31
+    const timeRange = selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value
+    const statsPromise = isMonth
+      ? getMonthlyStats(null, '', selectedRepos.value, startDate, endDate)
+      : getDailyStats(null, timeRange, selectedRepos.value, startDate, endDate)
+
+    const [overview, rawStats, heatmap] = await Promise.all([
       getOverviewStats(startDate, endDate, selectedRepos.value),
-      getDailyStats(null, selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value, selectedRepos.value, startDate, endDate),
+      statsPromise,
       getActivityHeatmap(selectedRepos.value, startDate, endDate)
     ])
     overviewStats.value = overview
-    dailyStats.value = stats || []
+    dailyStats.value = (rawStats || []).map(repo => ({
+      ...repo,
+      authors: (repo.authors || []).map(a => ({
+        ...a,
+        dailyData: a.dailyData || a.periodData || []
+      }))
+    }))
     activityHeatmap.value = heatmap || []
 
     await nextTick()
