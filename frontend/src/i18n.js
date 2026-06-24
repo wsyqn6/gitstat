@@ -91,7 +91,6 @@ const messages = {
       repoName: '仓库',
       charts: {
         devRank: { title: '开发者贡献榜', subtitle: 'Top 10 按提交数排序' },
-        heatmap: { title: '提交时间热力图', subtitle: '星期 × 小时维度' },
         repoCompare: { title: '仓库活跃度对比', subtitle: '多维度雷达分析' },
         hourly: { title: '提交时段分布', subtitle: '24小时提交分布' },
         additions: '新增',
@@ -323,7 +322,6 @@ const messages = {
       repoName: 'Repository',
       charts: {
         devRank: { title: 'Developer Leaderboard', subtitle: 'Top 10 by commits' },
-        heatmap: { title: 'Commit Heatmap', subtitle: 'Weekday × Hour' },
         repoCompare: { title: 'Repo Activity', subtitle: 'Multi-dimension Radar' },
         hourly: { title: 'Hourly Distribution', subtitle: 'Commits per hour of day' },
         additions: 'Additions',

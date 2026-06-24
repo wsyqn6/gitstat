@@ -19,7 +19,7 @@ export const THEMES = {
       'rgba(0, 140, 255, 0.6)',
       'rgba(0, 100, 255, 0.85)'
     ],
-    heatmapColors: ['rgba(0, 245, 255, 0.1)', 'rgba(0, 245, 255, 0.4)', 'rgba(0, 245, 255, 0.7)', '#00f5ff']
+
   },
   light: {
     chartColors: ['#007AFF', '#AF52DE', '#FF9500', '#34C759', '#FF2D55', '#FFCC00'],
@@ -41,7 +41,7 @@ export const THEMES = {
       'rgba(0, 100, 220, 0.5)',
       'rgba(0, 80, 200, 0.75)'
     ],
-    heatmapColors: ['rgba(0, 122, 255, 0.08)', 'rgba(0, 122, 255, 0.3)', 'rgba(0, 122, 255, 0.6)', '#007AFF']
+
   }
 }
 
