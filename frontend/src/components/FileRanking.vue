@@ -134,6 +134,9 @@ function langIcon(path) {
   if (!icon) {
     return `<svg viewBox="0 0 24 24" width="18" height="18" class="fi"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" opacity=".15"/><text x="12" y="16" text-anchor="middle" font-size="8" fill="currentColor" opacity=".35" font-family="system-ui,sans-serif">${ext.slice(0,2) || '?'}</text></svg>`
   }
+  if (icon.letter) {
+    return `<svg viewBox="0 0 24 24" width="18" height="18" class="fi"><rect x="0" y="0" width="24" height="24" rx="4" fill="${icon.bg}"/><text x="12" y="16" text-anchor="middle" font-size="${icon.letter.length > 2 ? 7 : 9}" font-weight="700" fill="${icon.color}" font-family="system-ui,sans-serif">${icon.letter}</text></svg>`
+  }
   return `<svg viewBox="0 0 24 24" width="18" height="18" class="fi"><path d="${icon.path}" fill="${icon.color}"/></svg>`
 }
 
