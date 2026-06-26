@@ -51,7 +51,21 @@ const messages = {
       title: '趋势分析',
       subtitle: '时间维度 · 变化洞察',
       timeSeriesTitle: '时间趋势',
-      authorAnalysis: '作者分析'
+      authorAnalysis: '作者分析',
+      fileRanking: {
+        title: '文件变动排名',
+        subtitle: '按文件维度 · 变更洞察',
+        byCommits: '按提交',
+        byChanges: '按变更',
+        rank: '排名',
+        file: '文件',
+        commits: '提交',
+        additions: '++',
+        deletions: '--',
+        net: '净增',
+        noData: '暂无文件变动数据',
+        totalChanges: '总变更'
+      }
     },
     analytics: {
       title: '数据分析中心',
@@ -283,7 +297,21 @@ const messages = {
       title: 'Trends',
       subtitle: 'Time Dimension · Change Insights',
       timeSeriesTitle: 'Time Trends',
-      authorAnalysis: 'Author Analysis'
+      authorAnalysis: 'Author Analysis',
+      fileRanking: {
+        title: 'File Change Ranking',
+        subtitle: 'File-level · Change Insights',
+        byCommits: 'By Commits',
+        byChanges: 'By Changes',
+        rank: 'Rank',
+        file: 'File',
+        commits: 'Commits',
+        additions: '++',
+        deletions: '--',
+        net: 'Net',
+        noData: 'No file change data',
+        totalChanges: 'Total Changes'
+      }
     },
     analytics: {
       title: 'Data Analytics Center',

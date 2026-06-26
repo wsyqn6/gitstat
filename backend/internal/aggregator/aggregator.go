@@ -424,3 +424,57 @@ func AggregateRepoComparison(repos []model.Repository, userEmail string, startDa
 	}
 	return result
 }
+
+func AggregateFileRanking(repos []model.Repository, userEmail string, startDate, endDate time.Time, limit int) []model.FileRankItem {
+	fileMap := make(map[string]*model.FileRankItem)
+	commitSeen := make(map[string]map[string]bool) // filePath -> hash -> seen
+
+	for _, repo := range repos {
+		for _, commit := range repo.Commits {
+			if userEmail != "" && commit.Email != userEmail {
+				continue
+			}
+			if !startDate.IsZero() && commit.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && commit.Date.After(endDate) {
+				continue
+			}
+			for _, f := range commit.Files {
+				item, exists := fileMap[f.Path]
+				if !exists {
+					item = &model.FileRankItem{
+						FilePath: f.Path,
+					}
+					fileMap[f.Path] = item
+					commitSeen[f.Path] = make(map[string]bool)
+				}
+				if !commitSeen[f.Path][commit.Hash] {
+					commitSeen[f.Path][commit.Hash] = true
+					item.Commits++
+				}
+				item.Additions += f.Additions
+				item.Deletions += f.Deletions
+				item.NetChange = item.Additions - item.Deletions
+			}
+		}
+	}
+
+	var result []model.FileRankItem
+	for _, item := range fileMap {
+		result = append(result, *item)
+	}
+
+	slices.SortFunc(result, func(a, b model.FileRankItem) int {
+		return cmp.Compare(b.Commits, a.Commits)
+	})
+
+	if limit > 0 && len(result) > limit {
+		result = result[:limit]
+	}
+
+	if result == nil {
+		result = []model.FileRankItem{}
+	}
+	return result
+}

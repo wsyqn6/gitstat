@@ -11,6 +11,20 @@ type Repository struct {
 	Commits        []Commit `json:"commits"`
 }
 
+type FileStat struct {
+	Path      string `json:"path"`
+	Additions int    `json:"additions"`
+	Deletions int    `json:"deletions"`
+}
+
+type FileRankItem struct {
+	FilePath  string `json:"filePath"`
+	Commits   int    `json:"commits"`
+	Additions int    `json:"additions"`
+	Deletions int    `json:"deletions"`
+	NetChange int    `json:"netChange"`
+}
+
 type Commit struct {
 	Hash      string    `json:"hash"`
 	Author    string    `json:"author"`
@@ -19,6 +33,7 @@ type Commit struct {
 	Message   string    `json:"message"`
 	Additions int       `json:"additions"`
 	Deletions int       `json:"deletions"`
+	Files     []FileStat `json:"-"`
 }
 
 type OverviewStats struct {

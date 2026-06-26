@@ -7,12 +7,25 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"gitstat/internal/model"
 	"gitstat/internal/store"
 )
+
+func parseIntParam(r *http.Request, key string, defaultVal int) int {
+	val := r.URL.Query().Get(key)
+	if val == "" {
+		return defaultVal
+	}
+	n, err := strconv.Atoi(val)
+	if err != nil || n < 0 {
+		return defaultVal
+	}
+	return n
+}
 
 func validatePath(p string) (string, error) {
 	clean := filepath.Clean(p)

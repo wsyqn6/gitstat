@@ -93,17 +93,27 @@
         :endDate="currentEndDate"
       />
     </div>
+
+    <div class="section">
+      <FileRanking
+        :loading="loading"
+        :data="fileRanking"
+        :hasMore="fileRankingHasMore"
+        @loadMore="fileRankingLimit += 10; loadFileRanking()"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getDailyStats, getMonthlyStats, getReposList, getOverviewStats, getActivityHeatmap } from '../api'
+import { getDailyStats, getMonthlyStats, getReposList, getOverviewStats, getActivityHeatmap, getFileRanking } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
 import TimeSeriesCharts from '../components/TimeSeriesCharts.vue'
 import AnalyticsCharts from '../components/AnalyticsCharts.vue'
 import CalendarView from '../components/CalendarView.vue'
+import FileRanking from '../components/FileRanking.vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
@@ -117,6 +127,9 @@ const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
 const activityHeatmap = ref([])
+const fileRanking = ref([])
+const fileRankingLimit = ref(5)
+const fileRankingHasMore = ref(false)
 const viewMode = ref('chart')
 const currentStartDate = ref('')
 const currentEndDate = ref('')
@@ -139,6 +152,17 @@ function computeCalendarViewType() {
   if (days <= 7) return 'week'
   if (days <= 31) return 'month'
   return 'year'
+}
+
+const loadFileRanking = async () => {
+  if (!currentStartDate.value || !currentEndDate.value) return
+  try {
+    const data = await getFileRanking(selectedRepos.value, currentStartDate.value, currentEndDate.value, fileRankingLimit.value)
+    fileRanking.value = data || []
+    fileRankingHasMore.value = (data || []).length >= fileRankingLimit.value
+  } catch (err) {
+    console.error('Failed to load file ranking:', err)
+  }
 }
 
 const loadData = async () => {
@@ -204,12 +228,15 @@ const loadData = async () => {
       ? getMonthlyStats(null, '', selectedRepos.value, startDate, endDate)
       : getDailyStats(null, timeRange, selectedRepos.value, startDate, endDate)
 
-    const [overview, rawStats, heatmap] = await Promise.all([
+    const [overview, rawStats, heatmap, fileRankRaw] = await Promise.all([
       getOverviewStats(startDate, endDate, selectedRepos.value),
       statsPromise,
-      getActivityHeatmap(selectedRepos.value, startDate, endDate)
+      getActivityHeatmap(selectedRepos.value, startDate, endDate),
+      getFileRanking(selectedRepos.value, startDate, endDate, fileRankingLimit.value)
     ])
     overviewStats.value = overview
+    fileRanking.value = fileRankRaw || []
+    fileRankingHasMore.value = (fileRankRaw || []).length >= fileRankingLimit.value
     dailyStats.value = (rawStats || []).map(repo => ({
       ...repo,
       authors: (repo.authors || []).map(a => ({

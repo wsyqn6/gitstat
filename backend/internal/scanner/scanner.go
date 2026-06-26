@@ -80,6 +80,7 @@ func parseGitLog(text string) ([]model.Commit, error) {
 		}
 
 		var additions, deletions int
+		var files []model.FileStat
 		for i < len(lines) && lines[i] != commitMarker {
 			line := strings.TrimSpace(lines[i])
 			i++
@@ -87,16 +88,27 @@ func parseGitLog(text string) ([]model.Commit, error) {
 				continue
 			}
 			parts := strings.Split(line, "\t")
-			if len(parts) >= 2 {
+			if len(parts) >= 3 {
 				add, errA := strconv.Atoi(parts[0])
 				del, errD := strconv.Atoi(parts[1])
+				fpath := strings.TrimSpace(parts[2])
 				if errA == nil {
 					additions += add
 				}
 				if errD == nil {
 					deletions += del
 				}
+				if fpath != "" && (errA == nil || errD == nil) {
+					files = append(files, model.FileStat{
+						Path:      fpath,
+						Additions: add,
+						Deletions: del,
+					})
+				}
 			}
+		}
+		if files == nil {
+			files = []model.FileStat{}
 		}
 
 		commits = append(commits, model.Commit{
@@ -107,6 +119,7 @@ func parseGitLog(text string) ([]model.Commit, error) {
 			Message:   subject,
 			Additions: additions,
 			Deletions: deletions,
+			Files:     files,
 		})
 	}
 

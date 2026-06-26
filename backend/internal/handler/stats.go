@@ -81,3 +81,20 @@ func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	comparison := aggregator.AggregateRepoComparison(repos, userEmail, startDate, endDate)
 	writeSuccess(w, "RepoComparison", comparison)
 }
+
+func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
+	startDate, endDate := parseTimeParams(r, "month")
+	repoPaths := r.URL.Query()["repo"]
+
+	ensureDataLoaded(repoPaths, startDate)
+	repos := loadRepos(repoPaths)
+	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+
+	limit := parseIntParam(r, "limit", 5)
+	if limit > 100 {
+		limit = 100
+	}
+
+	ranking := aggregator.AggregateFileRanking(repos, userEmail, startDate, endDate, limit)
+	writeSuccess(w, "FileRanking", ranking)
+}
