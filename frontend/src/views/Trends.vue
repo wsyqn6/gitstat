@@ -158,8 +158,12 @@ const loadFileRanking = async () => {
   if (!currentStartDate.value || !currentEndDate.value) return
   try {
     const data = await getFileRanking(selectedRepos.value, currentStartDate.value, currentEndDate.value, fileRankingLimit.value)
-    fileRanking.value = data || []
-    fileRankingHasMore.value = (data || []).length >= fileRankingLimit.value
+    if (data) {
+      const existing = new Set(fileRanking.value.map(i => i.filePath))
+      const newItems = data.filter(i => !existing.has(i.filePath))
+      fileRanking.value = [...fileRanking.value, ...newItems]
+      fileRankingHasMore.value = data.length >= fileRankingLimit.value
+    }
   } catch (err) {
     console.error('Failed to load file ranking:', err)
   }
