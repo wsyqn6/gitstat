@@ -449,6 +449,7 @@ function netPrefix(val) {
   width: 100%;
   text-align: center;
 }
+.load-more-btn:focus { outline: none; }
 
 @media (max-width: 768px) {
   .ranking-header {

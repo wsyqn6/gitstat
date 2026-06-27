@@ -136,7 +136,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useI18n } from '../i18n'
 import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, fetchRepoTagsCount, fetchRepoTagsPage, triggerAnalyze } from '../stores/data'
-import { getFileRanking } from '../api'
+import { useFileRanking } from '../composables/useFileRanking'
 import Skeleton from '../components/Skeleton.vue'
 import RepoInfoCards from '../components/RepoInfoCards.vue'
 import RepoLangChart from '../components/RepoLangChart.vue'
@@ -165,11 +165,7 @@ const tagsTotal = ref(0)
 const tagsOffset = ref(0)
 const tagsHasMore = ref(false)
 const tagsLoaded = ref(false)
-const fileRanking = ref([])
-const fileRankingLoading = ref(false)
-const fileRankingLoaded = ref(false)
-const fileRankingHasMore = ref(false)
-const fileRankingLimit = ref(5)
+const { data: fileRanking, loading: fileRankingLoading, loaded: fileRankingLoaded, hasMore: fileRankingHasMore, load, loadMore, reset } = useFileRanking()
 
 async function loadDetail(path) {
   loading.value = true
@@ -229,8 +225,7 @@ async function loadChart() {
 function switchRepo(path) {
   activePath.value = path
   localStorage.setItem('activeRepoPath', path)
-  fileRanking.value = []
-  fileRankingLoaded.value = false
+  reset()
   loadDetail(path)
 }
 
@@ -312,32 +307,16 @@ async function loadMoreTags() {
 }
 
 async function loadFileRanking() {
-  if (!activePath.value || fileRankingLoading.value) return
-  fileRankingLoading.value = true
-  try {
-    const data = await getFileRanking([activePath.value], '', '', fileRankingLimit.value, 'all')
-    if (data) {
-      const existing = new Set(fileRanking.value.map(i => i.filePath))
-      const newItems = data.filter(i => !existing.has(i.filePath))
-      fileRanking.value = [...fileRanking.value, ...newItems]
-      fileRankingHasMore.value = data.length >= fileRankingLimit.value
-    }
-    fileRankingLoaded.value = true
-  } catch (err) {
-    console.error('Failed to load file ranking:', err)
-  } finally {
-    fileRankingLoading.value = false
-  }
+  if (!activePath.value) return
+  await load([activePath.value], '', '', 'all')
+  await nextTick()
+  document.querySelector('.file-rank-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-function loadMoreFileRanking() {
-  fileRankingLimit.value += 5
-  loadFileRanking().then(() => {
-    nextTick(() => {
-      const btn = document.querySelector('.file-rank-section .btn')
-      if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    })
-  })
+async function loadMoreFileRanking() {
+  await loadMore([activePath.value], '', '', 'all')
+  await nextTick()
+  document.querySelector('.file-rank-section')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
 function init() {

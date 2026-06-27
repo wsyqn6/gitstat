@@ -99,7 +99,7 @@
         :loading="loading"
         :data="fileRanking"
         :hasMore="fileRankingHasMore"
-        @loadMore="fileRankingLimit += 10; loadFileRanking()"
+        @loadMore="loadFileRanking()"
       />
     </div>
   </div>
@@ -114,6 +114,7 @@ import TimeSeriesCharts from '../components/TimeSeriesCharts.vue'
 import AnalyticsCharts from '../components/AnalyticsCharts.vue'
 import CalendarView from '../components/CalendarView.vue'
 import FileRanking from '../components/FileRanking.vue'
+import { useFileRanking } from '../composables/useFileRanking'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
@@ -127,9 +128,7 @@ const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
 const activityHeatmap = ref([])
-const fileRanking = ref([])
-const fileRankingLimit = ref(5)
-const fileRankingHasMore = ref(false)
+const { data: fileRanking, hasMore: fileRankingHasMore, limit: fileRankingLimit, load, setData } = useFileRanking()
 const viewMode = ref('chart')
 const currentStartDate = ref('')
 const currentEndDate = ref('')
@@ -156,17 +155,10 @@ function computeCalendarViewType() {
 
 const loadFileRanking = async () => {
   if (!currentStartDate.value || !currentEndDate.value) return
-  try {
-    const data = await getFileRanking(selectedRepos.value, currentStartDate.value, currentEndDate.value, fileRankingLimit.value)
-    if (data) {
-      const existing = new Set(fileRanking.value.map(i => i.filePath))
-      const newItems = data.filter(i => !existing.has(i.filePath))
-      fileRanking.value = [...fileRanking.value, ...newItems]
-      fileRankingHasMore.value = data.length >= fileRankingLimit.value
-    }
-  } catch (err) {
-    console.error('Failed to load file ranking:', err)
-  }
+  fileRankingLimit.value += 5
+  await load(selectedRepos.value, currentStartDate.value, currentEndDate.value)
+  await nextTick()
+  document.querySelector('.file-ranking')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
 const loadData = async () => {
@@ -239,8 +231,7 @@ const loadData = async () => {
       getFileRanking(selectedRepos.value, startDate, endDate, fileRankingLimit.value)
     ])
     overviewStats.value = overview
-    fileRanking.value = fileRankRaw || []
-    fileRankingHasMore.value = (fileRankRaw || []).length >= fileRankingLimit.value
+    setData(fileRankRaw)
     dailyStats.value = (rawStats || []).map(repo => ({
       ...repo,
       authors: (repo.authors || []).map(a => ({
