@@ -106,25 +106,23 @@
             @load-more="loadMoreCommits"
           />
 
-          <div class="file-rank-wrapper">
-            <div class="file-rank-section">
+          <div class="file-rank-section">
+            <template v-if="fileRankingLoaded">
               <FileRanking
-                :loading="!fileRankingLoaded || fileRankingLoading"
+                :loading="false"
                 :data="fileRanking"
                 :hasMore="fileRankingHasMore"
-                @loadMore="fileRankingLimit += 5; loadFileRanking()"
+                @loadMore="loadMoreFileRanking()"
               />
-            </div>
-            <div class="file-rank-overlay" :class="{ hidden: fileRankingLoaded }" @click="loadFileRanking">
-              <div class="overlay-content">
-                <span class="cta-icon">▤</span>
-                <h4>{{ t('repo.fileRankingTitle') }}</h4>
-                <p>{{ t('repo.fileRankingDesc') }}</p>
-                <button class="btn" :disabled="fileRankingLoading" @click.stop="loadFileRanking">
-                  <span v-if="fileRankingLoading" class="spinner"></span>
-                  {{ fileRankingLoading ? t('repo.statsLoading') : t('repo.fileRankingBtn') }}
-                </button>
-              </div>
+            </template>
+            <div v-else class="file-rank-cta glass card" @click.stop="loadFileRanking">
+              <span class="cta-icon">▤</span>
+              <h4>{{ t('repo.fileRankingTitle') }}</h4>
+              <p>{{ t('repo.fileRankingDesc') }}</p>
+              <button class="btn" :disabled="fileRankingLoading" @click.stop="loadFileRanking">
+                <span v-if="fileRankingLoading" class="spinner"></span>
+                {{ fileRankingLoading ? t('repo.statsLoading') : t('repo.fileRankingBtn') }}
+              </button>
             </div>
           </div>
 
@@ -135,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useI18n } from '../i18n'
 import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, fetchRepoTagsCount, fetchRepoTagsPage, triggerAnalyze } from '../stores/data'
 import { getFileRanking } from '../api'
@@ -231,6 +229,7 @@ async function loadChart() {
 function switchRepo(path) {
   activePath.value = path
   localStorage.setItem('activeRepoPath', path)
+  fileRanking.value = []
   fileRankingLoaded.value = false
   loadDetail(path)
 }
@@ -315,16 +314,30 @@ async function loadMoreTags() {
 async function loadFileRanking() {
   if (!activePath.value || fileRankingLoading.value) return
   fileRankingLoading.value = true
-  fileRankingLoaded.value = true
   try {
     const data = await getFileRanking([activePath.value], '', '', fileRankingLimit.value, 'all')
-    fileRanking.value = data || []
-    fileRankingHasMore.value = (data || []).length >= fileRankingLimit.value
+    if (data) {
+      const existing = new Set(fileRanking.value.map(i => i.filePath))
+      const newItems = data.filter(i => !existing.has(i.filePath))
+      fileRanking.value = [...fileRanking.value, ...newItems]
+      fileRankingHasMore.value = data.length >= fileRankingLimit.value
+    }
+    fileRankingLoaded.value = true
   } catch (err) {
     console.error('Failed to load file ranking:', err)
   } finally {
     fileRankingLoading.value = false
   }
+}
+
+function loadMoreFileRanking() {
+  fileRankingLimit.value += 5
+  loadFileRanking().then(() => {
+    nextTick(() => {
+      const btn = document.querySelector('.file-rank-section .btn')
+      if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+  })
 }
 
 function init() {
@@ -447,53 +460,42 @@ onMounted(init)
 }
 .section { padding: 1.5rem; }
 
-.file-rank-wrapper {
-  position: relative;
+.file-rank-section {
   margin-top: 2rem;
 }
 
-.file-rank-overlay {
-  position: absolute;
-  inset: 0;
+.file-rank-cta {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--bg-overlay);
-  backdrop-filter: blur(var(--blur-card));
-  border-radius: 12px;
-  cursor: pointer;
-  z-index: 2;
-  transition: all 0.3s;
-}
-.file-rank-overlay:hover {
-  background: var(--bg-overlay-hover);
-}
-.file-rank-overlay.hidden {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-  transition: none;
-}
-
-.overlay-content {
+  gap: 0.3rem;
   text-align: center;
-  padding: 1.5rem;
+  padding: 2rem;
+  min-height: 340px;
+  cursor: pointer;
+  transition: border-color 0.3s;
 }
-
-.overlay-content h4 {
+.file-rank-cta:hover {
+  border-color: var(--border-card-hover);
+}
+.file-rank-cta h4 {
   font-family: var(--font-display);
   font-size: 1rem;
   color: var(--color-primary);
   letter-spacing: 1px;
-  margin: 0.5rem 0 0.3rem 0;
+  margin: 0.5rem 0 0.2rem 0;
 }
-
-.overlay-content p {
+.file-rank-cta p {
   color: var(--color-nav-link);
   font-size: 0.85rem;
   margin: 0 0 0.8rem 0;
   font-family: var(--font-body);
 }
+.file-rank-cta button:focus {
+  outline: none;
+}
+
 
 .cta-icon {
   display: block;
