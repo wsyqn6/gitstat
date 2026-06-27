@@ -65,8 +65,8 @@ export async function getRepoComparison(repos = [], startDate, endDate, timeRang
   return res.data
 }
 
-export async function getFileRanking(repos = [], startDate, endDate, limit) {
-  const params = buildParams({ repos, startDate, endDate, limit })
+export async function getFileRanking(repos = [], startDate, endDate, limit, timeRange) {
+  const params = buildParams({ repos, startDate, endDate, limit, timeRange })
   const res = await request(`${BASE}/stats/file-ranking?${params}`, { errorMsg: 'Failed to fetch file ranking' })
   return res.data
 }

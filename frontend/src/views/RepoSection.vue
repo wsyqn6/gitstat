@@ -106,6 +106,28 @@
             @load-more="loadMoreCommits"
           />
 
+          <div class="file-rank-wrapper">
+            <div class="file-rank-section">
+              <FileRanking
+                :loading="!fileRankingLoaded || fileRankingLoading"
+                :data="fileRanking"
+                :hasMore="fileRankingHasMore"
+                @loadMore="fileRankingLimit += 5; loadFileRanking()"
+              />
+            </div>
+            <div class="file-rank-overlay" :class="{ hidden: fileRankingLoaded }" @click="loadFileRanking">
+              <div class="overlay-content">
+                <span class="cta-icon">▤</span>
+                <h4>{{ t('repo.fileRankingTitle') }}</h4>
+                <p>{{ t('repo.fileRankingDesc') }}</p>
+                <button class="btn" :disabled="fileRankingLoading" @click.stop="loadFileRanking">
+                  <span v-if="fileRankingLoading" class="spinner"></span>
+                  {{ fileRankingLoading ? t('repo.statsLoading') : t('repo.fileRankingBtn') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
         </template>
       </div>
     </template>
@@ -116,11 +138,13 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from '../i18n'
 import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, fetchRepoTagsCount, fetchRepoTagsPage, triggerAnalyze } from '../stores/data'
+import { getFileRanking } from '../api'
 import Skeleton from '../components/Skeleton.vue'
 import RepoInfoCards from '../components/RepoInfoCards.vue'
 import RepoLangChart from '../components/RepoLangChart.vue'
 import RepoAuthorRank from '../components/RepoAuthorRank.vue'
 import RepoCommits from '../components/RepoCommits.vue'
+import FileRanking from '../components/FileRanking.vue'
 
 const { t } = useI18n()
 
@@ -143,6 +167,11 @@ const tagsTotal = ref(0)
 const tagsOffset = ref(0)
 const tagsHasMore = ref(false)
 const tagsLoaded = ref(false)
+const fileRanking = ref([])
+const fileRankingLoading = ref(false)
+const fileRankingLoaded = ref(false)
+const fileRankingHasMore = ref(false)
+const fileRankingLimit = ref(5)
 
 async function loadDetail(path) {
   loading.value = true
@@ -202,6 +231,7 @@ async function loadChart() {
 function switchRepo(path) {
   activePath.value = path
   localStorage.setItem('activeRepoPath', path)
+  fileRankingLoaded.value = false
   loadDetail(path)
 }
 
@@ -279,6 +309,21 @@ async function loadMoreTags() {
     console.error('Failed to load more tags:', err)
   } finally {
     tagsLoading.value = false
+  }
+}
+
+async function loadFileRanking() {
+  if (!activePath.value || fileRankingLoading.value) return
+  fileRankingLoading.value = true
+  fileRankingLoaded.value = true
+  try {
+    const data = await getFileRanking([activePath.value], '', '', fileRankingLimit.value, 'all')
+    fileRanking.value = data || []
+    fileRankingHasMore.value = (data || []).length >= fileRankingLimit.value
+  } catch (err) {
+    console.error('Failed to load file ranking:', err)
+  } finally {
+    fileRankingLoading.value = false
   }
 }
 
@@ -401,4 +446,59 @@ onMounted(init)
   margin-bottom: 2rem;
 }
 .section { padding: 1.5rem; }
+
+.file-rank-wrapper {
+  position: relative;
+  margin-top: 2rem;
+}
+
+.file-rank-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(var(--blur-card));
+  border-radius: 12px;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.3s;
+}
+.file-rank-overlay:hover {
+  background: var(--bg-overlay-hover);
+}
+.file-rank-overlay.hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+.overlay-content {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.overlay-content h4 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-primary);
+  letter-spacing: 1px;
+  margin: 0.5rem 0 0.3rem 0;
+}
+
+.overlay-content p {
+  color: var(--color-nav-link);
+  font-size: 0.85rem;
+  margin: 0 0 0.8rem 0;
+  font-family: var(--font-body);
+}
+
+.cta-icon {
+  display: block;
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  opacity: 0.5;
+}
 </style>

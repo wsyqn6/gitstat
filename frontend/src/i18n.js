@@ -226,7 +226,10 @@ const messages = {
       hourlyDistribution: '提交时段分布',
       weekLabel: '周',
       noChartData: '暂无提交数据',
-      authorRank: '贡献者排行'
+      authorRank: '贡献者排行',
+      fileRankingTitle: '文件变动排名',
+      fileRankingDesc: '按文件维度分析仓库变更热点',
+      fileRankingBtn: '加载排名'
     },
     settings: {
       title: '设置',
@@ -472,7 +475,10 @@ const messages = {
       hourlyDistribution: 'Hourly Distribution',
       weekLabel: 'W',
       noChartData: 'No commit data',
-      authorRank: 'Top Contributors'
+      authorRank: 'Top Contributors',
+      fileRankingTitle: 'File Change Ranking',
+      fileRankingDesc: 'Analyze file-level change hotspots in this repository',
+      fileRankingBtn: 'Load Ranking'
     },
     settings: {
       title: 'Settings',
