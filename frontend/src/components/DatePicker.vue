@@ -61,6 +61,7 @@
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
+import { pad } from '../utils/dates'
 
 const { t } = useI18n()
 
@@ -114,8 +115,6 @@ function positionDropdown() {
     }
   })
 }
-
-function pad(n) { return String(n).padStart(2, '0') }
 
 function navMonth(delta) {
   viewMonth.value += delta

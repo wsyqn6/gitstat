@@ -9,26 +9,26 @@
           </svg>
           {{ t('settings.title') }}
         </span>
-        <button class="modal-close-btn" aria-label="Close" @click="$emit('close')">✕</button>
+        <button class="modal-close-btn" :aria-label="t('settings.close')" @click="$emit('close')">✕</button>
       </div>
 
       <div class="modal-body">
         <div class="section toggles-section">
           <div class="toggle-row">
             <span class="toggle-label">{{ t('settings.theme') }}</span>
-            <div class="segment-group" :class="{ 'slide-right': theme === 'light' }">
-              <div class="segment-slider"></div>
-              <button :class="{ active: theme === 'neon' }" @click="setTheme('neon')">{{ t('settings.themeDark') }}</button>
-              <button :class="{ active: theme === 'light' }" @click="setTheme('light')">{{ t('settings.themeLight') }}</button>
-            </div>
+            <SegmentToggle
+              :options="[{ value: 'neon', label: t('settings.themeDark') }, { value: 'light', label: t('settings.themeLight') }]"
+              :modelValue="theme"
+              @update:modelValue="setTheme"
+            />
           </div>
           <div class="toggle-row">
             <span class="toggle-label">{{ t('settings.language') }}</span>
-            <div class="segment-group" :class="{ 'slide-right': locale === 'en' }">
-              <div class="segment-slider"></div>
-              <button :class="{ active: locale === 'zh' }" @click="setLocale('zh')">中文</button>
-              <button :class="{ active: locale === 'en' }" @click="setLocale('en')">EN</button>
-            </div>
+            <SegmentToggle
+              :options="[{ value: 'zh', label: '中文' }, { value: 'en', label: 'EN' }]"
+              :modelValue="locale"
+              @update:modelValue="setLocale"
+            />
           </div>
         </div>
 
@@ -73,12 +73,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import { useTheme } from '../composables/useTheme'
 import { performScan, state, loadScanPath } from '../stores/data'
 import { getScanPath, exportData } from '../api'
 import { useToast } from '../composables/useToast'
+import SegmentToggle from './SegmentToggle.vue'
 
 const emit = defineEmits(['close'])
 
@@ -91,6 +92,7 @@ const scanning = ref(false)
 const scanError = ref('')
 const scanSuccess = ref('')
 const version = ref('dev')
+let successTimer = null
 
 onMounted(async () => {
   try {
@@ -109,7 +111,7 @@ async function handleScan() {
     state.scanPath = scanPath.value
     await performScan(scanPath.value)
     scanSuccess.value = t('settings.scanSuccess')
-    setTimeout(() => { scanSuccess.value = '' }, 3000)
+    successTimer = setTimeout(() => { scanSuccess.value = '' }, 3000)
   } catch (err) {
     scanError.value = err.message
   } finally {
@@ -130,6 +132,10 @@ async function handleExport() {
     show(t('settings.exportError'), 'error')
   }
 }
+
+onUnmounted(() => {
+  if (successTimer) clearTimeout(successTimer)
+})
 </script>
 
 <style scoped>
@@ -239,64 +245,6 @@ async function handleExport() {
   font-size: 0.9rem;
   color: var(--color-text-primary);
   font-weight: 500;
-}
-
-.segment-group {
-  display: flex;
-  background: var(--glass-btn-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-btn-border);
-  border-radius: var(--radius-btn);
-  padding: 2px;
-  gap: 2px;
-  position: relative;
-}
-
-.segment-slider {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(50% - 3px);
-  height: calc(100% - 4px);
-  border-radius: calc(var(--radius-btn) - 2px);
-  background: var(--glass-btn-hover-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--glass-btn-shadow), var(--glass-btn-inner);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.segment-group.slide-right .segment-slider {
-  transform: translateX(calc(100% + 2px));
-}
-
-.segment-group button {
-  padding: 0.4rem 1rem;
-  border: none;
-  border-radius: calc(var(--radius-btn) - 2px);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.25s ease;
-  position: relative;
-  z-index: 1;
-}
-
-.segment-group button:active {
-  transform: scale(0.95);
-}
-
-.segment-group button.active {
-  color: var(--glass-btn-color);
-}
-
-.segment-group button:hover:not(.active) {
-  color: var(--color-text-secondary);
 }
 
 .form-group {

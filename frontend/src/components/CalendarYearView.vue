@@ -69,6 +69,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
+import { pad } from '../utils/dates'
 
 const props = defineProps({
   dailyStats: { type: Array, default: () => [] },
@@ -78,10 +79,6 @@ const props = defineProps({
 const { t, locale } = useI18n()
 
 const selectedMonth = ref(null)
-
-function pad(n) {
-  return String(n).padStart(2, '0')
-}
 
 const monthNames = computed(() => t('calendar.monthNames'))
 

@@ -87,6 +87,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
 import { useTheme } from '../composables/useTheme'
 import { getChartConfig } from '../utils/constants'
+import { pad } from '../utils/dates'
 
 const props = defineProps({
   dailyStats: { type: Array, default: () => [] },
@@ -98,10 +99,6 @@ const { theme } = useTheme()
 const chartCfg = computed(() => getChartConfig(theme.value))
 
 const selectedCell = ref(null)
-
-function pad(n) {
-  return String(n).padStart(2, '0')
-}
 
 function cellBg(commits, maxC) {
   if (!commits || !maxC) return 'transparent'
@@ -214,15 +211,13 @@ const dateDetail = computed(() => {
 const formattedDate = computed(() => {
   if (!selectedCell.value) return ''
   const d = new Date(selectedCell.value.dateStr + 'T00:00:00')
-  const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-  const wdZh = ['日','一','二','三','四','五','六']
-  const ms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const dayNames = t('calendar.dayNamesShort')
   const fmt = t('calendar.dateFormat')
   return fmt
     .replace('{y}', d.getFullYear())
     .replace('{m}', d.getMonth() + 1)
     .replace('{d}', d.getDate())
-    .replace('{w}', locale.value === 'zh' ? wdZh[d.getDay()] : wd[d.getDay()])
+    .replace('{w}', dayNames[d.getDay()])
 })
 
 const netChange = computed(() => {

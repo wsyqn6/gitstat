@@ -24,6 +24,8 @@ import echarts from '../utils/echarts'
 import ChartContainer from './ChartContainer.vue'
 import { getChartConfig } from '../utils/constants'
 import { useTheme } from '../composables/useTheme'
+import { eachDay, eachMonth } from '../utils/dates'
+import { adjustColor } from '../utils/colors'
 
 const { t } = useI18n()
 
@@ -35,41 +37,11 @@ const props = defineProps({
   endDate: String
 })
 
-function eachDay(start, end) {
-  const days = []
-  const cur = new Date(start)
-  const endDate = new Date(end)
-  while (cur <= endDate) {
-    days.push(cur.toISOString().slice(0, 10))
-    cur.setDate(cur.getDate() + 1)
-  }
-  return days
-}
-
-function eachMonth(start, end) {
-  const months = []
-  const cur = new Date(start)
-  const endDate = new Date(end)
-  while (cur <= endDate) {
-    months.push(cur.toISOString().slice(0, 7))
-    cur.setMonth(cur.getMonth() + 1)
-  }
-  return months
-}
-
 const granularity = computed(() => {
   if (!props.startDate || !props.endDate) return 'day'
   const days = Math.round((new Date(props.endDate) - new Date(props.startDate)) / (1000 * 60 * 60 * 24))
   return days > 31 ? 'month' : 'day'
 })
-
-function adjustColor(color, amount) {
-  const num = parseInt(color.replace('#', ''), 16)
-  const r = Math.min(255, Math.max(0, (num >> 16) + amount))
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount))
-  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount))
-  return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`
-}
 
 const { theme } = useTheme()
 const chartCfg = computed(() => getChartConfig(theme.value))

@@ -37,32 +37,28 @@
       <div class="section-header">
         <h3 class="section-title">{{ t('trends.timeSeriesTitle') }}</h3>
         <div class="view-toggle-bar">
-          <div class="view-toggle-inner">
-            <div class="toggle-slider" :class="viewMode"></div>
+          <SegmentToggle
+            :options="viewOptions"
+            v-model="viewMode"
+            v-slot="{ active }"
+          >
             <button
-              @click="viewMode = 'chart'"
-              class="view-toggle-btn"
-              :class="{ active: viewMode === 'chart' }"
+              v-for="opt in viewOptions"
+              :key="opt.value"
+              :class="{ active: active === opt.value }"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+              <svg v-if="opt.value === 'chart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
-              <span>{{ t('calendar.chartView') }}</span>
-            </button>
-            <button
-              @click="viewMode = 'calendar'"
-              class="view-toggle-btn"
-              :class="{ active: viewMode === 'calendar' }"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
                 <line x1="3" y1="10" x2="21" y2="10"></line>
               </svg>
-              <span>{{ t('calendar.calendarView') }}</span>
+              <span>{{ opt.label }}</span>
             </button>
-          </div>
+          </SegmentToggle>
         </div>
       </div>
 
@@ -116,6 +112,7 @@ import CalendarView from '../components/CalendarView.vue'
 import FileRanking from '../components/FileRanking.vue'
 import { useFileRanking } from '../composables/useFileRanking'
 import { useI18n } from '../i18n'
+import SegmentToggle from '../components/SegmentToggle.vue'
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -130,6 +127,10 @@ const dailyStats = ref([])
 const activityHeatmap = ref([])
 const { data: fileRanking, hasMore: fileRankingHasMore, limit: fileRankingLimit, load, setData } = useFileRanking()
 const viewMode = ref('chart')
+const viewOptions = [
+  { value: 'chart', label: t('calendar.chartView') },
+  { value: 'calendar', label: t('calendar.calendarView') }
+]
 const currentStartDate = ref('')
 const currentEndDate = ref('')
 const loadedTimeRange = ref('')
@@ -353,61 +354,6 @@ onMounted(async () => {
 
 .view-toggle-bar {
   flex-shrink: 0;
-}
-
-.view-toggle-inner {
-  display: inline-flex;
-  background: var(--glass-btn-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-btn-border);
-  border-radius: calc(var(--radius-btn) + 2px);
-  padding: 3px;
-  gap: 2px;
-  position: relative;
-}
-
-.toggle-slider {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: calc(50% - 4px);
-  height: calc(100% - 6px);
-  border-radius: calc(var(--radius-btn) - 2px);
-  background: var(--glass-btn-hover-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  box-shadow: var(--glass-btn-shadow), var(--glass-btn-inner);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.toggle-slider.calendar {
-  transform: translateX(calc(100% + 2px));
-}
-
-.view-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.5rem 1.2rem;
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.25s ease;
-  position: relative;
-  z-index: 1;
-}
-
-.view-toggle-btn.active {
-  color: var(--glass-btn-color);
-}
-
-.view-toggle-btn:hover:not(.active) {
-  color: var(--color-text-secondary);
 }
 
 .toggle-icon {
