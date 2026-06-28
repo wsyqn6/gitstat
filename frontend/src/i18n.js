@@ -52,6 +52,9 @@ const messages = {
       subtitle: '时间维度 · 变化洞察',
       timeSeriesTitle: '时间趋势',
       authorAnalysis: '作者分析',
+      vsWeek: '较上周',
+      vsMonth: '较上月',
+      vsYear: '较去年',
       fileRanking: {
         title: '文件变动排名',
         subtitle: '按文件维度 · 变更洞察',
@@ -301,6 +304,9 @@ const messages = {
       subtitle: 'Time Dimension · Change Insights',
       timeSeriesTitle: 'Time Trends',
       authorAnalysis: 'Author Analysis',
+      vsWeek: 'vs last week',
+      vsMonth: 'vs last month',
+      vsYear: 'vs last year',
       fileRanking: {
         title: 'File Change Ranking',
         subtitle: 'File-level · Change Insights',

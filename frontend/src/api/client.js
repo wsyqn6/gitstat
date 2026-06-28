@@ -1,10 +1,12 @@
 const BASE = import.meta.env.VITE_API_BASE || '/api'
 
 function buildParams(opt = {}) {
-  const { startDate, endDate, repos, timeRange, path, email, offset, limit } = opt
+  const { startDate, endDate, repos, timeRange, path, email, offset, limit, prevStartDate, prevEndDate } = opt
   const p = new URLSearchParams()
   if (startDate) p.append('startDate', startDate)
   if (endDate) p.append('endDate', endDate)
+  if (prevStartDate) p.append('prevStartDate', prevStartDate)
+  if (prevEndDate) p.append('prevEndDate', prevEndDate)
   if (timeRange) p.append('range', timeRange)
   if (email) p.append('email', email)
   if (path) p.append('path', path)

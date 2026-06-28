@@ -27,6 +27,7 @@
 
     <OverviewCards
       :overviewStats="overviewStats"
+      :comparison="comparison"
       :loadedTimeRange="loadedTimeRange"
       :customStartDate="customStartDate"
       :customEndDate="customEndDate"
@@ -107,7 +108,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getDailyStats, getMonthlyStats, getReposList, getOverviewStats, getActivityHeatmap, getFileRanking } from '../api'
+import { getDailyStats, getMonthlyStats, getReposList, getOverviewStats, getActivityHeatmap, getFileRanking, getComparisonStats } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
 import TimeSeriesCharts from '../components/TimeSeriesCharts.vue'
@@ -134,6 +135,7 @@ const currentStartDate = ref('')
 const currentEndDate = ref('')
 const loadedTimeRange = ref('')
 const calendarViewType = ref('week')
+const comparison = ref(null)
 
 function toLocalDateStr(d) {
   const y = d.getFullYear()
@@ -224,13 +226,36 @@ const loadData = async () => {
       ? getMonthlyStats(null, '', selectedRepos.value, startDate, endDate)
       : getDailyStats(null, timeRange, selectedRepos.value, startDate, endDate)
 
-    const [overview, rawStats, heatmap, fileRankRaw] = await Promise.all([
+    let prevStartDate = '', prevEndDate = ''
+    const range = selectedTimeRange.value
+    if (range === 'week') {
+      const ms = 7 * 86400 * 1000
+      prevStartDate = toLocalDateStr(new Date(new Date(startDate).getTime() - ms))
+      prevEndDate = toLocalDateStr(new Date(new Date(endDate).getTime() - ms))
+    } else if (range === 'month') {
+      const s = new Date(startDate)
+      const e = new Date(endDate)
+      prevStartDate = toLocalDateStr(new Date(s.getFullYear(), s.getMonth() - 1, 1))
+      prevEndDate = toLocalDateStr(new Date(e.getFullYear(), e.getMonth(), 0))
+    } else if (range === 'year') {
+      const sy = new Date(startDate).getFullYear() - 1
+      const ey = new Date(endDate).getFullYear() - 1
+      prevStartDate = `${sy}-01-01`
+      prevEndDate = `${ey}-12-31`
+    }
+    const comparisonPromise = prevStartDate && prevEndDate
+      ? getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, selectedRepos.value)
+      : Promise.resolve(null)
+
+    const [overview, rawStats, heatmap, fileRankRaw, comparisonResult] = await Promise.all([
       getOverviewStats(startDate, endDate, selectedRepos.value),
       statsPromise,
       getActivityHeatmap(selectedRepos.value, startDate, endDate),
-      getFileRanking(selectedRepos.value, startDate, endDate, fileRankingLimit.value)
+      getFileRanking(selectedRepos.value, startDate, endDate, fileRankingLimit.value),
+      comparisonPromise
     ])
     overviewStats.value = overview
+    comparison.value = comparisonResult
     setData(fileRankRaw)
     dailyStats.value = (rawStats || []).map(repo => ({
       ...repo,

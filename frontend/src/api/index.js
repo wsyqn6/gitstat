@@ -53,6 +53,12 @@ export async function getYearlyStats(email, timeRange = 'year', repos = [], star
   return res.data
 }
 
+export async function getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, repos = []) {
+  const params = buildParams({ startDate, endDate, prevStartDate, prevEndDate, repos })
+  const res = await request(`${BASE}/stats/compare?${params}`, { errorMsg: 'Failed to fetch comparison' })
+  return res.data
+}
+
 export async function getActivityHeatmap(repos = [], startDate, endDate) {
   const params = buildParams({ repos, startDate, endDate })
   const res = await request(`${BASE}/stats/activity-heatmap?${params}`, { errorMsg: 'Failed to fetch activity heatmap' })

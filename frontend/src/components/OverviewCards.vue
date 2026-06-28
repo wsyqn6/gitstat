@@ -9,8 +9,9 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-label">{{ t('analytics.totalCommits') }}</div>
           <div class="stat-value">{{ displayValue(overviewStats?.totalCommits) }}</div>
+          <ChangeBadge v-if="comparison" :change="comparison.totalCommits" :prefix="vsPrefix" />
+          <div class="stat-label">{{ t('analytics.totalCommits') }}</div>
         </div>
       </div>
       <div class="glass stat-card">
@@ -21,8 +22,9 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-label">{{ t('analytics.totalAdditions') }}</div>
           <div class="stat-value">{{ displayValue(overviewStats?.totalAdditions) }}</div>
+          <ChangeBadge v-if="comparison" :change="comparison.totalAdditions" :prefix="vsPrefix" />
+          <div class="stat-label">{{ t('analytics.totalAdditions') }}</div>
         </div>
       </div>
       <div class="glass stat-card">
@@ -33,8 +35,9 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-label">{{ t('analytics.totalDeletions') }}</div>
           <div class="stat-value">{{ displayValue(overviewStats?.totalDeletions) }}</div>
+          <ChangeBadge v-if="comparison" :change="comparison.totalDeletions" :prefix="vsPrefix" />
+          <div class="stat-label">{{ t('analytics.totalDeletions') }}</div>
         </div>
       </div>
       <div class="glass stat-card clickable" :class="{ expanded: expanded }" @click="toggleExpand">
@@ -47,8 +50,9 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-label">{{ t('analytics.activeAuthors') }} <span class="expand-icon">{{ expanded ? '▼' : '▶' }}</span></div>
           <div class="stat-value">{{ displayValue(overviewStats?.activeAuthors) }}</div>
+          <ChangeBadge v-if="comparison" :change="comparison.activeAuthors" :prefix="vsPrefix" />
+          <div class="stat-label">{{ t('analytics.activeAuthors') }} <span class="expand-icon">{{ expanded ? '▼' : '▶' }}</span></div>
         </div>
       </div>
     </div>
@@ -78,11 +82,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
+import ChangeBadge from './ChangeBadge.vue'
 
 const { t } = useI18n()
 
 const props = defineProps({
   overviewStats: Object,
+  comparison: Object,
   loadedTimeRange: String,
   customStartDate: String,
   customEndDate: String
@@ -97,6 +103,15 @@ function toggleExpand() {
 function displayValue(val) {
   return val !== undefined && val !== null ? val : '--'
 }
+
+const vsPrefix = computed(() => {
+  switch (props.loadedTimeRange) {
+    case 'week': return t('trends.vsWeek')
+    case 'month': return t('trends.vsMonth')
+    case 'year': return t('trends.vsYear')
+    default: return ''
+  }
+})
 
 const timePeriodLabel = computed(() => {
   switch (props.loadedTimeRange) {
@@ -130,16 +145,23 @@ const timePeriodLabel = computed(() => {
 
 .overview-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
 }
 
 .stat-card {
   padding: 1.5rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  text-align: center;
+  animation: cardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+.stat-card:nth-child(1) { animation-delay: 0s; }
+.stat-card:nth-child(2) { animation-delay: 0.06s; }
+.stat-card:nth-child(3) { animation-delay: 0.12s; }
+.stat-card:nth-child(4) { animation-delay: 0.18s; }
 
 .stat-card.clickable {
   cursor: pointer;
@@ -154,43 +176,47 @@ const timePeriodLabel = computed(() => {
 }
 
 .stat-icon {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 28px;
+  height: 28px;
   color: var(--color-accent);
+  margin-bottom: 0.5rem;
 }
 
 .stat-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
 }
 
 .stat-content {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
   font-weight: 700;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
 }
 
 .stat-label {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  color: var(--color-nav-link);
   letter-spacing: 1px;
-  margin-bottom: 0.25rem;
+  text-transform: uppercase;
 }
 
 .expand-icon {
-  font-size: 0.6rem;
-  margin-left: 0.3rem;
+  font-size: 0.5rem;
+  margin-left: 0.2rem;
   vertical-align: middle;
 }
 
@@ -252,5 +278,16 @@ const timePeriodLabel = computed(() => {
 
 .del {
   color: var(--color-red);
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 </style>
