@@ -198,6 +198,22 @@ type RepoStats struct {
 	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
 }
 
+// 同比/环比单个指标变化
+type MetricChange struct {
+	Current  int     `json:"current"`
+	Previous int     `json:"previous"`
+	Abs      int     `json:"abs"`
+	Pct      float64 `json:"pct"`
+}
+
+// 同比/环比概览对比
+type OverviewComparison struct {
+	TotalCommits   MetricChange `json:"totalCommits"`
+	TotalAdditions MetricChange `json:"totalAdditions"`
+	TotalDeletions MetricChange `json:"totalDeletions"`
+	ActiveAuthors  MetricChange `json:"activeAuthors"`
+}
+
 // 仓库对比数据
 type RepoComparison struct {
 	RepoName         string  `json:"repoName"`
