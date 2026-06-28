@@ -249,6 +249,7 @@
   --outline-primary: 1px solid rgba(0, 212, 255, 0.6);
 
   --gradient-page-title: linear-gradient(135deg, #00f5ff 0%, #ff00ff 50%, #ffd700 100%);
+  --color-separator: rgba(148, 163, 184, 0.25);
 
   --modal-overlay: rgba(0, 0, 0, 0.5);
   --modal-bg: rgba(255, 255, 255, 0.015);
@@ -458,6 +459,7 @@
   --shadow-accent-drop: 0 0 4px rgba(0, 122, 255, 0.25);
   --outline-primary: 1px solid rgba(0, 122, 255, 0.5);
   --gradient-page-title: linear-gradient(135deg, #007AFF 0%, #AF52DE 50%, #FF9500 100%);
+  --color-separator: rgba(60, 60, 67, 0.2);
   --radius-btn: 10px;
   --btn-font-family: var(--font-body);
   --btn-font-weight: 500;

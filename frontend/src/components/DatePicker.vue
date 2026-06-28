@@ -11,9 +11,9 @@
       <div v-if="open" class="dp-overlay" @click.stop="open = false">
         <div class="dp-dropdown" :style="dropdownStyle" @click.stop>
           <div class="dp-nav-row">
-            <button @click="navMonth(-1)" class="dp-nav-btn btn">‹</button>
+            <button @click="navMonth(-1)" class="dp-nav-btn btn" :aria-label="t('datePicker.prevMonth')">‹</button>
             <span class="dp-nav-title">{{ leftLabel }} — {{ rightLabel }}</span>
-            <button @click="navMonth(1)" class="dp-nav-btn btn">›</button>
+            <button @click="navMonth(1)" class="dp-nav-btn btn" :aria-label="t('datePicker.nextMonth')">›</button>
           </div>
           <div class="dp-months">
             <div class="dp-month">

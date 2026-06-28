@@ -39,7 +39,9 @@ const messages = {
       clear: '清除',
       placeholder: '选择日期范围',
       monthFormat: '{y}年{m}月',
-      dayNames: ['一', '二', '三', '四', '五', '六', '日']
+      dayNames: ['一', '二', '三', '四', '五', '六', '日'],
+      prevMonth: '上月',
+      nextMonth: '下月'
     },
     scan: {
       title: '扫描Git仓库',
@@ -250,7 +252,8 @@ const messages = {
       exportData: '导出数据 (JSON)',
       exportError: '导出失败',
       about: '关于',
-      platformName: 'Git提交统计平台'
+      platformName: 'Git提交统计平台',
+      close: '关闭'
     }
   },
   en: {
@@ -297,7 +300,9 @@ const messages = {
       clear: 'Clear',
       placeholder: 'Select date range',
       monthFormat: '{m}/{y}',
-      dayNames: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+      dayNames: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
+      prevMonth: 'Prev Month',
+      nextMonth: 'Next Month'
     },
     trends: {
       title: 'Trends',
@@ -502,7 +507,8 @@ const messages = {
       exportData: 'Export Data (JSON)',
       exportError: 'Export failed',
       about: 'About',
-      platformName: 'Git Commit Statistics Platform'
+      platformName: 'Git Commit Statistics Platform',
+      close: 'Close'
     }
   }
 }
