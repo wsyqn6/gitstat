@@ -206,10 +206,6 @@ const localBranches = computed(() => {
   return []
 })
 
-const totalCommitCount = computed(() =>
-  props.detail?.contributors?.reduce((s, c) => s + c.commitCount, 0) || 0
-)
-
 const hasCommits = computed(() =>
   props.detail?.contributors && props.detail.contributors.length > 0
 )

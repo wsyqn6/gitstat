@@ -14,8 +14,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(week, wi) in monthGrid" :key="wi">
-              <td v-for="(cell, ci) in week" :key="ci"
+            <tr v-for="(week, wi) in monthGrid" :key="'w' + wi">
+              <td v-for="(cell, ci) in week" :key="cell ? cell.dateStr : 'e-' + wi + '-' + ci"
                 class="cal-cell"
                 :class="{
                   'is-today': cell?.isToday,

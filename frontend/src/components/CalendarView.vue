@@ -14,8 +14,7 @@ import CalendarYearView from './CalendarYearView.vue'
 defineProps({
   viewType: { type: String, required: true },
   dailyStats: { type: Array, default: () => [] },
-  startDate: { type: String, default: '' },
-  endDate: { type: String, default: '' }
+  startDate: { type: String, default: '' }
 })
 </script>
 

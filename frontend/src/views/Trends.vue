@@ -80,7 +80,6 @@
         :viewType="calendarViewType"
         :dailyStats="dailyStats"
         :startDate="currentStartDate"
-        :endDate="currentEndDate"
       />
     </div>
 

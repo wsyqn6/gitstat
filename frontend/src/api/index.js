@@ -35,21 +35,9 @@ export async function getAuthorRank(repos = [], startDate, endDate, timeRange = 
   return res.data
 }
 
-export async function getWeeklyStats(email, timeRange = 'week', repos = [], startDate, endDate) {
-  const params = buildParams({ email, timeRange, repos, startDate, endDate })
-  const res = await request(`${BASE}/stats/weekly?${params}`, { errorMsg: 'Failed to fetch weekly stats' })
-  return res.data
-}
-
 export async function getMonthlyStats(email, timeRange = 'month', repos = [], startDate, endDate) {
   const params = buildParams({ email, timeRange, repos, startDate, endDate })
   const res = await request(`${BASE}/stats/monthly?${params}`, { errorMsg: 'Failed to fetch monthly stats' })
-  return res.data
-}
-
-export async function getYearlyStats(email, timeRange = 'year', repos = [], startDate, endDate) {
-  const params = buildParams({ email, timeRange, repos, startDate, endDate })
-  const res = await request(`${BASE}/stats/yearly?${params}`, { errorMsg: 'Failed to fetch yearly stats' })
   return res.data
 }
 
