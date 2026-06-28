@@ -13,8 +13,8 @@ export async function getScanPath() {
   return { path: data.data?.path || '', version: data.data?.version || '' }
 }
 
-export async function getOverviewStats(startDate, endDate, repos = []) {
-  const params = buildParams({ startDate, endDate, repos })
+export async function getOverviewStats(startDate, endDate, repos = [], scope) {
+  const params = buildParams({ startDate, endDate, repos, scope })
   const res = await request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats' })
   return res.data
 }
@@ -53,8 +53,8 @@ export async function getYearlyStats(email, timeRange = 'year', repos = [], star
   return res.data
 }
 
-export async function getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, repos = []) {
-  const params = buildParams({ startDate, endDate, prevStartDate, prevEndDate, repos })
+export async function getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, repos = [], scope) {
+  const params = buildParams({ startDate, endDate, prevStartDate, prevEndDate, repos, scope })
   const res = await request(`${BASE}/stats/compare?${params}`, { errorMsg: 'Failed to fetch comparison' })
   return res.data
 }

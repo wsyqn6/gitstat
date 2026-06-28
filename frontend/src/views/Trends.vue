@@ -244,11 +244,11 @@ const loadData = async () => {
       prevEndDate = `${ey}-12-31`
     }
     const comparisonPromise = prevStartDate && prevEndDate
-      ? getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, selectedRepos.value)
+      ? getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, selectedRepos.value, 'all')
       : Promise.resolve(null)
 
     const [overview, rawStats, heatmap, fileRankRaw, comparisonResult] = await Promise.all([
-      getOverviewStats(startDate, endDate, selectedRepos.value),
+      getOverviewStats(startDate, endDate, selectedRepos.value, 'all'),
       statsPromise,
       getActivityHeatmap(selectedRepos.value, startDate, endDate),
       getFileRanking(selectedRepos.value, startDate, endDate, fileRankingLimit.value),

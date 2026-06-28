@@ -69,9 +69,18 @@
         </div>
         <div v-for="author in overviewStats.authors" :key="author.email" class="contrib-row">
           <span class="contrib-name">{{ author.author }}</span>
-          <span>{{ author.commits }}</span>
-          <span class="add">+{{ author.additions }}</span>
-          <span class="del">-{{ author.deletions }}</span>
+          <span class="cell-with-change">
+            <span>{{ author.commits }}</span>
+            <ChangeBadge :change="getAuthorChange(author.email)?.commits" prefix="" compact />
+          </span>
+          <span class="add cell-with-change">
+            <span>+{{ author.additions }}</span>
+            <ChangeBadge :change="getAuthorChange(author.email)?.additions" prefix="" compact />
+          </span>
+          <span class="del cell-with-change">
+            <span>-{{ author.deletions }}</span>
+            <ChangeBadge :change="getAuthorChange(author.email)?.deletions" prefix="" compact />
+          </span>
           <span :class="author.netChange >= 0 ? 'add' : 'del'">{{ author.netChange >= 0 ? '+' : '' }}{{ author.netChange }}</span>
         </div>
       </div>
@@ -126,6 +135,10 @@ const timePeriodLabel = computed(() => {
     default: return ''
   }
 })
+
+function getAuthorChange(email) {
+  return props.comparison?.authors?.find(a => a.email === email)?.change
+}
 </script>
 
 <style scoped>
@@ -246,6 +259,12 @@ const timePeriodLabel = computed(() => {
   align-items: center;
   gap: 0.3rem;
   font-size: 0.85rem;
+}
+
+.cell-with-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .contrib-header {

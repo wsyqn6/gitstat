@@ -11,7 +11,8 @@ import { computed } from 'vue'
 
 const props = defineProps({
   change: Object,
-  prefix: String
+  prefix: String,
+  compact: Boolean
 })
 
 const cls = computed(() => {
@@ -48,10 +49,17 @@ const formatted = computed(() => {
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.2px;
-  margin-bottom: 0.25rem;
   padding: 0 6px;
   border-radius: 8px;
   animation: badgeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.change-badge.compact {
+  padding: 0;
+  border-radius: 0;
+  background: none !important;
+  margin: 0;
+  animation: none;
 }
 
 .change-badge.up {
