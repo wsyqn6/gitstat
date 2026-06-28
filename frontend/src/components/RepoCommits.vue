@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <div class="load-more-wrap">
+      <div ref="loadMoreWrap" class="load-more-wrap">
         <button
           v-if="hasMore"
           class="load-more-btn btn"
@@ -75,6 +75,9 @@ defineProps({
 const emit = defineEmits(['loadCommits', 'loadMore'])
 
 const expandedCommit = ref(null)
+const loadMoreWrap = ref(null)
+
+defineExpose({ loadMoreWrap })
 
 function formatTimeAgo(s) {
   if (!s) return '-'

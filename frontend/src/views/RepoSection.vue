@@ -98,6 +98,7 @@
             />
           </div>
           <RepoCommits
+            ref="repoCommitsRef"
             :commits="commits"
             :commits-loading="commitsLoading"
             :commits-loaded="commitsLoaded"
@@ -166,6 +167,7 @@ const tagsOffset = ref(0)
 const tagsHasMore = ref(false)
 const tagsLoaded = ref(false)
 const { data: fileRanking, loading: fileRankingLoading, loaded: fileRankingLoaded, hasMore: fileRankingHasMore, load, loadMore, reset } = useFileRanking()
+const repoCommitsRef = ref(null)
 
 async function loadDetail(path) {
   loading.value = true
@@ -246,7 +248,7 @@ async function loadCommits() {
   commitsLoading.value = true
   commitsOffset.value = 0
   try {
-    const result = await fetchRepoCommits(activePath.value, 0, 30)
+    const result = await fetchRepoCommits(activePath.value, 0, 10)
     commits.value = result.commits
     commitsHasMore.value = result.hasMore
     commitsLoaded.value = true
@@ -260,9 +262,9 @@ async function loadCommits() {
 async function loadMoreCommits() {
   if (!activePath.value || commitsLoading.value || !commitsHasMore.value) return
   commitsLoading.value = true
-  const nextOffset = commitsOffset.value + 30
+  const nextOffset = commitsOffset.value + 10
   try {
-    const result = await fetchRepoCommits(activePath.value, nextOffset, 30)
+    const result = await fetchRepoCommits(activePath.value, nextOffset, 10)
     commits.value = commits.value.concat(result.commits)
     commitsHasMore.value = result.hasMore
     commitsOffset.value = nextOffset
@@ -271,6 +273,9 @@ async function loadMoreCommits() {
   } finally {
     commitsLoading.value = false
   }
+  nextTick(() => {
+    repoCommitsRef.value?.loadMoreWrap?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
 }
 
 async function loadTags() {
