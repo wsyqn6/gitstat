@@ -15,7 +15,11 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	ensureDataLoaded(repoPaths, startDate)
 	repos := loadRepos(repoPaths)
-	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+
+	var userEmail string
+	if r.URL.Query().Get("scope") != "all" {
+		userEmail = resolveUserEmail(repos, r.URL.Query().Get("email"))
+	}
 
 	stats := aggregator.AggregateOverview(repos, userEmail, startDate, endDate)
 	writeSuccess(w, "Overview", stats)
@@ -109,7 +113,11 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	ensureDataLoaded(repoPaths, startDate)
 	ensureDataLoaded(repoPaths, prevStartDate)
 	repos := loadRepos(repoPaths)
-	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+
+	var userEmail string
+	if r.URL.Query().Get("scope") != "all" {
+		userEmail = resolveUserEmail(repos, r.URL.Query().Get("email"))
+	}
 
 	current := aggregator.AggregateOverview(repos, userEmail, startDate, endDate)
 	previous := aggregator.AggregateOverview(repos, userEmail, prevStartDate, prevEndDate)
@@ -135,11 +143,44 @@ func computeComparison(current, previous model.OverviewStats) model.OverviewComp
 		}
 	}
 
+	prevMap := make(map[string]model.AuthorRankItem)
+	for _, a := range previous.Authors {
+		prevMap[a.Email] = a
+	}
+
+	var authorComparison []model.AuthorComparisonItem
+	for _, ca := range current.Authors {
+		pa, exists := prevMap[ca.Email]
+		prevCommits, prevAdditions, prevDeletions := 0, 0, 0
+		if exists {
+			prevCommits = pa.Commits
+			prevAdditions = pa.Additions
+			prevDeletions = pa.Deletions
+		}
+		ac := model.AuthorComparisonItem{
+			Author: ca.Author,
+			Email:  ca.Email,
+			IsMe:   ca.IsMe,
+			Change: model.AuthorMetricChange{
+				Commits:   mk(ca.Commits, prevCommits),
+				Additions: mk(ca.Additions, prevAdditions),
+				Deletions: mk(ca.Deletions, prevDeletions),
+				NetChange: ca.NetChange - (prevAdditions - prevDeletions),
+			},
+		}
+		authorComparison = append(authorComparison, ac)
+	}
+
+	if authorComparison == nil {
+		authorComparison = []model.AuthorComparisonItem{}
+	}
+
 	return model.OverviewComparison{
 		TotalCommits:   mk(current.TotalCommits, previous.TotalCommits),
 		TotalAdditions: mk(current.TotalAdditions, previous.TotalAdditions),
 		TotalDeletions: mk(current.TotalDeletions, previous.TotalDeletions),
 		ActiveAuthors:  mk(current.ActiveAuthors, previous.ActiveAuthors),
+		Authors:        authorComparison,
 	}
 }
 

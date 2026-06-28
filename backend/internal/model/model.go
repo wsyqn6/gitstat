@@ -206,12 +206,29 @@ type MetricChange struct {
 	Pct      float64 `json:"pct"`
 }
 
+// 同比/环比单个作者各指标变化
+type AuthorMetricChange struct {
+	Commits   MetricChange `json:"commits"`
+	Additions MetricChange `json:"additions"`
+	Deletions MetricChange `json:"deletions"`
+	NetChange int          `json:"netChange"`
+}
+
+// 同比/环比作者对比项
+type AuthorComparisonItem struct {
+	Author string             `json:"author"`
+	Email  string             `json:"email"`
+	IsMe   bool               `json:"isMe"`
+	Change AuthorMetricChange `json:"change"`
+}
+
 // 同比/环比概览对比
 type OverviewComparison struct {
-	TotalCommits   MetricChange `json:"totalCommits"`
-	TotalAdditions MetricChange `json:"totalAdditions"`
-	TotalDeletions MetricChange `json:"totalDeletions"`
-	ActiveAuthors  MetricChange `json:"activeAuthors"`
+	TotalCommits   MetricChange           `json:"totalCommits"`
+	TotalAdditions MetricChange           `json:"totalAdditions"`
+	TotalDeletions MetricChange           `json:"totalDeletions"`
+	ActiveAuthors  MetricChange           `json:"activeAuthors"`
+	Authors        []AuthorComparisonItem `json:"authors,omitempty"`
 }
 
 // 仓库对比数据

@@ -20,6 +20,7 @@
 - Backend: Go 1.26, chi router, 6 internal packages
 - Frontend: Vue 3 + Vite + ECharts, no Vue Router/Pinia, custom i18n (`src/i18n.js`)
 - API: REST under `/api/*`, query params: `startDate`, `endDate`, `range`, `repos`
+- **Data computation boundary**: ALL computation → backend. Frontend renders only. Never derive data (同比, 环比, rankings, totals) in JS.
 - Pages: 概览(Dashboard) / 趋势(Trends) / 仓库(RepoSection) / 对比(Compare)
   - `Trends.vue` replaces old `Analytics.vue` — time-series charts only, no cross-repo compare
   - `Compare.vue` (future) — cross-repo radar/table comparison
