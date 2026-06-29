@@ -68,13 +68,19 @@ func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
 		needReverse = !store.GlobalStore.IsFullyLoaded(repoPath)
 	} else if !earliest.IsZero() && earliest.After(startDate) {
 		needReverse = true
+	} else if earliest.IsZero() && !store.GlobalStore.IsFullyLoaded(repoPath) {
+		needReverse = true
 	}
 
 	if needReverse {
 		revStart := time.Time{}
 		revEnd := earliest
 		if revEnd.IsZero() {
-			revEnd = now
+			if !startDate.IsZero() {
+				revEnd = startDate
+			} else {
+				revEnd = now
+			}
 		}
 		newCommits, err := scanner.ScanCommitsByRange(repoPath, revStart, revEnd)
 		if err != nil {

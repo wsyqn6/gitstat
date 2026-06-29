@@ -48,23 +48,18 @@
           <p v-if="scanSuccess" class="msg success-msg">{{ scanSuccess }}</p>
         </div>
 
-        <div class="section">
+        <!--<div class="section">
           <h3 class="section-title">{{ t('settings.dataManagement') }}</h3>
           <button @click="handleExport" class="btn export-btn" style="width:100%">
             <span style="font-size:1.2rem">↓</span> {{ t('settings.exportData') }}
           </button>
-        </div>
+        </div>-->
 
         <div class="section about-section">
           <h3 class="section-title">{{ t('settings.about') }}</h3>
           <div class="about-content">
             <div class="about-logo">GITSTAT</div>
-            <div class="build-badge" :title="t('settings.buildVersion')">
-              <svg class="badge-icon" viewBox="0 0 16 16" fill="currentColor" width="12" height="12">
-                <path d="M7.47 10.78a.75.75 0 0 0 1.06 0L14.44 5a.75.75 0 0 0-1.06-1.06L8 9.23 2.62 3.94A.75.75 0 0 0 1.56 5l5.91 5.78Z"/>
-              </svg>
-              <span class="badge-value">{{ state.buildVersion || 'dev' }}</span>
-            </div>
+            <span class="build-version">{{ t('settings.buildVersion') }} <em>{{ state.buildVersion || 'dev' }}</em></span>
             <p class="about-git-version">{{ t('settings.gitVersion') }} {{ version }}</p>
             <div class="tech-stack">
               <span class="tech-item">Go 1.26</span>
@@ -335,35 +330,16 @@ onUnmounted(() => {
   letter-spacing: 4px;
 }
 
-.build-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.8rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
+.build-version {
   font-family: var(--font-display);
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  transition: all 0.3s;
-  cursor: default;
+  font-size: 0.75rem;
+  color: var(--color-nav-link);
+  letter-spacing: 0.5px;
 }
-
-.build-badge:hover {
-  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
-  transform: translateY(-1px);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
-}
-
-.badge-icon {
+.build-version em {
+  font-style: normal;
   color: var(--color-primary);
-  flex-shrink: 0;
-}
-
-.badge-value {
-  color: var(--color-primary);
-  font-weight: 700;
-  font-size: 0.9rem;
-  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
 .about-git-version {

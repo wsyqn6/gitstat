@@ -203,6 +203,14 @@ type RepoStats struct {
 	Analysis             *AnalyzeResult    `json:"analysis,omitempty"`
 }
 
+// 月历聚合项（前端直接使用，无需计算）
+type MonthlyCalendarItem struct {
+	Month     string `json:"month"`     // "2006-01"
+	Commits   int    `json:"commits"`
+	Additions int    `json:"additions"`
+	Deletions int    `json:"deletions"`
+}
+
 // 同比/环比单个指标变化
 type MetricChange struct {
 	Current  int     `json:"current"`

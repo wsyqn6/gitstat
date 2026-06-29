@@ -239,6 +239,33 @@ func AggregateYearlyStatsWithRange(repos []model.Repository) []model.RepositoryP
 	return aggregatePeriodStats(repos, getYearKey)
 }
 
+func AggregateMonthlyCalendar(repos []model.Repository) []model.MonthlyCalendarItem {
+	monthMap := make(map[string]*model.MonthlyCalendarItem)
+	monthKeys := make([]string, 0, 12)
+
+	for _, repo := range repos {
+		for _, c := range repo.Commits {
+			month := c.Date.Format("2006-01")
+			item, ok := monthMap[month]
+			if !ok {
+				item = &model.MonthlyCalendarItem{Month: month}
+				monthMap[month] = item
+				monthKeys = append(monthKeys, month)
+			}
+			item.Commits++
+			item.Additions += c.Additions
+			item.Deletions += c.Deletions
+		}
+	}
+
+	slices.Sort(monthKeys)
+	result := make([]model.MonthlyCalendarItem, len(monthKeys))
+	for i, k := range monthKeys {
+		result[i] = *monthMap[k]
+	}
+	return result
+}
+
 // 开发者排行榜聚合
 func AggregateAuthorRank(repos []model.Repository) []model.AuthorRankItem {
 	authorMap := make(map[string]*model.AuthorRankItem)

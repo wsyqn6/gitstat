@@ -2,7 +2,7 @@
   <div class="calendar-area">
     <CalendarWeekView v-if="viewType === 'week'" :dailyStats="dailyStats" :startDate="startDate" />
     <CalendarMonthView v-if="viewType === 'month'" :dailyStats="dailyStats" :startDate="startDate" />
-    <CalendarYearView v-if="viewType === 'year'" :dailyStats="dailyStats" :startDate="startDate" />
+    <CalendarYearView v-if="viewType === 'year'" :monthlyCalendar="monthlyCalendar" :dailyStats="dailyStats" :startDate="startDate" />
   </div>
 </template>
 
@@ -14,6 +14,7 @@ import CalendarYearView from './CalendarYearView.vue'
 defineProps({
   viewType: { type: String, required: true },
   dailyStats: { type: Array, default: () => [] },
+  monthlyCalendar: { type: Array, default: () => [] },
   startDate: { type: String, default: '' }
 })
 </script>

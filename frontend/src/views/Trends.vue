@@ -75,6 +75,7 @@
         v-show="viewMode === 'calendar'"
         :viewType="calendarViewType"
         :dailyStats="dailyStats"
+        :monthlyCalendar="monthlyCalendar"
         :startDate="currentStartDate"
       />
     </div>
@@ -124,6 +125,7 @@ const showCustomPicker = ref(false)
 const selectedRepos = ref([])
 const repositories = ref([])
 const dailyStats = ref([])
+const monthlyCalendar = ref([])
 const activityHeatmap = ref([])
 const { data: fileRanking, hasMore: fileRankingHasMore, limit: fileRankingLimit, load, setData } = useFileRanking()
 const viewMode = ref('chart')
@@ -247,7 +249,7 @@ const loadData = async () => {
       ? getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, selectedRepos.value, 'all')
       : Promise.resolve(null)
 
-    const [overview, rawStats, heatmap, fileRankRaw, comparisonResult] = await Promise.all([
+    const [overview, rawResult, heatmap, fileRankRaw, comparisonResult] = await Promise.all([
       getOverviewStats(startDate, endDate, selectedRepos.value, 'all'),
       statsPromise,
       getActivityHeatmap(selectedRepos.value, startDate, endDate),
@@ -257,7 +259,9 @@ const loadData = async () => {
     overviewStats.value = overview
     comparison.value = comparisonResult
     setData(fileRankRaw)
-    dailyStats.value = (rawStats || []).map(repo => ({
+    const rawRepos = Array.isArray(rawResult) ? rawResult : (rawResult?.repos || [])
+    monthlyCalendar.value = rawResult?.monthlyCalendar || []
+    dailyStats.value = rawRepos.map(repo => ({
       ...repo,
       authors: (repo.authors || []).map(a => ({
         ...a,

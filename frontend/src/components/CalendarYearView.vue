@@ -73,6 +73,7 @@ import { pad } from '../utils/dates'
 
 const props = defineProps({
   dailyStats: { type: Array, default: () => [] },
+  monthlyCalendar: { type: Array, default: () => [] },
   startDate: { type: String, default: '' }
 })
 
@@ -88,41 +89,29 @@ const yearLabel = computed(() => {
 })
 
 const yearData = computed(() => {
-  if (!props.startDate) return []
+  if (!props.startDate || !props.monthlyCalendar.length) return []
   const year = parseInt(props.startDate.slice(0, 4))
   const now = new Date()
   const currentMonth = now.getMonth() + 1
   const currentYear = now.getFullYear()
 
-  const monthMap = new Map()
-  for (let m = 1; m <= 12; m++) {
-    const key = `${year}-${pad(m)}`
-    monthMap.set(key, { month: m, key, commits: 0, additions: 0, deletions: 0 })
-  }
-
-  for (const repo of props.dailyStats) {
-    for (const author of repo.authors) {
-      for (const day of (author.dailyData || [])) {
-        const month = day.date.slice(0, 7)
-        if (monthMap.has(month)) {
-          const data = monthMap.get(month)
-          data.commits += day.commits
-          data.additions += day.additions
-          data.deletions += day.deletions
-        }
-      }
-    }
-  }
+  const calMap = new Map(props.monthlyCalendar.map(c => [c.month, c]))
 
   let maxC = 0
   const result = []
   for (let m = 1; m <= 12; m++) {
     const key = `${year}-${pad(m)}`
-    const data = monthMap.get(key)
-    data.isFuture = (year > currentYear) || (year === currentYear && m > currentMonth)
-    data.name = monthNames.value[m - 1]
-    if (data.commits > maxC) maxC = data.commits
-    result.push(data)
+    const cal = calMap.get(key)
+    result.push({
+      month: m,
+      key,
+      commits: cal?.commits || 0,
+      additions: cal?.additions || 0,
+      deletions: cal?.deletions || 0,
+      isFuture: (year > currentYear) || (year === currentYear && m > currentMonth),
+      name: monthNames.value[m - 1]
+    })
+    if ((cal?.commits || 0) > maxC) maxC = cal?.commits || 0
   }
 
   result.forEach(d => d.maxCommits = maxC)

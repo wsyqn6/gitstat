@@ -45,7 +45,11 @@ func GetStatsHandler(period string) http.HandlerFunc {
 			writeJSON(w, "Weekly", model.ApiResponse{Code: 200, Data: stats})
 		case "monthly":
 			stats := aggregator.AggregateMonthlyStatsWithRange(repos)
-			writeJSON(w, "Monthly", model.ApiResponse{Code: 200, Data: stats})
+			calendar := aggregator.AggregateMonthlyCalendar(repos)
+			writeJSON(w, "Monthly", model.ApiResponse{Code: 200, Data: map[string]interface{}{
+				"repos":           stats,
+				"monthlyCalendar": calendar,
+			}})
 		case "yearly":
 			stats := aggregator.AggregateYearlyStatsWithRange(repos)
 			writeJSON(w, "Yearly", model.ApiResponse{Code: 200, Data: stats})
