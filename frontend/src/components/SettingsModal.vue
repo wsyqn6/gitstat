@@ -59,11 +59,18 @@
           <h3 class="section-title">{{ t('settings.about') }}</h3>
           <div class="about-content">
             <div class="about-logo">GITSTAT</div>
-            <p class="about-version">{{ version }} — {{ t('settings.platformName') }}</p>
+            <div class="build-badge" :title="t('settings.buildVersion')">
+              <svg class="badge-icon" viewBox="0 0 16 16" fill="currentColor" width="12" height="12">
+                <path d="M7.47 10.78a.75.75 0 0 0 1.06 0L14.44 5a.75.75 0 0 0-1.06-1.06L8 9.23 2.62 3.94A.75.75 0 0 0 1.56 5l5.91 5.78Z"/>
+              </svg>
+              <span class="badge-value">{{ state.buildVersion || 'dev' }}</span>
+            </div>
+            <p class="about-git-version">{{ t('settings.gitVersion') }} {{ version }}</p>
             <div class="tech-stack">
-              <span class="tech-item">⚡ Go 1.26</span>
-              <span class="tech-item">◈ Vue 3</span>
-              <span class="tech-item">◉ ECharts</span>
+              <span class="tech-item">Go 1.26</span>
+              <span class="tech-item">Vue 3</span>
+              <span class="tech-item">ECharts</span>
+              <span class="tech-item">Bun</span>
             </div>
           </div>
         </div>
@@ -76,8 +83,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import { useTheme } from '../composables/useTheme'
-import { performScan, state, loadScanPath } from '../stores/data'
-import { getScanPath, exportData } from '../api'
+import { performScan, state } from '../stores/data'
+import { exportData } from '../api'
 import { useToast } from '../composables/useToast'
 import SegmentToggle from './SegmentToggle.vue'
 
@@ -95,12 +102,8 @@ const version = ref('dev')
 let successTimer = null
 
 onMounted(async () => {
-  try {
-    const info = await getScanPath()
-    version.value = info.version || 'dev'
-  } catch {}
-  await loadScanPath()
   scanPath.value = state.scanPath || ''
+  version.value = state.gitVersion || 'dev'
 })
 
 async function handleScan() {
@@ -224,7 +227,7 @@ onUnmounted(() => {
   color: var(--color-primary);
   letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .toggles-section {
@@ -318,12 +321,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.6rem;
 }
 
 .about-logo {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 900;
   background: var(--gradient-logo);
   -webkit-background-clip: text;
@@ -332,9 +335,43 @@ onUnmounted(() => {
   letter-spacing: 4px;
 }
 
-.about-version {
-  color: var(--color-nav-link);
+.build-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-family: var(--font-display);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  transition: all 0.3s;
+  cursor: default;
+}
+
+.build-badge:hover {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.badge-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.badge-value {
+  color: var(--color-primary);
+  font-weight: 700;
   font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.about-git-version {
+  color: var(--color-nav-link);
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  opacity: 0.6;
+  margin: 0;
 }
 
 .tech-stack {
@@ -345,7 +382,7 @@ onUnmounted(() => {
 }
 
 .tech-item {
-  padding: 0.5rem 1.2rem;
+  padding: 0.35rem 1rem;
   background: var(--bg-btn-hover);
   border: 1px solid var(--border-input);
   border-radius: var(--radius-btn);

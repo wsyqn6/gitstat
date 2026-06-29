@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { setScanPath, getScanPath, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits, getRepoTagsCount, getRepoTagsPage } from '../api'
+import { setScanPath, getScanPath, getBuildVersion, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits, getRepoTagsCount, getRepoTagsPage } from '../api'
 import LRUCache from '../utils/lruCache'
 
 export const state = reactive({
@@ -8,6 +8,8 @@ export const state = reactive({
   repoDailyTrend: [],
   repoComparison: [],
   authorRank: [],
+  buildVersion: null,
+  gitVersion: null,
   scanPath: '',
   loading: false,
   error: null,
@@ -218,10 +220,25 @@ export async function triggerAnalyze(path) {
   }
 }
 
+export async function initApp() {
+  try {
+    const [scanInfo, buildInfo] = await Promise.all([
+      getScanPath(),
+      getBuildVersion()
+    ])
+    state.scanPath = scanInfo.path
+    state.gitVersion = scanInfo.version
+    state.buildVersion = buildInfo
+  } catch (err) {
+    console.error('App init failed:', err)
+  }
+}
+
 export async function loadScanPath() {
   try {
     const info = await getScanPath()
     state.scanPath = info.path
+    state.gitVersion = info.version
   } catch (err) {
     console.error('Failed to load scan path:', err)
   }

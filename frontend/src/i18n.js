@@ -253,6 +253,8 @@ const messages = {
       exportError: '导出失败',
       about: '关于',
       platformName: 'Git提交统计平台',
+      buildVersion: '构建版本',
+      gitVersion: 'Git',
       close: '关闭'
     }
   },
@@ -508,6 +510,8 @@ const messages = {
       exportError: 'Export failed',
       about: 'About',
       platformName: 'Git Commit Statistics Platform',
+      buildVersion: 'Build',
+      gitVersion: 'Git',
       close: 'Close'
     }
   }

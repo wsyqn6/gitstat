@@ -13,6 +13,11 @@ export async function getScanPath() {
   return { path: data.data?.path || '', version: data.data?.version || '' }
 }
 
+export async function getBuildVersion() {
+  const data = await request(`${BASE}/version`, { errorMsg: 'Failed to fetch version' })
+  return data.version || 'dev'
+}
+
 export async function getOverviewStats(startDate, endDate, repos = [], scope) {
   const params = buildParams({ startDate, endDate, repos, scope })
   const res = await request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats' })

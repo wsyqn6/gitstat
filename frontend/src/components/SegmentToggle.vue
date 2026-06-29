@@ -80,6 +80,7 @@ const sliderStyle = computed(() => ({
   align-items: center;
   justify-content: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .segment-group :deep(button.active) {

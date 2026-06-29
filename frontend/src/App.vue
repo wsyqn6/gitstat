@@ -76,8 +76,7 @@
 <script setup>
 import { ref, computed, defineAsyncComponent, onMounted } from 'vue'
 import { useI18n } from './i18n'
-import { getScanPath } from './api'
-import { loadScanPath } from './stores/data'
+import { initApp, state } from './stores/data'
 import { useTheme } from './composables/useTheme'
 import ToastContainer from './components/ToastContainer.vue'
 import SettingsModal from './components/SettingsModal.vue'
@@ -98,19 +97,9 @@ const scanPath = ref('')
 const version = ref('')
 
 onMounted(async () => {
-  try {
-    const info = await getScanPath()
-    scanPath.value = info.path
-    version.value = info.version
-  } catch (err) {
-    console.error('Failed to load scan info:', err)
-    try {
-      await loadScanPath()
-      const info = await getScanPath()
-      scanPath.value = info.path
-      version.value = info.version
-    } catch {}
-  }
+  await initApp()
+  scanPath.value = state.scanPath
+  version.value = state.gitVersion
 })
 
 function setView(view) {
