@@ -62,12 +62,18 @@ type DayCommitData struct {
 	Deletions int    `json:"deletions"`
 }
 
+type DayCommitCount struct {
+	Date    string `json:"date"`
+	Commits int    `json:"commits"`
+}
+
 type RepositoryDailyStats struct {
 	RepoName       string             `json:"repoName"`
 	RepoPath       string             `json:"repoPath"`
 	CurrentBranch  string             `json:"currentBranch"`
 	LastCommitTime string             `json:"lastCommitTime"`
 	Authors        []AuthorDailyStats `json:"authors"`
+	DailyCommits   []DayCommitCount   `json:"dailyCommits,omitempty"`
 }
 
 // 周期聚合数据结构 (周/月/年)

@@ -12,7 +12,7 @@ import (
 	"gitstat/internal/model"
 )
 
-func AggregateOverview(repos []model.Repository, userEmail string, startDate, endDate time.Time) model.OverviewStats {
+func AggregateOverview(repos []model.Repository) model.OverviewStats {
 	var totalAdditions, totalDeletions int
 	var commitCount int
 	authorMap := make(map[string]*model.AuthorRankItem)
@@ -21,15 +21,6 @@ func AggregateOverview(repos []model.Repository, userEmail string, startDate, en
 	for _, repo := range repos {
 		repoSet[repo.Path] = true
 		for _, c := range repo.Commits {
-			if userEmail != "" && c.Email != userEmail {
-				continue
-			}
-			if !startDate.IsZero() && c.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && c.Date.After(endDate) {
-				continue
-			}
 			commitCount++
 			totalAdditions += c.Additions
 			totalDeletions += c.Deletions
@@ -39,7 +30,6 @@ func AggregateOverview(repos []model.Repository, userEmail string, startDate, en
 				authorMap[key] = &model.AuthorRankItem{
 					Author: c.Author,
 					Email:  c.Email,
-					IsMe:   c.Email == userEmail,
 				}
 			}
 			stats := authorMap[key]
@@ -68,7 +58,7 @@ func AggregateOverview(repos []model.Repository, userEmail string, startDate, en
 	}
 }
 
-func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.RepositoryDailyStats {
+func AggregateDailyStatsWithRange(repos []model.Repository) []model.RepositoryDailyStats {
 	var result []model.RepositoryDailyStats
 
 	for _, repo := range repos {
@@ -78,20 +68,11 @@ func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, st
 		for _, commit := range repo.Commits {
 			commitDate := commit.Date.Format("2006-01-02")
 
-			// 过滤时间范围
-			if !startDate.IsZero() && commit.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && commit.Date.After(endDate) {
-				continue
-			}
-
 			key := commit.Email
 			if _, exists := authorMap[key]; !exists {
 				authorMap[key] = &model.AuthorDailyStats{
 					Author: commit.Author,
 					Email:  commit.Email,
-					IsMe:   commit.Email == userEmail,
 				}
 				if dailyDataMap[key] == nil {
 					dailyDataMap[key] = make(map[string]*model.DayCommitData)
@@ -117,11 +98,13 @@ func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, st
 
 		if len(authorMap) > 0 {
 			var authors []model.AuthorDailyStats
+			daySum := make(map[string]int) // date -> total commits
 			for email, stats := range authorMap {
 				// 转换每日数据为数组并排序
 				var dailyData []model.DayCommitData
 				for _, dayData := range dailyDataMap[email] {
 					dailyData = append(dailyData, *dayData)
+					daySum[dayData.Date] += dayData.Commits
 				}
 				slices.SortFunc(dailyData, func(a, b model.DayCommitData) int {
 					return cmp.Compare(a.Date, b.Date)
@@ -136,12 +119,21 @@ func AggregateDailyStatsWithRange(repos []model.Repository, userEmail string, st
 				return cmp.Compare(b.Commits, a.Commits)
 			})
 
+			dailyCommits := make([]model.DayCommitCount, 0, len(daySum))
+			for date, count := range daySum {
+				dailyCommits = append(dailyCommits, model.DayCommitCount{Date: date, Commits: count})
+			}
+			slices.SortFunc(dailyCommits, func(a, b model.DayCommitCount) int {
+				return cmp.Compare(a.Date, b.Date)
+			})
+
 			result = append(result, model.RepositoryDailyStats{
 				RepoName:       repo.Name,
 				RepoPath:       repo.Path,
 				CurrentBranch:  repo.CurrentBranch,
 				LastCommitTime: repo.LastCommitTime,
 				Authors:        authors,
+				DailyCommits:   dailyCommits,
 			})
 		}
 	}
@@ -165,7 +157,7 @@ func getYearKey(t time.Time) string {
 	return t.Format("2006")
 }
 
-func aggregatePeriodStats(repos []model.Repository, userEmail string, startDate, endDate time.Time, periodKeyFn func(time.Time) string) []model.RepositoryPeriodStats {
+func aggregatePeriodStats(repos []model.Repository, periodKeyFn func(time.Time) string) []model.RepositoryPeriodStats {
 	var result []model.RepositoryPeriodStats
 
 	for _, repo := range repos {
@@ -173,19 +165,11 @@ func aggregatePeriodStats(repos []model.Repository, userEmail string, startDate,
 		periodDataMap := make(map[string]map[string]*model.PeriodCommitData)
 
 		for _, commit := range repo.Commits {
-			if !startDate.IsZero() && commit.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && commit.Date.After(endDate) {
-				continue
-			}
-
 			key := commit.Email
 			if _, exists := authorMap[key]; !exists {
 				authorMap[key] = &model.AuthorPeriodStats{
 					Author: commit.Author,
 					Email:  commit.Email,
-					IsMe:   commit.Email == userEmail,
 				}
 				if periodDataMap[key] == nil {
 					periodDataMap[key] = make(map[string]*model.PeriodCommitData)
@@ -243,38 +227,30 @@ func aggregatePeriodStats(repos []model.Repository, userEmail string, startDate,
 	return result
 }
 
-func AggregateWeeklyStatsWithRange(repos []model.Repository, userEmail string, startDate, endDate time.Time) []model.RepositoryPeriodStats {
-	return aggregatePeriodStats(repos, userEmail, startDate, endDate, getWeekKey)
+func AggregateWeeklyStatsWithRange(repos []model.Repository) []model.RepositoryPeriodStats {
+	return aggregatePeriodStats(repos, getWeekKey)
 }
 
-func AggregateMonthlyStatsWithRange(repos []model.Repository, userEmail string, startDate, endDate time.Time) []model.RepositoryPeriodStats {
-	return aggregatePeriodStats(repos, userEmail, startDate, endDate, getMonthKey)
+func AggregateMonthlyStatsWithRange(repos []model.Repository) []model.RepositoryPeriodStats {
+	return aggregatePeriodStats(repos, getMonthKey)
 }
 
-func AggregateYearlyStatsWithRange(repos []model.Repository, userEmail string, startDate, endDate time.Time) []model.RepositoryPeriodStats {
-	return aggregatePeriodStats(repos, userEmail, startDate, endDate, getYearKey)
+func AggregateYearlyStatsWithRange(repos []model.Repository) []model.RepositoryPeriodStats {
+	return aggregatePeriodStats(repos, getYearKey)
 }
 
 // 开发者排行榜聚合
-func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.AuthorRankItem {
+func AggregateAuthorRank(repos []model.Repository) []model.AuthorRankItem {
 	authorMap := make(map[string]*model.AuthorRankItem)
 	lastTimes := make(map[string]time.Time)
 
 	for _, repo := range repos {
 		for _, commit := range repo.Commits {
-			if !startDate.IsZero() && commit.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && commit.Date.After(endDate) {
-				continue
-			}
-
 			key := commit.Email
 			if _, exists := authorMap[key]; !exists {
 				authorMap[key] = &model.AuthorRankItem{
 					Author: commit.Author,
 					Email:  commit.Email,
-					IsMe:   commit.Email == userEmail,
 				}
 			}
 
@@ -307,24 +283,12 @@ func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate t
 }
 
 // 活动热力图聚合
-func AggregateActivityHeatmap(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.ActivityHeatmapPoint {
+func AggregateActivityHeatmap(repos []model.Repository) []model.ActivityHeatmapPoint {
 	heatmap := make(map[string]int) // "dayOfWeek-hour" -> count
 	loc := time.Now().Location()
 
 	for _, repo := range repos {
 		for _, commit := range repo.Commits {
-			// 邮箱过滤
-			if userEmail != "" && commit.Email != userEmail {
-				continue
-			}
-			// 时间过滤
-			if !startDate.IsZero() && commit.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && commit.Date.After(endDate) {
-				continue
-			}
-
 			key := fmt.Sprintf("%d-%d", commit.Date.In(loc).Weekday(), commit.Date.In(loc).Hour())
 			heatmap[key]++
 		}
@@ -361,7 +325,7 @@ func AggregateActivityHeatmap(repos []model.Repository, userEmail string, startD
 }
 
 // 仓库对比聚合
-func AggregateRepoComparison(repos []model.Repository, userEmail string, startDate time.Time, endDate time.Time) []model.RepoComparison {
+func AggregateRepoComparison(repos []model.Repository) []model.RepoComparison {
 	var result []model.RepoComparison
 
 	for _, repo := range repos {
@@ -370,18 +334,6 @@ func AggregateRepoComparison(repos []model.Repository, userEmail string, startDa
 		var commits, additions, deletions int
 
 		for _, commit := range repo.Commits {
-			// 邮箱过滤
-			if userEmail != "" && commit.Email != userEmail {
-				continue
-			}
-			// 时间过滤
-			if !startDate.IsZero() && commit.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && commit.Date.After(endDate) {
-				continue
-			}
-
 			commits++
 			additions += commit.Additions
 			deletions += commit.Deletions
@@ -420,21 +372,12 @@ func AggregateRepoComparison(repos []model.Repository, userEmail string, startDa
 	return result
 }
 
-func AggregateFileRanking(repos []model.Repository, userEmail string, startDate, endDate time.Time, limit int) []model.FileRankItem {
+func AggregateFileRanking(repos []model.Repository, limit int) []model.FileRankItem {
 	fileMap := make(map[string]*model.FileRankItem)
 	commitSeen := make(map[string]map[string]bool) // filePath -> hash -> seen
 
 	for _, repo := range repos {
 		for _, commit := range repo.Commits {
-			if userEmail != "" && commit.Email != userEmail {
-				continue
-			}
-			if !startDate.IsZero() && commit.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && commit.Date.After(endDate) {
-				continue
-			}
 			for _, f := range commit.Files {
 				item, exists := fileMap[f.Path]
 				if !exists {

@@ -59,7 +59,7 @@ func TestAggregateWeeklyStatsWithRange(t *testing.T) {
 		},
 	}
 
-	stats := AggregateWeeklyStatsWithRange(repos, "", time.Time{}, time.Time{})
+	stats := AggregateWeeklyStatsWithRange(repos)
 	if len(stats) != 1 {
 		t.Fatalf("Expected 1 repo, got %d", len(stats))
 	}
@@ -90,7 +90,7 @@ func TestAggregateMonthlyStatsWithRange(t *testing.T) {
 		},
 	}
 
-	stats := AggregateMonthlyStatsWithRange(repos, "", time.Time{}, time.Time{})
+	stats := AggregateMonthlyStatsWithRange(repos)
 	if len(stats) != 1 {
 		t.Fatalf("Expected 1 repo, got %d", len(stats))
 	}
@@ -115,7 +115,7 @@ func TestAggregateYearlyStatsWithRange(t *testing.T) {
 		},
 	}
 
-	stats := AggregateYearlyStatsWithRange(repos, "", time.Time{}, time.Time{})
+	stats := AggregateYearlyStatsWithRange(repos)
 	if len(stats) != 1 {
 		t.Fatalf("Expected 1 repo, got %d", len(stats))
 	}
@@ -136,7 +136,7 @@ func TestAggregateOverview(t *testing.T) {
 		},
 	}
 
-	stats := AggregateOverview(repos, "", time.Time{}, time.Time{})
+	stats := AggregateOverview(repos)
 
 	if stats.TotalCommits != 2 {
 		t.Errorf("Expected 2 commits, got %d", stats.TotalCommits)

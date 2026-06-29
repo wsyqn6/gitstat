@@ -14,14 +14,15 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 	startDate, endDate := parseTimeParams(r, "today")
 
 	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths)
+	repos := loadRepos(repoPaths, startDate, endDate)
 
 	var userEmail string
 	if r.URL.Query().Get("scope") != "all" {
 		userEmail = resolveUserEmail(repos, r.URL.Query().Get("email"))
 	}
+	repos = filterCommitsByEmail(repos, userEmail)
 
-	stats := aggregator.AggregateOverview(repos, userEmail, startDate, endDate)
+	stats := aggregator.AggregateOverview(repos)
 	writeJSON(w, "Overview", model.ApiResponse{Code: 200, Data: stats})
 }
 
@@ -31,21 +32,22 @@ func GetStatsHandler(period string) http.HandlerFunc {
 		repoPaths := r.URL.Query()["repo"]
 
 		ensureDataLoaded(repoPaths, startDate)
-		repos := loadRepos(repoPaths)
+		repos := loadRepos(repoPaths, startDate, endDate)
 		userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+		repos = filterCommitsByEmail(repos, userEmail)
 
 		switch period {
 		case "daily":
-			stats := aggregator.AggregateDailyStatsWithRange(repos, userEmail, startDate, endDate)
+			stats := aggregator.AggregateDailyStatsWithRange(repos)
 			writeJSON(w, "Daily", model.ApiResponse{Code: 200, Data: stats})
 		case "weekly":
-			stats := aggregator.AggregateWeeklyStatsWithRange(repos, userEmail, startDate, endDate)
+			stats := aggregator.AggregateWeeklyStatsWithRange(repos)
 			writeJSON(w, "Weekly", model.ApiResponse{Code: 200, Data: stats})
 		case "monthly":
-			stats := aggregator.AggregateMonthlyStatsWithRange(repos, userEmail, startDate, endDate)
+			stats := aggregator.AggregateMonthlyStatsWithRange(repos)
 			writeJSON(w, "Monthly", model.ApiResponse{Code: 200, Data: stats})
 		case "yearly":
-			stats := aggregator.AggregateYearlyStatsWithRange(repos, userEmail, startDate, endDate)
+			stats := aggregator.AggregateYearlyStatsWithRange(repos)
 			writeJSON(w, "Yearly", model.ApiResponse{Code: 200, Data: stats})
 		default:
 			writeError(w, ErrCodeInvalidRequest, "invalid period", http.StatusBadRequest)
@@ -58,10 +60,11 @@ func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
 
 	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths)
+	repos := loadRepos(repoPaths, startDate, endDate)
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+	repos = filterCommitsByEmail(repos, userEmail)
 
-	rank := aggregator.AggregateAuthorRank(repos, userEmail, startDate, endDate)
+	rank := aggregator.AggregateAuthorRank(repos)
 	writeJSON(w, "AuthorRank", model.ApiResponse{Code: 200, Data: rank})
 }
 
@@ -70,10 +73,11 @@ func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
 
 	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths)
+	repos := loadRepos(repoPaths, startDate, endDate)
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+	repos = filterCommitsByEmail(repos, userEmail)
 
-	heatmap := aggregator.AggregateActivityHeatmap(repos, userEmail, startDate, endDate)
+	heatmap := aggregator.AggregateActivityHeatmap(repos)
 	writeJSON(w, "Heatmap", model.ApiResponse{Code: 200, Data: heatmap})
 }
 
@@ -82,10 +86,11 @@ func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
 
 	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths)
+	repos := loadRepos(repoPaths, startDate, endDate)
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+	repos = filterCommitsByEmail(repos, userEmail)
 
-	comparison := aggregator.AggregateRepoComparison(repos, userEmail, startDate, endDate)
+	comparison := aggregator.AggregateRepoComparison(repos)
 	writeJSON(w, "RepoComparison", model.ApiResponse{Code: 200, Data: comparison})
 }
 
@@ -110,17 +115,31 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 		prevEndDate = prevEndDate.Add(24*time.Hour - time.Second)
 	}
 
-	ensureDataLoaded(repoPaths, startDate)
+	// determine full range covering both periods
+	fullStart := startDate
+	if !prevStartDate.IsZero() && (fullStart.IsZero() || prevStartDate.Before(fullStart)) {
+		fullStart = prevStartDate
+	}
+	fullEnd := endDate
+	if !prevEndDate.IsZero() && (fullEnd.IsZero() || prevEndDate.After(fullEnd)) {
+		fullEnd = prevEndDate
+	}
+
+	ensureDataLoaded(repoPaths, fullStart)
 	ensureDataLoaded(repoPaths, prevStartDate)
-	repos := loadRepos(repoPaths)
+	repos := loadRepos(repoPaths, fullStart, fullEnd)
 
 	var userEmail string
 	if r.URL.Query().Get("scope") != "all" {
 		userEmail = resolveUserEmail(repos, r.URL.Query().Get("email"))
 	}
+	repos = filterCommitsByEmail(repos, userEmail)
 
-	current := aggregator.AggregateOverview(repos, userEmail, startDate, endDate)
-	previous := aggregator.AggregateOverview(repos, userEmail, prevStartDate, prevEndDate)
+	currentRepos := filterCommitsByDate(repos, startDate, endDate)
+	current := aggregator.AggregateOverview(currentRepos)
+
+	prevRepos := filterCommitsByDate(repos, prevStartDate, prevEndDate)
+	previous := aggregator.AggregateOverview(prevRepos)
 
 	result := computeComparison(current, previous)
 	writeJSON(w, "Comparison", model.ApiResponse{Code: 200, Data: result})
@@ -189,14 +208,15 @@ func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
 
 	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths)
+	repos := loadRepos(repoPaths, startDate, endDate)
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
+	repos = filterCommitsByEmail(repos, userEmail)
 
 	limit := parseIntParam(r, "limit", 5)
 	if limit > 100 {
 		limit = 100
 	}
 
-	ranking := aggregator.AggregateFileRanking(repos, userEmail, startDate, endDate, limit)
+	ranking := aggregator.AggregateFileRanking(repos, limit)
 	writeJSON(w, "FileRanking", model.ApiResponse{Code: 200, Data: ranking})
 }

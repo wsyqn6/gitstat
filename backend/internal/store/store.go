@@ -100,6 +100,58 @@ func (s *Store) GetRepositories() []model.Repository {
 	return repos
 }
 
+func (s *Store) GetReposWithRange(paths []string, startDate, endDate time.Time) []model.Repository {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	pathSet := make(map[string]bool, len(paths))
+	for _, p := range paths {
+		pathSet[p] = true
+	}
+
+	var repos []model.Repository
+	for _, cache := range s.Repos {
+		if len(pathSet) > 0 && !pathSet[cache.Path] {
+			continue
+		}
+		if !cache.Initialized {
+			continue
+		}
+
+		// quick skip: no date range overlap
+		if !startDate.IsZero() && !cache.LatestDate.IsZero() && startDate.After(cache.LatestDate) {
+			continue
+		}
+		if !endDate.IsZero() && !cache.EarliestDate.IsZero() && endDate.Before(cache.EarliestDate) {
+			continue
+		}
+
+		var filtered []model.Commit
+		for _, c := range cache.Commits {
+			if !startDate.IsZero() && c.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && c.Date.After(endDate) {
+				continue
+			}
+			filtered = append(filtered, c)
+		}
+		if filtered == nil {
+			filtered = []model.Commit{}
+		}
+
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        filtered,
+		})
+	}
+	return repos
+}
+
 func (s *Store) GetRepoCache(path string) *RepoCache {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

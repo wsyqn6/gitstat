@@ -143,7 +143,7 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 		Name:    cache.Name,
 		Commits: cache.Commits,
 	}}
-	rank := aggregator.AggregateAuthorRank(repos, "", time.Time{}, time.Time{})
+	rank := aggregator.AggregateAuthorRank(repos)
 	contributors := make([]model.ContributorStat, len(rank))
 	for i, item := range rank {
 		contributors[i] = model.ContributorStat{

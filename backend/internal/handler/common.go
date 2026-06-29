@@ -68,27 +68,56 @@ func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate t
 	return startDate, endDate
 }
 
-func loadRepos(repoPaths []string) []model.Repository {
+func loadRepos(repoPaths []string, startDate, endDate time.Time) []model.Repository {
 	if len(repoPaths) > 50 {
 		repoPaths = repoPaths[:50]
 	}
-	repos := store.GlobalStore.GetRepositories()
+	return store.GlobalStore.GetReposWithRange(repoPaths, startDate, endDate)
+}
 
-	if len(repoPaths) > 0 {
-		repoMap := make(map[string]bool)
-		for _, path := range repoPaths {
-			repoMap[path] = true
+func filterCommitsByDate(repos []model.Repository, startDate, endDate time.Time) []model.Repository {
+	if startDate.IsZero() && endDate.IsZero() {
+		return repos
+	}
+	result := make([]model.Repository, len(repos))
+	for i, repo := range repos {
+		var filtered []model.Commit
+		for _, c := range repo.Commits {
+			if !startDate.IsZero() && c.Date.Before(startDate) {
+				continue
+			}
+			if !endDate.IsZero() && c.Date.After(endDate) {
+				continue
+			}
+			filtered = append(filtered, c)
 		}
-		filteredRepos := make([]model.Repository, 0)
-		for _, repo := range repos {
-			if repoMap[repo.Path] {
-				filteredRepos = append(filteredRepos, repo)
+		if filtered == nil {
+			filtered = []model.Commit{}
+		}
+		result[i] = repo
+		result[i].Commits = filtered
+	}
+	return result
+}
+
+func filterCommitsByEmail(repos []model.Repository, email string) []model.Repository {
+	if email == "" {
+		return repos
+	}
+	result := make([]model.Repository, 0, len(repos))
+	for _, repo := range repos {
+		var filtered []model.Commit
+		for _, c := range repo.Commits {
+			if c.Email == email {
+				filtered = append(filtered, c)
 			}
 		}
-		repos = filteredRepos
+		if len(filtered) > 0 {
+			result = append(result, repo)
+			result[len(result)-1].Commits = filtered
+		}
 	}
-
-	return repos
+	return result
 }
 
 func resolveUserEmail(repos []model.Repository, email string) string {
