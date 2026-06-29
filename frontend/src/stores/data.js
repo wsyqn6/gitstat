@@ -20,7 +20,16 @@ export const state = reactive({
   repoTagsCache: new LRUCache(50)
 })
 
+function clearState() {
+  state.overviewStats = null
+  state.dailyStats = []
+  state.repoDailyTrend = []
+  state.repoComparison = []
+  state.authorRank = []
+}
+
 export async function performScan(path) {
+  clearState()
   state.loading = true
   state.error = null
   
@@ -40,6 +49,7 @@ export async function performScan(path) {
 }
 
 export async function fetchOverviewStats() {
+  if (state.overviewStats) return
   try {
     state.overviewStats = await getOverviewStats(null, null, ['all'])
   } catch (err) {
@@ -48,6 +58,7 @@ export async function fetchOverviewStats() {
 }
 
 export async function fetchDailyStatsToday() {
+  if (state.dailyStats.length > 0) return
   try {
     state.dailyStats = await getDailyStats('', 'today', ['all'])
   } catch (err) {
@@ -71,6 +82,7 @@ export async function loadDashboardS2() {
 }
 
 export async function fetchRepoDailyTrend() {
+  if (state.repoDailyTrend.length > 0) return
   try {
     const daily = await getDailyStats('', 'week', ['all'])
     if (!Array.isArray(daily)) {
@@ -79,18 +91,8 @@ export async function fetchRepoDailyTrend() {
     }
     const result = []
     for (const repo of daily) {
-      const dateMap = {}
-      for (const author of repo.authors) {
-        for (const day of (author.dailyData || [])) {
-          if (!dateMap[day.date]) dateMap[day.date] = 0
-          dateMap[day.date] += day.commits
-        }
-      }
-      const sorted = Object.entries(dateMap)
-        .map(([date, commits]) => ({ date, commits }))
-        .sort((a, b) => a.date.localeCompare(b.date))
-      if (sorted.length > 0) {
-        result.push({ repoName: repo.repoName, data: sorted, authors: repo.authors })
+      if (repo.dailyCommits && repo.dailyCommits.length > 0) {
+        result.push({ repoName: repo.repoName, data: repo.dailyCommits, authors: repo.authors })
       }
     }
     state.repoDailyTrend = result
@@ -100,6 +102,7 @@ export async function fetchRepoDailyTrend() {
 }
 
 export async function fetchRepoComparison() {
+  if (state.repoComparison.length > 0) return
   try {
     state.repoComparison = await getRepoComparison(['all'], null, null, 'week')
   } catch (err) {
@@ -108,6 +111,7 @@ export async function fetchRepoComparison() {
 }
 
 export async function fetchAuthorRank() {
+  if (state.authorRank.length > 0) return
   try {
     state.authorRank = await getAuthorRank(['all'], null, null, 'week')
   } catch (err) {
