@@ -105,13 +105,31 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	var startDate, endDate, prevStartDate, prevEndDate time.Time
 
 	if startDateStr != "" && endDateStr != "" {
-		startDate, _ = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
-		endDate, _ = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		var err error
+		startDate, err = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		if err != nil {
+			writeError(w, ErrCodeInvalidParams, "invalid startDate format", http.StatusBadRequest)
+			return
+		}
+		endDate, err = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		if err != nil {
+			writeError(w, ErrCodeInvalidParams, "invalid endDate format", http.StatusBadRequest)
+			return
+		}
 		endDate = endDate.Add(24*time.Hour - time.Second)
 	}
 	if prevStartDateStr != "" && prevEndDateStr != "" {
-		prevStartDate, _ = time.ParseInLocation("2006-01-02", prevStartDateStr, time.Local)
-		prevEndDate, _ = time.ParseInLocation("2006-01-02", prevEndDateStr, time.Local)
+		var err error
+		prevStartDate, err = time.ParseInLocation("2006-01-02", prevStartDateStr, time.Local)
+		if err != nil {
+			writeError(w, ErrCodeInvalidParams, "invalid prevStartDate format", http.StatusBadRequest)
+			return
+		}
+		prevEndDate, err = time.ParseInLocation("2006-01-02", prevEndDateStr, time.Local)
+		if err != nil {
+			writeError(w, ErrCodeInvalidParams, "invalid prevEndDate format", http.StatusBadRequest)
+			return
+		}
 		prevEndDate = prevEndDate.Add(24*time.Hour - time.Second)
 	}
 

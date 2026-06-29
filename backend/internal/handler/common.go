@@ -70,6 +70,7 @@ func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate t
 
 func loadRepos(repoPaths []string, startDate, endDate time.Time) []model.Repository {
 	if len(repoPaths) > 50 {
+		log.Printf("warning: truncating %d repos to 50", len(repoPaths))
 		repoPaths = repoPaths[:50]
 	}
 	return store.GlobalStore.GetReposWithRange(repoPaths, startDate, endDate)

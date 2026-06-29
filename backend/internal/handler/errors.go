@@ -15,6 +15,7 @@ const (
 	ErrCodePathRequired   = "PATH_REQUIRED"
 	ErrCodeRepoNotFound   = "REPO_NOT_FOUND"
 	ErrCodeInternalError  = "INTERNAL_ERROR"
+	ErrCodeInvalidParams  = "INVALID_PARAMS"
 )
 
 func writeError(w http.ResponseWriter, code string, message string, status int) {

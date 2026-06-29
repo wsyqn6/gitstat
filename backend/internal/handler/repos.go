@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"slices"
-	"strconv"
 	"time"
 
 	"gitstat/internal/aggregator"
@@ -14,18 +13,6 @@ import (
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
 )
-
-func parseIntQuery(r *http.Request, key string, defaultVal int) int {
-	val := r.URL.Query().Get(key)
-	if val == "" {
-		return defaultVal
-	}
-	n, err := strconv.Atoi(val)
-	if err != nil {
-		return defaultVal
-	}
-	return n
-}
 
 func GetReposListHandler(w http.ResponseWriter, r *http.Request) {
 	caches := store.GlobalStore.GetAllCaches()
@@ -224,8 +211,8 @@ func GetRepoCommitsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offset := parseIntQuery(r, "offset", 0)
-	limit := parseIntQuery(r, "limit", 30)
+	offset := parseIntParam(r, "offset", 0)
+	limit := parseIntParam(r, "limit", 30)
 	if limit < 1 {
 		limit = 30
 	}
@@ -317,8 +304,8 @@ func GetRepoTagsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	offset := parseIntQuery(r, "offset", -1)
-	limit := parseIntQuery(r, "limit", 30)
+	offset := parseIntParam(r, "offset", -1)
+	limit := parseIntParam(r, "limit", 30)
 
 	// no offset → return count only
 	if offset < 0 {
