@@ -22,7 +22,7 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stats := aggregator.AggregateOverview(repos, userEmail, startDate, endDate)
-	writeSuccess(w, "Overview", stats)
+	writeJSON(w, "Overview", model.ApiResponse{Code: 200, Data: stats})
 }
 
 func GetStatsHandler(period string) http.HandlerFunc {
@@ -37,16 +37,16 @@ func GetStatsHandler(period string) http.HandlerFunc {
 		switch period {
 		case "daily":
 			stats := aggregator.AggregateDailyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeSuccess(w, "Daily", stats)
+			writeJSON(w, "Daily", model.ApiResponse{Code: 200, Data: stats})
 		case "weekly":
 			stats := aggregator.AggregateWeeklyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeSuccess(w, "Weekly", stats)
+			writeJSON(w, "Weekly", model.ApiResponse{Code: 200, Data: stats})
 		case "monthly":
 			stats := aggregator.AggregateMonthlyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeSuccess(w, "Monthly", stats)
+			writeJSON(w, "Monthly", model.ApiResponse{Code: 200, Data: stats})
 		case "yearly":
 			stats := aggregator.AggregateYearlyStatsWithRange(repos, userEmail, startDate, endDate)
-			writeSuccess(w, "Yearly", stats)
+			writeJSON(w, "Yearly", model.ApiResponse{Code: 200, Data: stats})
 		default:
 			writeError(w, ErrCodeInvalidRequest, "invalid period", http.StatusBadRequest)
 		}
@@ -62,7 +62,7 @@ func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
 	rank := aggregator.AggregateAuthorRank(repos, userEmail, startDate, endDate)
-	writeSuccess(w, "AuthorRank", rank)
+	writeJSON(w, "AuthorRank", model.ApiResponse{Code: 200, Data: rank})
 }
 
 func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +74,7 @@ func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
 	heatmap := aggregator.AggregateActivityHeatmap(repos, userEmail, startDate, endDate)
-	writeSuccess(w, "Heatmap", heatmap)
+	writeJSON(w, "Heatmap", model.ApiResponse{Code: 200, Data: heatmap})
 }
 
 func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +86,7 @@ func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
 
 	comparison := aggregator.AggregateRepoComparison(repos, userEmail, startDate, endDate)
-	writeSuccess(w, "RepoComparison", comparison)
+	writeJSON(w, "RepoComparison", model.ApiResponse{Code: 200, Data: comparison})
 }
 
 func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +123,7 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	previous := aggregator.AggregateOverview(repos, userEmail, prevStartDate, prevEndDate)
 
 	result := computeComparison(current, previous)
-	writeSuccess(w, "Comparison", result)
+	writeJSON(w, "Comparison", model.ApiResponse{Code: 200, Data: result})
 }
 
 func computeComparison(current, previous model.OverviewStats) model.OverviewComparison {
@@ -198,5 +198,5 @@ func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ranking := aggregator.AggregateFileRanking(repos, userEmail, startDate, endDate, limit)
-	writeSuccess(w, "FileRanking", ranking)
+	writeJSON(w, "FileRanking", model.ApiResponse{Code: 200, Data: ranking})
 }

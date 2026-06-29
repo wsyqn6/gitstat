@@ -52,8 +52,6 @@ func AggregateOverview(repos []model.Repository, userEmail string, startDate, en
 
 	var authorList []model.AuthorRankItem
 	for _, item := range authorMap {
-		if item.Commits > 0 {
-			}
 		authorList = append(authorList, *item)
 	}
 	slices.SortFunc(authorList, func(a, b model.AuthorRankItem) int {
@@ -292,11 +290,8 @@ func AggregateAuthorRank(repos []model.Repository, userEmail string, startDate t
 		}
 	}
 
-	// 计算平均提交大小并转换为数组
 	var result []model.AuthorRankItem
 	for _, item := range authorMap {
-		if item.Commits > 0 {
-			}
 		result = append(result, *item)
 	}
 

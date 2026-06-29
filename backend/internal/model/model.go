@@ -110,8 +110,7 @@ type AuthorRankItem struct {
 	Additions     int     `json:"additions"`
 	Deletions     int     `json:"deletions"`
 	NetChange     int     `json:"netChange"` // 新增-删除
-	IsMe          bool    `json:"isMe"`
-	AvgCommitSize float64 `json:"-"` // 平均提交大小
+	IsMe           bool   `json:"isMe"`
 	LastCommitDate string `json:"-"` // 最后提交时间
 }
 

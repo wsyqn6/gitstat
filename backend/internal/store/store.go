@@ -134,17 +134,6 @@ func (s *Store) GetAllCaches() map[string]*RepoCache {
 	return caches
 }
 
-func (s *Store) GetAllCommits() []model.Commit {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var allCommits []model.Commit
-	for _, cache := range s.Repos {
-		allCommits = append(allCommits, cache.Commits...)
-	}
-	return allCommits
-}
-
 // UpdateRepo 线程安全更新仓库缓存的指定字段
 func (s *Store) UpdateRepo(path string, fn func(*RepoCache)) {
 	s.mu.Lock()

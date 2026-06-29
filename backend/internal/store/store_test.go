@@ -35,13 +35,13 @@ func TestStoreOperations(t *testing.T) {
 		t.Errorf("Expected 1 repository, got %d", len(s.GetRepositories()))
 	}
 
-	commits := s.GetAllCommits()
-	if len(commits) != 1 {
-		t.Errorf("Expected 1 commit, got %d", len(commits))
+	repos = s.GetRepositories()
+	if len(repos[0].Commits) != 1 {
+		t.Errorf("Expected 1 commit, got %d", len(repos[0].Commits))
 	}
 
-	if commits[0].Author != "Test User" {
-		t.Errorf("Expected author 'Test User', got '%s'", commits[0].Author)
+	if repos[0].Commits[0].Author != "Test User" {
+		t.Errorf("Expected author 'Test User', got '%s'", repos[0].Commits[0].Author)
 	}
 }
 
@@ -52,7 +52,10 @@ func TestStoreEmpty(t *testing.T) {
 		t.Errorf("Expected 0 repositories, got %d", len(s.GetRepositories()))
 	}
 
-	if len(s.GetAllCommits()) != 0 {
-		t.Errorf("Expected 0 commits, got %d", len(s.GetAllCommits()))
+	repos2 := s.GetRepositories()
+	for _, r := range repos2 {
+		if len(r.Commits) != 0 {
+			t.Errorf("Expected 0 commits in %s, got %d", r.Name, len(r.Commits))
+		}
 	}
 }
