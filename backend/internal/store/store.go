@@ -7,9 +7,7 @@ import (
 	"gitstat/internal/model"
 )
 
-const (
-	MaxCommitsPerRepo = 5000 // 单仓库提交数上限
-)
+
 
 type RepoCache struct {
 	initMu sync.Mutex // 保护首次初始化扫描
@@ -74,10 +72,6 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit, forward boo
 
 	if len(uniqueCommits) == 0 {
 		return true
-	}
-
-	if len(cache.Commits)+len(uniqueCommits) > MaxCommitsPerRepo {
-		return false
 	}
 
 	if forward {
