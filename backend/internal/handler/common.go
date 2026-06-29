@@ -113,6 +113,8 @@ func writeJSON(w http.ResponseWriter, tag string, data interface{}) {
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
 		log.Printf("[%s] Serialize error: %v", tag, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "serialization failed", Code: ErrCodeInternalError})
 		return
 	}
 

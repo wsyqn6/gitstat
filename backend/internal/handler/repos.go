@@ -92,7 +92,9 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	if remoteUrl == "" {
 		remoteUrl = scanner.GetRemoteUrl(cache.Path)
-		cache.RemoteUrl = remoteUrl
+		store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
+			c.RemoteUrl = remoteUrl
+		})
 	}
 
 	remoteBranches, remoteBranchCount := scanner.GetRemoteBranches(cache.Path)
