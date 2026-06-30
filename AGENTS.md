@@ -1,9 +1,13 @@
 # GitStat — Agent Guide
 
+## Principle
+追求代码精简，实现高效，维护方便 — applies to both frontend and backend.
+
 ## Dev
 - Backend: `cd backend && go run .` — API-only on :12580
 - Frontend: `cd frontend && bun run dev` — Vite proxies `/api` → `http://localhost:12580`
 - Version sync: `bun run sync-version` — reads `git describe --tags`
+- Dev scan path: env var `GITSTAT_DEV_PATH` (default: `D:/work/ems`)
 
 ## Git
 - Commits via `git-commit` skill.
@@ -43,3 +47,6 @@
 - **Store discipline**: Mutate global state only through store functions. Never `state.x = y` from components.
 - **Security**: `rel="noopener noreferrer"` on all `target="_blank"` links.
 - **Accessibility**: Icon-only buttons must have `aria-label`. Decorative Unicode icons use `aria-hidden="true"`.
+
+## Go Conventions
+- **No duplication**: Extract repeated patterns into helpers. If code block appears in 2+ places, factor it out. This applies to handlers, routing, startup logic, error handling. "light and fast" means small, composable functions.

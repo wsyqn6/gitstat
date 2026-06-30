@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -45,26 +44,28 @@ func main() {
 	}
 }
 
-func runDebug() {
-	defaultPath := filepath.Clean("D:/work/deepgrid")
-	repos, err := scanner.DiscoverRepos(defaultPath)
-	if err != nil {
-		log.Printf("Warning: Failed to discover repos in %s: %v", defaultPath, err)
-	} else {
-		store.GlobalStore.RegisterRepos(repos)
-		store.GlobalStore.SetScanPath(defaultPath)
-		log.Printf("Registered %d repos from %s", len(repos), defaultPath)
+func scanAndRegister(scanPath string) {
+	if scanPath == "" {
+		return
 	}
+	repos, err := scanner.DiscoverRepos(scanPath)
+	if err != nil {
+		log.Printf("Warning: Failed to discover repos in %s: %v", scanPath, err)
+		return
+	}
+	store.GlobalStore.SetScanPath(scanPath)
+	store.GlobalStore.RegisterRepos(repos)
+	log.Printf("Registered %d repos from %s", len(repos), scanPath)
+}
 
-	r := server.NewServer()
-
-	r.HandleFunc("/api/version", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"version": Version})
-	})
-
+func runDebug() {
+	path := os.Getenv("GITSTAT_DEV_PATH")
+	if path == "" {
+		path = "D:/work/ems"
+	}
+	scanAndRegister(filepath.Clean(path))
 	fmt.Println("GitStat server starting on :12580...")
-	log.Fatal(http.ListenAndServe(":12580", r))
+	log.Fatal(http.ListenAndServe(":12580", server.NewServer(Version)))
 }
 
 func runServe(args []string) {
@@ -72,33 +73,13 @@ func runServe(args []string) {
 	port := serveCmd.Int("port", 12580, "Port number")
 	serveCmd.Parse(args)
 
-	// 获取扫描目录：位置参数优先，否则使用当前工作目录
 	var scanPath string
-	positionalArgs := serveCmd.Args()
-	if len(positionalArgs) > 0 {
-		scanPath = filepath.Clean(positionalArgs[0])
-	} else {
-		var err error
-		scanPath, err = os.Getwd()
-		if err == nil {
-			scanPath = filepath.Clean(scanPath)
-		}
-		if err != nil {
-			log.Printf("Warning: Failed to get working directory: %v", err)
-		}
+	if pos := serveCmd.Args(); len(pos) > 0 {
+		scanPath = filepath.Clean(pos[0])
+	} else if p, err := os.Getwd(); err == nil {
+		scanPath = filepath.Clean(p)
 	}
-
-	// 自动注册扫描目录下的仓库元数据
-	if scanPath != "" {
-		repos, err := scanner.DiscoverRepos(scanPath)
-		if err != nil {
-			log.Printf("Warning: Failed to discover repos in %s: %v", scanPath, err)
-		} else {
-			store.GlobalStore.SetScanPath(scanPath)
-			store.GlobalStore.RegisterRepos(repos)
-			log.Printf("Registered %d repos from %s", len(repos), scanPath)
-		}
-	}
+	scanAndRegister(scanPath)
 
 	distFS, err := fs.Sub(embeddedDist, "web/dist")
 	if err != nil {
@@ -106,12 +87,7 @@ func runServe(args []string) {
 		log.Println("Server will start with API only.")
 	}
 
-	r := server.NewServerWithStatic(distFS)
-
-	r.HandleFunc("/api/version", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"version": Version})
-	})
+	r := server.NewServerWithStatic(distFS, Version)
 
 	addr := fmt.Sprintf(":%d", *port)
 	url := fmt.Sprintf("http://localhost:%d", *port)
@@ -123,7 +99,6 @@ func runServe(args []string) {
 	fmt.Println("Open in browser to view analytics")
 
 	go openBrowser(url)
-
 	log.Fatal(http.ListenAndServe(addr, r))
 }
 
@@ -154,7 +129,5 @@ func openBrowser(url string) {
 	default:
 		cmd = exec.Command("xdg-open", url)
 	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Run()
 }

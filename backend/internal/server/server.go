@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"io/fs"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func NewServer() *chi.Mux {
+func NewServer(version string) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(loggingMiddleware)
@@ -45,11 +46,16 @@ func NewServer() *chi.Mux {
 		w.Write([]byte("OK"))
 	})
 
+	r.HandleFunc("/api/version", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"version": version})
+	})
+
 	return r
 }
 
-func NewServerWithStatic(staticFS fs.FS) *chi.Mux {
-	r := NewServer()
+func NewServerWithStatic(staticFS fs.FS, version string) *chi.Mux {
+	r := NewServer(version)
 
 	if staticFS == nil {
 		return r
