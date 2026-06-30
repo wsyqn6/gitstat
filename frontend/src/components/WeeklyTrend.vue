@@ -59,6 +59,7 @@ function renderTrendChart() {
   const colors = cfg.chartColors8
   const allDates = [...new Set(props.repoDailyTrend.flatMap(r => r.data.map(d => d.date)))].sort()
   const labels = allDates.map(d => d.slice(5))
+  const singlePoint = allDates.length <= 1
 
   const series = props.repoDailyTrend.map((repo, i) => {
     const dateMap = Object.fromEntries(repo.data.map(d => [d.date, d.commits]))
@@ -66,8 +67,8 @@ function renderTrendChart() {
       name: repo.repoName,
       type: 'line',
       stack: 'total',
-      smooth: true,
-      symbol: 'none',
+      smooth: !singlePoint,
+      symbol: singlePoint ? 'circle' : 'none',
       lineStyle: { width: 1.5, color: colors[i % colors.length] },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [

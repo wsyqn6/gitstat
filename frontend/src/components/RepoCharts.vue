@@ -272,8 +272,8 @@ const cumulativeOption = computed(() => {
     },
     series: [{
       type: 'line',
-      smooth: true,
-      symbol: 'none',
+      smooth: data.length > 1,
+      symbol: data.length > 1 ? 'none' : 'circle',
       lineStyle: { width: 2, color: chartCfg.value.primary },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [

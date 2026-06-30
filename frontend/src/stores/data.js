@@ -84,7 +84,6 @@ export async function loadDashboardS2() {
 }
 
 export async function fetchRepoDailyTrend() {
-  if (state.repoDailyTrend.length > 0) return
   try {
     const daily = await getDailyStats('', 'week', ['all'])
     if (!Array.isArray(daily)) {

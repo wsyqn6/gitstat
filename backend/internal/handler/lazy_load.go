@@ -50,7 +50,9 @@ func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
 	}
 
 	if !initialized {
-		_, err := store.GlobalStore.EnsureFirstInit(repoPath, func() ([]model.Commit, error) {
+		scanned := false
+		done, err := store.GlobalStore.EnsureFirstInit(repoPath, func() ([]model.Commit, error) {
+			scanned = true
 			return scanner.ScanCommitsByRange(repoPath, startDate, now)
 		})
 		if err != nil {
@@ -59,7 +61,15 @@ func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
 		if err == nil && startDate.IsZero() {
 			store.GlobalStore.SetFullyLoaded(repoPath)
 		}
-		return
+		if !done {
+			return
+		}
+		if scanned {
+			return
+		}
+		// TOCTOU: 另一 goroutine 抢在中间初始化的，
+		// 本 goroutine 没扫到数据，需要 fall through 到增量逻辑。
+		_, _, earliest, latest = store.GlobalStore.CheckInitRange(repoPath)
 	}
 
 	// 已初始化 → 零锁并行增量
