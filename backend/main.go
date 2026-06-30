@@ -29,8 +29,8 @@ func main() {
 	}
 
 	switch os.Args[1] {
-	case "serve":
-		runServe(os.Args[2:])
+	case "web":
+		runWeb(os.Args[2:])
 	case "--debug":
 		runDebug()
 	case "--version", "-v":
@@ -68,13 +68,13 @@ func runDebug() {
 	log.Fatal(http.ListenAndServe(":12580", server.NewServer(Version)))
 }
 
-func runServe(args []string) {
-	serveCmd := flag.NewFlagSet("serve", flag.ExitOnError)
-	port := serveCmd.Int("port", 12580, "Port number")
-	serveCmd.Parse(args)
+func runWeb(args []string) {
+	webCmd := flag.NewFlagSet("web", flag.ExitOnError)
+	port := webCmd.Int("port", 12580, "Port number")
+	webCmd.Parse(args)
 
 	var scanPath string
-	if pos := serveCmd.Args(); len(pos) > 0 {
+	if pos := webCmd.Args(); len(pos) > 0 {
 		scanPath = filepath.Clean(pos[0])
 	} else if p, err := os.Getwd(); err == nil {
 		scanPath = filepath.Clean(p)
@@ -107,15 +107,15 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("Usage:")
 	fmt.Println("  gitstat                     Show this help")
-	fmt.Println("  gitstat serve [directory]   Start web server with embedded UI")
+	fmt.Println("  gitstat web [directory]      Start web server with embedded UI")
 	fmt.Println("  gitstat --debug             Start API-only server (dev mode)")
 	fmt.Println("  gitstat --version           Show version")
 	fmt.Println("  gitstat --help              Show this help")
 	fmt.Println()
-	fmt.Println("Serve Options:")
+	fmt.Println("Web Options:")
 	fmt.Println("  --port number       Port number (default: 12580)")
 	fmt.Println()
-	fmt.Println("Serve Arguments:")
+	fmt.Println("Web Arguments:")
 	fmt.Println("  directory           Scan directory (default: current working directory)")
 }
 
