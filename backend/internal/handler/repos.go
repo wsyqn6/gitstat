@@ -125,37 +125,21 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	ensureRepoLoaded(path, time.Time{}, time.Now())
 
-	repos := []model.Repository{{
-		Path:    cache.Path,
-		Name:    cache.Name,
-		Commits: cache.Commits,
-	}}
-	rank := aggregator.AggregateAuthorRank(repos)
-	contributors := make([]model.ContributorStat, len(rank))
-	for i, item := range rank {
-		contributors[i] = model.ContributorStat{
-			Author:         item.Author,
-			Email:          item.Email,
-			CommitCount:    item.Commits,
-			Additions:      item.Additions,
-			Deletions:      item.Deletions,
-			LastCommitDate: item.LastCommitDate,
-		}
+	ra := aggregator.NewRepoAccumulator(path)
+	for i := range cache.Commits {
+		ra.Add(&cache.Commits[i])
 	}
+	repoAgg := ra.Build()
 
-	var earliestDate string
-	var earliestAuthor string
-	if !cache.EarliestDate.IsZero() {
-		earliestDate = cache.EarliestDate.Format("2006-01-02 15:04:05")
+	var contributors []model.ContributorStat
+	var earliestDate, earliestAuthor string
+	contributors = repoAgg.Contributors
+	if !repoAgg.EarliestDate.IsZero() {
+		earliestDate = repoAgg.EarliestDate.Format("2006-01-02 15:04:05")
 	}
-	if len(cache.Commits) > 0 {
-		earliest := cache.Commits[0]
-		for _, c := range cache.Commits {
-			if c.Date.Before(earliest.Date) {
-				earliest = c
-			}
-		}
-		earliestAuthor = earliest.Author
+	earliestAuthor = repoAgg.EarliestCommitAuthor
+	if contributors == nil {
+		contributors = []model.ContributorStat{}
 	}
 
 	repoSize := cache.RepoSize

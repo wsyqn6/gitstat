@@ -1,6 +1,7 @@
 package store
 
 import (
+	"sort"
 	"sync"
 	"time"
 
@@ -35,18 +36,30 @@ type RepoCache struct {
 }
 
 type Store struct {
-	mu        sync.RWMutex
-	ScanPath  string
-	Repos     map[string]*RepoCache // path -> cache
+	mu              sync.RWMutex
+	ScanPath        string
+	Repos           map[string]*RepoCache // path -> cache
+	lastMutationAt  time.Time
+}
+
+func (s *Store) Touch() {
+	s.mu.Lock()
+	s.lastMutationAt = time.Now()
+	s.mu.Unlock()
+}
+
+func (s *Store) LastMutationAt() time.Time {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.lastMutationAt
 }
 
 var GlobalStore = &Store{
 	Repos: make(map[string]*RepoCache),
 }
 
-// MergeCommits 增量合并提交，并检查上限
-// forward=true 时新提交时间更新（最新在前），prepend；否则 append
-func (s *Store) MergeCommits(path string, newCommits []model.Commit, forward bool) bool {
+// MergeCommits 增量合并提交，保持 Commits 按日期升序
+func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -74,12 +87,12 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit, forward boo
 		return true
 	}
 
-	if forward {
-		cache.Commits = append(uniqueCommits, cache.Commits...)
-	} else {
-		cache.Commits = append(cache.Commits, uniqueCommits...)
-	}
+	cache.Commits = append(cache.Commits, uniqueCommits...)
 	s.updateDateRange(cache, uniqueCommits)
+	sort.Slice(cache.Commits, func(i, j int) bool {
+		return cache.Commits[i].Date.Before(cache.Commits[j].Date)
+	})
+	s.lastMutationAt = time.Now()
 	return true
 }
 
@@ -127,12 +140,16 @@ func (s *Store) GetReposWithRange(paths []string, startDate, endDate time.Time) 
 		}
 
 		var filtered []model.Commit
-		for _, c := range cache.Commits {
-			if !startDate.IsZero() && c.Date.Before(startDate) {
-				continue
-			}
+		startIdx := 0
+		if !startDate.IsZero() {
+			startIdx = sort.Search(len(cache.Commits), func(i int) bool {
+				return !cache.Commits[i].Date.Before(startDate)
+			})
+		}
+		for i := startIdx; i < len(cache.Commits); i++ {
+			c := cache.Commits[i]
 			if !endDate.IsZero() && c.Date.After(endDate) {
-				continue
+				break
 			}
 			filtered = append(filtered, c)
 		}
@@ -147,6 +164,26 @@ func (s *Store) GetReposWithRange(paths []string, startDate, endDate time.Time) 
 			CurrentBranch:  cache.CurrentBranch,
 			LastCommitTime: cache.LastCommitTime,
 			Commits:        filtered,
+		})
+	}
+	return repos
+}
+
+func (s *Store) GetAllInitializedRepos() []model.Repository {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var repos []model.Repository
+	for _, cache := range s.Repos {
+		if !cache.Initialized {
+			continue
+		}
+		repos = append(repos, model.Repository{
+			Path:           cache.Path,
+			Name:           cache.Name,
+			UserEmail:      cache.UserEmail,
+			CurrentBranch:  cache.CurrentBranch,
+			LastCommitTime: cache.LastCommitTime,
+			Commits:        cache.Commits,
 		})
 	}
 	return repos
@@ -206,6 +243,7 @@ func (s *Store) ClearAll() {
 	defer s.mu.Unlock()
 	s.ScanPath = ""
 	s.Repos = make(map[string]*RepoCache)
+	s.lastMutationAt = time.Now()
 }
 
 // RegisterRepos 注册仓库元数据（未初始化，等待懒加载）
@@ -269,7 +307,11 @@ func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 	cache.Initialized = true
 	if len(commits) > 0 {
 		s.updateDateRange(cache, commits)
+		sort.Slice(cache.Commits, func(i, j int) bool {
+			return cache.Commits[i].Date.Before(cache.Commits[j].Date)
+		})
 	}
+	s.lastMutationAt = time.Now()
 }
 
 // SetFullyLoaded 标记仓库已加载完整历史

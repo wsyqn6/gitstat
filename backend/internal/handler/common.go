@@ -10,9 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"gitstat/internal/model"
-	"gitstat/internal/store"
 )
 
 func parseIntParam(r *http.Request, key string, defaultVal int) int {
@@ -66,71 +63,6 @@ func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate t
 	}
 
 	return startDate, endDate
-}
-
-func loadRepos(repoPaths []string, startDate, endDate time.Time) []model.Repository {
-	if len(repoPaths) > 50 {
-		log.Printf("warning: truncating %d repos to 50", len(repoPaths))
-		repoPaths = repoPaths[:50]
-	}
-	return store.GlobalStore.GetReposWithRange(repoPaths, startDate, endDate)
-}
-
-func filterCommitsByDate(repos []model.Repository, startDate, endDate time.Time) []model.Repository {
-	if startDate.IsZero() && endDate.IsZero() {
-		return repos
-	}
-	result := make([]model.Repository, len(repos))
-	for i, repo := range repos {
-		var filtered []model.Commit
-		for _, c := range repo.Commits {
-			if !startDate.IsZero() && c.Date.Before(startDate) {
-				continue
-			}
-			if !endDate.IsZero() && c.Date.After(endDate) {
-				continue
-			}
-			filtered = append(filtered, c)
-		}
-		if filtered == nil {
-			filtered = []model.Commit{}
-		}
-		result[i] = repo
-		result[i].Commits = filtered
-	}
-	return result
-}
-
-func filterCommitsByEmail(repos []model.Repository, email string) []model.Repository {
-	if email == "" {
-		return repos
-	}
-	result := make([]model.Repository, 0, len(repos))
-	for _, repo := range repos {
-		var filtered []model.Commit
-		for _, c := range repo.Commits {
-			if c.Email == email {
-				filtered = append(filtered, c)
-			}
-		}
-		if len(filtered) > 0 {
-			result = append(result, repo)
-			result[len(result)-1].Commits = filtered
-		}
-	}
-	return result
-}
-
-func resolveUserEmail(repos []model.Repository, email string) string {
-	if email != "" {
-		return email
-	}
-	for _, repo := range repos {
-		if repo.UserEmail != "" {
-			return repo.UserEmail
-		}
-	}
-	return ""
 }
 
 func writeJSON(w http.ResponseWriter, tag string, data interface{}) {

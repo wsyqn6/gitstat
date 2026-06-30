@@ -5,25 +5,19 @@ import (
 	"net/http"
 	"time"
 
-	"gitstat/internal/aggregator"
 	"gitstat/internal/model"
+	"gitstat/internal/store"
 )
 
 func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
 	startDate, endDate := parseTimeParams(r, "today")
 
-	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths, startDate, endDate)
+	email := emailForHandler(r)
 
-	var userEmail string
-	if r.URL.Query().Get("scope") != "all" {
-		userEmail = resolveUserEmail(repos, r.URL.Query().Get("email"))
-	}
-	repos = filterCommitsByEmail(repos, userEmail)
+	bucket := getAggBucket(repoPaths, startDate, endDate, email)
 
-	stats := aggregator.AggregateOverview(repos)
-	writeJSON(w, "Overview", model.ApiResponse{Code: 200, Data: stats})
+	writeJSON(w, "Overview", model.ApiResponse{Code: 200, Data: overviewFromBucket(bucket)})
 }
 
 func GetStatsHandler(period string) http.HandlerFunc {
@@ -31,28 +25,25 @@ func GetStatsHandler(period string) http.HandlerFunc {
 		startDate, endDate := parseTimeParams(r, "")
 		repoPaths := r.URL.Query()["repo"]
 
-		ensureDataLoaded(repoPaths, startDate)
-		repos := loadRepos(repoPaths, startDate, endDate)
-		userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
-		repos = filterCommitsByEmail(repos, userEmail)
+		email := emailForHandler(r)
+		bucket := getAggBucket(repoPaths, startDate, endDate, email)
+		if bucket == nil || bucket.TotalCommits == 0 {
+			writeJSON(w, period+" empty", model.ApiResponse{Code: 200, Data: []model.RepositoryDailyStats{}})
+			return
+		}
 
 		switch period {
 		case "daily":
-			stats := aggregator.AggregateDailyStatsWithRange(repos)
-			writeJSON(w, "Daily", model.ApiResponse{Code: 200, Data: stats})
+			writeJSON(w, "Daily", model.ApiResponse{Code: 200, Data: bucket.DailyByRepo})
 		case "weekly":
-			stats := aggregator.AggregateWeeklyStatsWithRange(repos)
-			writeJSON(w, "Weekly", model.ApiResponse{Code: 200, Data: stats})
+			writeJSON(w, "Weekly", model.ApiResponse{Code: 200, Data: bucket.DailyByRepo})
 		case "monthly":
-			stats := aggregator.AggregateMonthlyStatsWithRange(repos)
-			calendar := aggregator.AggregateMonthlyCalendar(repos)
 			writeJSON(w, "Monthly", model.ApiResponse{Code: 200, Data: map[string]interface{}{
-				"repos":           stats,
-				"monthlyCalendar": calendar,
+				"repos":           bucket.MonthlyByRepo,
+				"monthlyCalendar": bucket.Calendar,
 			}})
 		case "yearly":
-			stats := aggregator.AggregateYearlyStatsWithRange(repos)
-			writeJSON(w, "Yearly", model.ApiResponse{Code: 200, Data: stats})
+			writeJSON(w, "Yearly", model.ApiResponse{Code: 200, Data: bucket.MonthlyByRepo})
 		default:
 			writeError(w, ErrCodeInvalidRequest, "invalid period", http.StatusBadRequest)
 		}
@@ -63,39 +54,39 @@ func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 	startDate, endDate := parseTimeParams(r, "week")
 	repoPaths := r.URL.Query()["repo"]
 
-	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths, startDate, endDate)
-	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
-	repos = filterCommitsByEmail(repos, userEmail)
+	email := emailForHandler(r)
+	bucket := getAggBucket(repoPaths, startDate, endDate, email)
 
-	rank := aggregator.AggregateAuthorRank(repos)
-	writeJSON(w, "AuthorRank", model.ApiResponse{Code: 200, Data: rank})
+	if bucket == nil {
+		writeJSON(w, "AuthorRank", model.ApiResponse{Code: 200, Data: []model.AuthorRankItem{}})
+		return
+	}
+
+	writeJSON(w, "AuthorRank", model.ApiResponse{Code: 200, Data: bucket.AuthorRank})
 }
 
 func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
 	startDate, endDate := parseTimeParams(r, "month")
 	repoPaths := r.URL.Query()["repo"]
+	bucket := getAggBucket(repoPaths, startDate, endDate, "")
 
-	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths, startDate, endDate)
-	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
-	repos = filterCommitsByEmail(repos, userEmail)
-
-	heatmap := aggregator.AggregateActivityHeatmap(repos)
-	writeJSON(w, "Heatmap", model.ApiResponse{Code: 200, Data: heatmap})
+	if bucket == nil {
+		writeJSON(w, "Heatmap", model.ApiResponse{Code: 200, Data: []model.ActivityHeatmapPoint{}})
+		return
+	}
+	writeJSON(w, "Heatmap", model.ApiResponse{Code: 200, Data: bucket.Heatmap})
 }
 
 func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "month")
+	startDate, endDate := parseTimeParams(r, "week")
 	repoPaths := r.URL.Query()["repo"]
+	bucket := getAggBucket(repoPaths, startDate, endDate, "")
 
-	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths, startDate, endDate)
-	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
-	repos = filterCommitsByEmail(repos, userEmail)
-
-	comparison := aggregator.AggregateRepoComparison(repos)
-	writeJSON(w, "RepoComparison", model.ApiResponse{Code: 200, Data: comparison})
+	if bucket == nil {
+		writeJSON(w, "RepoComparison", model.ApiResponse{Code: 200, Data: []model.RepoComparison{}})
+		return
+	}
+	writeJSON(w, "RepoComparison", model.ApiResponse{Code: 200, Data: bucket.RepoComp})
 }
 
 func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +128,6 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 		prevEndDate = prevEndDate.Add(24*time.Hour - time.Second)
 	}
 
-	// determine full range covering both periods
 	fullStart := startDate
 	if !prevStartDate.IsZero() && (fullStart.IsZero() || prevStartDate.Before(fullStart)) {
 		fullStart = prevStartDate
@@ -148,23 +138,68 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ensureDataLoaded(repoPaths, fullStart)
-	ensureDataLoaded(repoPaths, prevStartDate)
-	repos := loadRepos(repoPaths, fullStart, fullEnd)
 
 	var userEmail string
 	if r.URL.Query().Get("scope") != "all" {
-		userEmail = resolveUserEmail(repos, r.URL.Query().Get("email"))
+		userEmail = resolveUserEmail(r.URL.Query().Get("email"))
 	}
-	repos = filterCommitsByEmail(repos, userEmail)
 
-	currentRepos := filterCommitsByDate(repos, startDate, endDate)
-	current := aggregator.AggregateOverview(currentRepos)
+	repos := store.GlobalStore.GetReposWithRange(repoPaths, fullStart, fullEnd)
+	if userEmail != "" {
+		repos = filterCommitsByEmail(repos, userEmail)
+	}
 
-	prevRepos := filterCommitsByDate(repos, prevStartDate, prevEndDate)
-	previous := aggregator.AggregateOverview(prevRepos)
+	currentBucket := computeBucket(repos, startDate, endDate)
+	prevBucket := computeBucket(repos, prevStartDate, prevEndDate)
 
+	markSelf(currentBucket, userEmail)
+	markSelf(prevBucket, userEmail)
+
+	current := overviewFromBucket(currentBucket)
+	previous := overviewFromBucket(prevBucket)
 	result := computeComparison(current, previous)
 	writeJSON(w, "Comparison", model.ApiResponse{Code: 200, Data: result})
+}
+
+func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
+	startDate, endDate := parseTimeParams(r, "month")
+	repoPaths := r.URL.Query()["repo"]
+	bucket := getAggBucket(repoPaths, startDate, endDate, "")
+
+	if bucket == nil {
+		writeJSON(w, "FileRanking", model.ApiResponse{Code: 200, Data: []model.FileRankItem{}})
+		return
+	}
+
+	limit := parseIntParam(r, "limit", 5)
+	if limit > 100 {
+		limit = 100
+	}
+	rank := bucket.FileRank
+	if limit > 0 && len(rank) > limit {
+		rank = rank[:limit]
+	}
+	writeJSON(w, "FileRanking", model.ApiResponse{Code: 200, Data: rank})
+}
+
+func emailForHandler(r *http.Request) string {
+	if r.URL.Query().Get("scope") == "all" {
+		return ""
+	}
+	return resolveUserEmail(r.URL.Query().Get("email"))
+}
+
+func resolveUserEmail(email string) string {
+	if email != "" {
+		return email
+	}
+	caches := store.GlobalStore.GetAllCaches()
+	for _, c := range caches {
+		if c.UserEmail != "" {
+			return c.UserEmail
+		}
+	}
+	return ""
 }
 
 func computeComparison(current, previous model.OverviewStats) model.OverviewComparison {
@@ -177,10 +212,7 @@ func computeComparison(current, previous model.OverviewStats) model.OverviewComp
 			pct = 100
 		}
 		return model.MetricChange{
-			Current:  cur,
-			Previous: prev,
-			Abs:      abs,
-			Pct:      pct,
+			Current: cur, Previous: prev, Abs: abs, Pct: pct,
 		}
 	}
 
@@ -199,9 +231,7 @@ func computeComparison(current, previous model.OverviewStats) model.OverviewComp
 			prevDeletions = pa.Deletions
 		}
 		ac := model.AuthorComparisonItem{
-			Author: ca.Author,
-			Email:  ca.Email,
-			IsMe:   ca.IsMe,
+			Author: ca.Author, Email: ca.Email, IsMe: ca.IsMe,
 			Change: model.AuthorMetricChange{
 				Commits:   mk(ca.Commits, prevCommits),
 				Additions: mk(ca.Additions, prevAdditions),
@@ -211,7 +241,6 @@ func computeComparison(current, previous model.OverviewStats) model.OverviewComp
 		}
 		authorComparison = append(authorComparison, ac)
 	}
-
 	if authorComparison == nil {
 		authorComparison = []model.AuthorComparisonItem{}
 	}
@@ -223,22 +252,4 @@ func computeComparison(current, previous model.OverviewStats) model.OverviewComp
 		ActiveAuthors:  mk(current.ActiveAuthors, previous.ActiveAuthors),
 		Authors:        authorComparison,
 	}
-}
-
-func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "month")
-	repoPaths := r.URL.Query()["repo"]
-
-	ensureDataLoaded(repoPaths, startDate)
-	repos := loadRepos(repoPaths, startDate, endDate)
-	userEmail := resolveUserEmail(repos, r.URL.Query().Get("email"))
-	repos = filterCommitsByEmail(repos, userEmail)
-
-	limit := parseIntParam(r, "limit", 5)
-	if limit > 100 {
-		limit = 100
-	}
-
-	ranking := aggregator.AggregateFileRanking(repos, limit)
-	writeJSON(w, "FileRanking", model.ApiResponse{Code: 200, Data: ranking})
 }

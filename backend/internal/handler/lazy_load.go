@@ -86,7 +86,7 @@ func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
 		if err != nil {
 			log.Printf("[LazyLoad] Backward scan failed for %s: %v", repoPath, err)
 		} else if len(newCommits) > 0 {
-			store.GlobalStore.MergeCommits(repoPath, newCommits, false)
+			store.GlobalStore.MergeCommits(repoPath, newCommits)
 		}
 		if startDate.IsZero() {
 			store.GlobalStore.SetFullyLoaded(repoPath)
@@ -98,7 +98,7 @@ func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
 		if err != nil {
 			log.Printf("[LazyLoad] Forward scan failed for %s: %v", repoPath, err)
 		} else if len(newCommits) > 0 {
-			store.GlobalStore.MergeCommits(repoPath, newCommits, true)
+			store.GlobalStore.MergeCommits(repoPath, newCommits)
 		}
 	}
 }
