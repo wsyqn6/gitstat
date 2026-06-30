@@ -6,6 +6,11 @@
       :weekly-total="weeklyTotal"
     />
 
+    <DailyRepoStats
+      :daily-stats="state.dailyStats"
+      :loading="sectionLoading.daily"
+    />
+
     <div class="insight-grid">
       <WeeklyTrend
         :repo-daily-trend="state.repoDailyTrend"
@@ -26,18 +31,13 @@
         :week-range="weekRange"
         :loading="sectionLoading.below"
       />
-
-      <DailyRepoStats
-        :daily-stats="state.dailyStats"
-        :loading="sectionLoading.below"
-      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { state, fetchOverviewStats, fetchRepoDailyTrend, fetchAuthorRank, loadDashboardS2 } from '../stores/data'
+import { state, fetchOverviewStats, fetchRepoDailyTrend, fetchAuthorRank, fetchDailyStatsToday, loadDashboardS2 } from '../stores/data'
 import WeeklyTrend from '../components/WeeklyTrend.vue'
 import DailyRepoStats from '../components/DailyRepoStats.vue'
 import DashStatsGrid from '../components/DashStatsGrid.vue'
@@ -47,6 +47,7 @@ import { CHART_COLORS } from '../utils/constants'
 
 const sectionLoading = reactive({
   stats: true,
+  daily: true,
   trend: true,
   rank: true,
   below: true
@@ -94,6 +95,7 @@ const authorRankWithRepos = computed(() => {
 onMounted(async () => {
   await Promise.all([
     fetchOverviewStats().then(() => { sectionLoading.stats = false }),
+    fetchDailyStatsToday().then(() => { sectionLoading.daily = false }),
     fetchRepoDailyTrend().then(() => { sectionLoading.trend = false }),
     fetchAuthorRank().then(() => { sectionLoading.rank = false })
   ])

@@ -33,6 +33,7 @@ type repoCompAcc struct {
 	additions       int
 	deletions       int
 	lastCommitTime  string
+	fileSet         map[string]bool
 }
 
 type Accumulator struct {
@@ -58,6 +59,7 @@ type Accumulator struct {
 	repoBranchOf    map[string]string
 	repoLastCommit  map[string]string
 	lastSeen        map[string]time.Time
+	authorFiles     map[string]map[string]map[string]bool
 }
 
 func NewAccumulator(startDate, endDate time.Time) *Accumulator {
@@ -81,6 +83,7 @@ func NewAccumulator(startDate, endDate time.Time) *Accumulator {
 		repoBranchOf:   make(map[string]string),
 		repoLastCommit: make(map[string]string),
 		lastSeen:       make(map[string]time.Time),
+		authorFiles:    make(map[string]map[string]map[string]bool),
 	}
 }
 
@@ -220,6 +223,21 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 	}
 	a.heatmapDayHour[dow][hour]++
 
+	rc, ok := a.repoCompMap[repo.Path]
+	if !ok {
+		rc = &repoCompAcc{
+			authorSet:      make(map[string]bool),
+			fileSet:        make(map[string]bool),
+			lastCommitTime: repo.LastCommitTime,
+		}
+		a.repoCompMap[repo.Path] = rc
+		a.repoNameOf[repo.Path] = repo.Name
+	}
+	rc.commits++
+	rc.authorSet[c.Email] = true
+	rc.additions += c.Additions
+	rc.deletions += c.Deletions
+
 	for _, f := range c.Files {
 		item, exists := a.fileRank[f.Path]
 		if !exists {
@@ -236,21 +254,16 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 		item.Additions += f.Additions
 		item.Deletions += f.Deletions
 		item.NetChange = item.Additions - item.Deletions
-	}
 
-	rc, ok := a.repoCompMap[repo.Path]
-	if !ok {
-		rc = &repoCompAcc{
-			authorSet:      make(map[string]bool),
-			lastCommitTime: repo.LastCommitTime,
+		if a.authorFiles[c.Email] == nil {
+			a.authorFiles[c.Email] = make(map[string]map[string]bool)
 		}
-		a.repoCompMap[repo.Path] = rc
-		a.repoNameOf[repo.Path] = repo.Name
+		if a.authorFiles[c.Email][repo.Path] == nil {
+			a.authorFiles[c.Email][repo.Path] = make(map[string]bool)
+		}
+		a.authorFiles[c.Email][repo.Path][f.Path] = true
+		rc.fileSet[f.Path] = true
 	}
-	rc.commits++
-	rc.authorSet[c.Email] = true
-	rc.additions += c.Additions
-	rc.deletions += c.Deletions
 }
 
 func (a *Accumulator) periodKey(t time.Time) string {
@@ -311,6 +324,7 @@ func (a *Accumulator) Build() *AggBucket {
 
 	for _, repoMap := range a.dailyAuthRepo {
 		for repoPath, ads := range repoMap {
+			ads.FilesChanged = len(a.authorFiles[ads.Email][repoPath])
 			for i := range b.DailyByRepo {
 				if b.DailyByRepo[i].RepoPath == repoPath {
 					b.DailyByRepo[i].Authors = append(b.DailyByRepo[i].Authors, *ads)
@@ -404,6 +418,7 @@ func (a *Accumulator) Build() *AggBucket {
 			Authors:          len(rc.authorSet),
 			Additions:        rc.additions,
 			Deletions:        rc.deletions,
+			FilesChanged:     len(rc.fileSet),
 			LastCommitTime:   rc.lastCommitTime,
 			ActiveDays:       activeDays,
 			AvgCommitsPerDay: avg,

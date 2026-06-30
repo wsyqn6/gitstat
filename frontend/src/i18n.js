@@ -30,6 +30,7 @@ const messages = {
       author: '作者',
       commits: '提交数',
       changes: '变更',
+      filesChanged: '文件数',
       me: '我',
       noComparison: '选择仓库后查看对比',
       noDailyStats: '今日暂无提交活动'
@@ -287,6 +288,7 @@ const messages = {
       author: 'Author',
       commits: 'Commits',
       changes: 'Changes',
+      filesChanged: 'Files',
       me: 'ME',
       noComparison: 'Select repos to compare',
       noDailyStats: 'No activity today'

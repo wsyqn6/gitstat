@@ -46,13 +46,14 @@ type OverviewStats struct {
 }
 
 type AuthorDailyStats struct {
-	Author    string          `json:"author"`
-	Email     string          `json:"email"`
-	Commits   int             `json:"commits"`
-	Additions int             `json:"additions"`
-	Deletions int             `json:"deletions"`
-	IsMe      bool            `json:"isMe"`
-	DailyData []DayCommitData `json:"dailyData,omitempty"`
+	Author       string          `json:"author"`
+	Email        string          `json:"email"`
+	Commits      int             `json:"commits"`
+	Additions    int             `json:"additions"`
+	Deletions    int             `json:"deletions"`
+	FilesChanged int             `json:"filesChanged"`
+	IsMe         bool            `json:"isMe"`
+	DailyData    []DayCommitData `json:"dailyData,omitempty"`
 }
 
 type DayCommitData struct {
@@ -252,6 +253,7 @@ type RepoComparison struct {
 	Authors          int     `json:"authors"`
 	Additions        int     `json:"additions"`
 	Deletions        int     `json:"deletions"`
+	FilesChanged     int     `json:"filesChanged"`
 	LastCommitTime   string  `json:"-"`
 	ActiveDays       int     `json:"activeDays"`       // 活跃天数
 	AvgCommitsPerDay float64 `json:"avgCommitsPerDay"` // 日均提交数

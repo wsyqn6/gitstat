@@ -6,15 +6,15 @@
 
     <div v-if="loading" class="skeleton-daily">
       <div v-for="i in 2" :key="i" class="repo-daily-card glass card">
-        <div class="repo-daily-header">
+        <div class="repo-daily-header" style="display:flex;align-items:center;gap:1rem;">
           <Skeleton w="50" />
-          <div style="margin-top:8px"><Skeleton w="30" /></div>
+          <Skeleton w="20" />
         </div>
         <div class="authors-table">
           <div v-for="j in 2" :key="j" class="table-row">
             <Skeleton w="35" />
             <Skeleton w="15" />
-            <Skeleton w="25" />
+            <Skeleton w="35" />
           </div>
         </div>
       </div>
@@ -24,10 +24,8 @@
         <div class="repo-daily-header">
           <div class="repo-info">
             <h4>{{ repo.repoName }}</h4>
-            <div class="repo-meta">
-              <span class="branch-badge">{{ repo.currentBranch }}</span>
-              <span class="last-commit">{{ t('dashboard.lastCommit') }}: {{ repo.lastCommitTime }}</span>
-            </div>
+            <span class="branch-badge">{{ repo.currentBranch }}</span>
+            <span class="last-commit">{{ t('dashboard.lastCommit') }}: {{ repo.lastCommitTime }}</span>
           </div>
         </div>
 
@@ -50,6 +48,7 @@
             <div class="col-changes">
               <span class="additions">+{{ author.additions }}</span>
               <span class="deletions">-{{ author.deletions }}</span>
+              <span class="file-count" :title="t('dashboard.filesChanged')">{{ author.filesChanged }}</span>
             </div>
           </div>
         </div>
@@ -85,24 +84,24 @@ defineProps({
 
 .repo-daily-header {
   margin: -1.5rem -1.5rem 1rem;
-  padding: 1.5rem 2rem;
+  padding: 1rem 2rem;
   background: var(--bg-row-hover);
   border-bottom: 1px solid var(--border-insight-card);
 }
 
-.repo-daily-header h4 {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  color: var(--color-primary);
-  margin: 0 0 0.75rem 0;
-  letter-spacing: 1px;
-}
-
-.repo-meta {
+.repo-info {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.repo-daily-header h4 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  margin: 0;
+  letter-spacing: 1px;
 }
 
 .branch-badge {
@@ -120,10 +119,6 @@ defineProps({
   font-size: 0.85rem;
   color: var(--color-nav-link);
   font-family: var(--font-mono);
-}
-
-.authors-table {
-  padding: 1rem 0;
 }
 
 .table-header,
@@ -191,8 +186,9 @@ defineProps({
 
 .col-changes {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .additions {
@@ -203,6 +199,17 @@ defineProps({
 .deletions {
   color: var(--color-pink);
   font-weight: 600;
+}
+
+.file-count {
+  color: var(--color-nav-link);
+  font-weight: 600;
+}
+
+.file-count::before {
+  content: '|';
+  margin-right: 0.35rem;
+  color: var(--border-insight-card);
 }
 
 .skeleton-daily {

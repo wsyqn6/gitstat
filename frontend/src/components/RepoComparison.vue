@@ -7,8 +7,7 @@
       <div v-for="i in 3" :key="i" class="cmp-row">
         <Skeleton w="40" />
         <Skeleton w="15" />
-        <Skeleton w="15" />
-        <Skeleton w="15" />
+        <Skeleton w="40" />
         <Skeleton w="15" />
         <Skeleton w="15" />
       </div>
@@ -17,16 +16,18 @@
       <div class="cmp-header">
         <div class="cmp-col-name">{{ t('dashboard.repo') }}</div>
         <div class="cmp-col-num">{{ t('dashboard.commits') }}</div>
-        <div class="cmp-col-num">{{ t('analytics.additions') }}</div>
-        <div class="cmp-col-num">{{ t('analytics.deletions') }}</div>
+        <div class="cmp-col-num">{{ t('dashboard.changes') }}</div>
         <div class="cmp-col-num">{{ t('dashboard.activeDays') }}</div>
         <div class="cmp-col-num">{{ t('dashboard.dailyAvg') }}</div>
       </div>
       <div v-for="repo in repoComparison" :key="repo.repoPath" class="cmp-row">
         <div class="cmp-col-name">{{ repo.repoName }}</div>
         <div class="cmp-col-num">{{ repo.commits }}</div>
-        <div class="cmp-col-num additions">+{{ repo.additions }}</div>
-        <div class="cmp-col-num deletions">-{{ repo.deletions }}</div>
+        <div class="cmp-col-num changes">
+          <span class="additions">+{{ repo.additions }}</span>
+          <span class="deletions">-{{ repo.deletions }}</span>
+          <span class="file-count" :title="t('dashboard.filesChanged')">{{ repo.filesChanged }}</span>
+        </div>
         <div class="cmp-col-num">{{ repo.activeDays }}</div>
         <div class="cmp-col-num">{{ repo.avgCommitsPerDay }}</div>
       </div>
@@ -62,7 +63,7 @@ defineProps({
 .cmp-header,
 .cmp-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 2fr 1fr 1fr;
   padding: 1rem 2rem;
   align-items: center;
 }
@@ -103,11 +104,29 @@ defineProps({
   text-align: center;
 }
 
-.cmp-col-num.additions {
+.cmp-col-num .additions {
   color: var(--color-green);
 }
 
-.cmp-col-num.deletions {
+.cmp-col-num .deletions {
   color: var(--color-pink);
+}
+
+.cmp-col-num.changes {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.cmp-col-num .file-count {
+  color: var(--color-nav-link);
+  font-weight: 600;
+}
+
+.cmp-col-num .file-count::before {
+  content: '|';
+  margin-right: 0.35rem;
+  color: var(--border-insight-card);
 }
 </style>
