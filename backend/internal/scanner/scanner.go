@@ -1,7 +1,9 @@
 package scanner
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -34,45 +36,61 @@ func ScanCommitsByRange(repoPath string, since, until time.Time) ([]model.Commit
 
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repoPath
-	out, err := cmd.Output()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("git log in %s: %w", repoPath, err)
+		return nil, fmt.Errorf("git log stdout pipe in %s: %w", repoPath, err)
+	}
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("git log start in %s: %w", repoPath, err)
 	}
 
-	return parseGitLog(string(out))
+	commits, parseErr := parseGitLog(stdout)
+	waitErr := cmd.Wait()
+
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	return commits, waitErr
 }
 
-func parseGitLog(text string) ([]model.Commit, error) {
-	lines := strings.Split(text, "\n")
-	if len(lines) == 0 {
-		return nil, nil
+func parseGitLog(r io.Reader) ([]model.Commit, error) {
+	scanner := bufio.NewScanner(r)
+	const marker = "---GITSTAT_COMMIT---"
+
+	// skip to first marker
+	for scanner.Scan() {
+		if scanner.Text() == marker {
+			break
+		}
 	}
 
 	var commits []model.Commit
-	const commitMarker = "---GITSTAT_COMMIT---"
 
-	i := 0
-	// skip leading lines until first marker
-	for i < len(lines) && lines[i] != commitMarker {
-		i++
-	}
-
-	for i < len(lines) {
-		if lines[i] != commitMarker {
-			i++
-			continue
-		}
-		i++ // skip marker
-
-		if i+4 >= len(lines) {
+	for {
+		if !scanner.Scan() {
 			break
 		}
+		hash := scanner.Text()
 
-		hash := strings.TrimSpace(lines[i]); i++
-		author := strings.TrimSpace(lines[i]); i++
-		email := strings.TrimSpace(lines[i]); i++
-		dateStr := strings.TrimSpace(lines[i]); i++
-		subject := strings.TrimSpace(lines[i]); i++
+		if !scanner.Scan() {
+			break
+		}
+		author := scanner.Text()
+
+		if !scanner.Scan() {
+			break
+		}
+		email := scanner.Text()
+
+		if !scanner.Scan() {
+			break
+		}
+		dateStr := scanner.Text()
+
+		if !scanner.Scan() {
+			break
+		}
+		subject := scanner.Text()
 
 		commitTime, _ := time.Parse("2006-01-02 15:04:05 -0700", dateStr)
 		if commitTime.IsZero() {
@@ -81,9 +99,11 @@ func parseGitLog(text string) ([]model.Commit, error) {
 
 		var additions, deletions int
 		var files []model.FileStat
-		for i < len(lines) && lines[i] != commitMarker {
-			line := strings.TrimSpace(lines[i])
-			i++
+		for scanner.Scan() {
+			line := scanner.Text()
+			if line == marker {
+				break
+			}
 			if line == "" {
 				continue
 			}
@@ -91,7 +111,7 @@ func parseGitLog(text string) ([]model.Commit, error) {
 			if len(parts) >= 3 {
 				add, errA := strconv.Atoi(parts[0])
 				del, errD := strconv.Atoi(parts[1])
-				fpath := strings.TrimSpace(parts[2])
+				fpath := parts[2]
 				if errA == nil {
 					additions += add
 				}
@@ -123,6 +143,9 @@ func parseGitLog(text string) ([]model.Commit, error) {
 		})
 	}
 
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
 	return commits, nil
 }
 
