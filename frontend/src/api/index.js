@@ -18,8 +18,8 @@ export async function getBuildVersion() {
   return data.version || 'dev'
 }
 
-export async function getDashboardStats(startDate, endDate, repos = [], scope) {
-  const params = buildParams({ startDate, endDate, repos, scope })
+export async function getDashboardStats(repos = [], scope) {
+  const params = buildParams({ repos, scope })
   const res = await request(`${BASE}/stats/dashboard?${params}`, { errorMsg: 'Failed to fetch dashboard' })
   return res.data
 }
@@ -34,20 +34,20 @@ export async function exportData() {
   return request(`${BASE}/export/json`, { errorMsg: 'Export failed', blob: true })
 }
 
-export async function getDailyStats(email, timeRange = 'week', repos = [], startDate, endDate) {
-  const params = buildParams({ email, timeRange, repos, startDate, endDate })
+export async function getDailyStats(email, repos = [], startDate, endDate, timeRange) {
+  const params = buildParams({ email, repos, startDate, endDate, timeRange })
   const res = await request(`${BASE}/stats/daily?${params}`, { errorMsg: 'Failed to fetch daily stats' })
   return res.data
 }
 
-export async function getAuthorRank(repos = [], startDate, endDate, timeRange = 'week') {
-  const params = buildParams({ repos, startDate, endDate, timeRange })
+export async function getAuthorRank(repos = [], timeRange = 'week') {
+  const params = buildParams({ repos, timeRange })
   const res = await request(`${BASE}/stats/authors?${params}`, { errorMsg: 'Failed to fetch author rank' })
   return res.data
 }
 
-export async function getMonthlyStats(email, timeRange = 'month', repos = [], startDate, endDate) {
-  const params = buildParams({ email, timeRange, repos, startDate, endDate })
+export async function getMonthlyStats(email, repos = [], startDate, endDate) {
+  const params = buildParams({ email, repos, startDate, endDate })
   const res = await request(`${BASE}/stats/monthly?${params}`, { errorMsg: 'Failed to fetch monthly stats' })
   return res.data
 }
@@ -64,14 +64,14 @@ export async function getActivityHeatmap(repos = [], startDate, endDate) {
   return res.data
 }
 
-export async function getRepoComparison(repos = [], startDate, endDate, timeRange = 'week') {
-  const params = buildParams({ repos, startDate, endDate, timeRange })
+export async function getRepoComparison(repos = [], timeRange = 'week') {
+  const params = buildParams({ repos, timeRange })
   const res = await request(`${BASE}/stats/repo-comparison?${params}`, { errorMsg: 'Failed to fetch repo comparison' })
   return res.data
 }
 
-export async function getFileRanking(repos = [], startDate, endDate, limit, timeRange) {
-  const params = buildParams({ repos, startDate, endDate, limit, timeRange })
+export async function getFileRanking(repos = [], startDate, endDate, limit) {
+  const params = buildParams({ repos, startDate, endDate, limit })
   const res = await request(`${BASE}/stats/file-ranking?${params}`, { errorMsg: 'Failed to fetch file ranking' })
   return res.data
 }

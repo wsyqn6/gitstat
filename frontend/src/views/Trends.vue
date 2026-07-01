@@ -223,10 +223,9 @@ const loadData = async () => {
 
     const days = Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))
     const isMonth = days > 31
-    const timeRange = selectedTimeRange.value === 'custom' ? '' : selectedTimeRange.value
     const statsPromise = isMonth
-      ? getMonthlyStats(null, '', selectedRepos.value, startDate, endDate)
-      : getDailyStats(null, timeRange, selectedRepos.value, startDate, endDate)
+      ? getMonthlyStats(null, selectedRepos.value, startDate, endDate)
+      : getDailyStats(null, selectedRepos.value, startDate, endDate)
 
     let prevStartDate = '', prevEndDate = ''
     const range = selectedTimeRange.value

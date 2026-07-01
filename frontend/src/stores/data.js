@@ -35,7 +35,7 @@ export async function performScan(path) {
   
   try {
     await setScanPath(path)
-    const dashData = await getDashboardStats(null, null, ['all'])
+    const dashData = await getDashboardStats(['all'])
     state.dashboardData = dashData
   } catch (err) {
     state.error = err.message
@@ -47,7 +47,7 @@ export async function performScan(path) {
 export async function fetchDashboardData() {
   if (state.dashboardData) return
   try {
-    state.dashboardData = await getDashboardStats(null, null, ['all'])
+    state.dashboardData = await getDashboardStats(['all'])
   } catch (err) {
     console.error('Failed to fetch dashboard data:', err)
   }
@@ -69,7 +69,7 @@ export async function loadDashboardS2() {
 
 export async function fetchRepoDailyTrend() {
   try {
-    const daily = await getDailyStats('', 'week', ['all'])
+    const daily = await getDailyStats('', ['all'], null, null, 'week')
     if (!Array.isArray(daily)) {
       state.repoDailyTrend = []
       return
@@ -89,7 +89,7 @@ export async function fetchRepoDailyTrend() {
 export async function fetchRepoComparison() {
   if (state.repoComparison.length > 0) return
   try {
-    state.repoComparison = await getRepoComparison(['all'], null, null, 'week')
+    state.repoComparison = await getRepoComparison(['all'])
   } catch (err) {
     console.error('Failed to fetch repo comparison:', err)
   }
@@ -98,7 +98,7 @@ export async function fetchRepoComparison() {
 export async function fetchAuthorRank() {
   if (state.authorRank.length > 0) return
   try {
-    state.authorRank = await getAuthorRank(['all'], null, null, 'week')
+    state.authorRank = await getAuthorRank(['all'])
   } catch (err) {
     console.error('Failed to fetch author rank:', err)
   }
