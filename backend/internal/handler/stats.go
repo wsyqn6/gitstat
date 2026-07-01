@@ -9,6 +9,39 @@ import (
 	"gitstat/internal/store"
 )
 
+func GetDashboardHandler(w http.ResponseWriter, r *http.Request) {
+	repoPaths := r.URL.Query()["repo"]
+	startDate, endDate := parseTimeParams(r, "today")
+	email := emailForHandler(r)
+	bucket := getAggBucket(repoPaths, startDate, endDate, email)
+
+	duration := endDate.Sub(startDate)
+	prevStartDate := startDate.Add(-duration)
+	prevEndDate := endDate.Add(-duration)
+	prevBucket := getAggBucket(repoPaths, prevStartDate, prevEndDate, email)
+
+	current := overviewFromBucket(bucket)
+	previous := overviewFromBucket(prevBucket)
+	comparison := computeComparison(current, previous)
+
+	resp := model.DashboardData{Comparison: comparison}
+	if bucket != nil {
+		resp.Summary = model.DashboardSummary{
+			TotalCommits:    bucket.TotalCommits,
+			TotalAdditions:  bucket.TotalAdditions,
+			TotalDeletions:  bucket.TotalDeletions,
+			ActiveAuthors:   bucket.ActiveAuthors,
+			RepositoryCount: bucket.RepositoryCount,
+		}
+		resp.DailyRepos = bucket.DailyByRepo
+	}
+	if resp.DailyRepos == nil {
+		resp.DailyRepos = []model.RepositoryDailyStats{}
+	}
+
+	writeJSON(w, "Dashboard", model.ApiResponse{Code: 200, Data: resp})
+}
+
 func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
 	startDate, endDate := parseTimeParams(r, "today")

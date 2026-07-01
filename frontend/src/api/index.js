@@ -18,6 +18,12 @@ export async function getBuildVersion() {
   return data.version || 'dev'
 }
 
+export async function getDashboardStats(startDate, endDate, repos = [], scope) {
+  const params = buildParams({ startDate, endDate, repos, scope })
+  const res = await request(`${BASE}/stats/dashboard?${params}`, { errorMsg: 'Failed to fetch dashboard' })
+  return res.data
+}
+
 export async function getOverviewStats(startDate, endDate, repos = [], scope) {
   const params = buildParams({ startDate, endDate, repos, scope })
   const res = await request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats' })

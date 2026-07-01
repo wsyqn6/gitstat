@@ -7,10 +7,10 @@
     </div>
   </div>
   <div v-else class="stats-grid">
-    <StatCard :value="todayCommits" :label="t('dashboard.todayCommits')" icon="◈" color="#00d4ff" />
-    <StatCard :value="todayAdditions" :label="t('dashboard.todayAdditions')" icon="↑" color="#00ff88" />
-    <StatCard :value="todayDeletions" :label="t('dashboard.todayDeletions')" icon="↓" color="#ff6b9d" />
-    <StatCard :value="activeAuthors" :label="t('dashboard.activeAuthors')" icon="◉" color="#ffd700" />
+    <StatCard :value="todayCommits" :label="t('dashboard.todayCommits')" icon="◈" color="#00d4ff" :change="comparison?.totalCommits" />
+    <StatCard :value="todayAdditions" :label="t('dashboard.todayAdditions')" icon="↑" color="#00ff88" :change="comparison?.totalAdditions" />
+    <StatCard :value="todayDeletions" :label="t('dashboard.todayDeletions')" icon="↓" color="#ff6b9d" :change="comparison?.totalDeletions" />
+    <StatCard :value="activeAuthors" :label="t('dashboard.activeAuthors')" icon="◉" color="#ffd700" :change="comparison?.activeAuthors" />
     <StatCard :value="repositoryCount" :label="t('dashboard.repositoryCount')" icon="▦" color="#a78bfa" />
     <StatCard :value="weeklyTotal" :label="t('dashboard.weeklyTotal')" icon="⟡" color="#f472b6" />
   </div>
@@ -26,15 +26,16 @@ const { t } = useI18n()
 
 const props = defineProps({
   loading: { type: Boolean, required: true },
-  overviewStats: { type: Object, default: null },
-  weeklyTotal: { type: Number, default: 0 }
+  summary: { type: Object, default: null },
+  weeklyTotal: { type: Number, default: 0 },
+  comparison: { type: Object, default: null }
 })
 
-const todayCommits = computed(() => props.overviewStats?.totalCommits ?? 0)
-const todayAdditions = computed(() => props.overviewStats?.totalAdditions ?? 0)
-const todayDeletions = computed(() => props.overviewStats?.totalDeletions ?? 0)
-const activeAuthors = computed(() => props.overviewStats?.activeAuthors ?? 0)
-const repositoryCount = computed(() => props.overviewStats?.repositoryCount ?? 0)
+const todayCommits = computed(() => props.summary?.totalCommits ?? 0)
+const todayAdditions = computed(() => props.summary?.totalAdditions ?? 0)
+const todayDeletions = computed(() => props.summary?.totalDeletions ?? 0)
+const activeAuthors = computed(() => props.summary?.activeAuthors ?? 0)
+const repositoryCount = computed(() => props.summary?.repositoryCount ?? 0)
 </script>
 
 <style scoped>

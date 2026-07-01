@@ -44,10 +44,21 @@
               <span class="author-name">{{ author.author }}</span>
               <span v-if="author.isMe" class="me-badge" :title="t('dashboard.me')">{{ t('dashboard.me') }}</span>
             </div>
-            <div class="col-commits">{{ author.commits }}</div>
+            <div class="col-commits">
+              <span class="value-with-change">
+                <span>{{ author.commits }}</span>
+                <ChangeBadge v-if="authorChangeMap[author.email]" :change="authorChangeMap[author.email].commits" compact />
+              </span>
+            </div>
             <div class="col-changes">
-              <span class="additions">+{{ author.additions }}</span>
-              <span class="deletions">-{{ author.deletions }}</span>
+              <span class="value-with-change additions">
+                <span>+{{ author.additions }}</span>
+                <ChangeBadge v-if="authorChangeMap[author.email]" :change="authorChangeMap[author.email].additions" compact />
+              </span>
+              <span class="value-with-change deletions">
+                <span>-{{ author.deletions }}</span>
+                <ChangeBadge v-if="authorChangeMap[author.email]" :change="authorChangeMap[author.email].deletions" compact />
+              </span>
               <span class="file-count" :title="t('dashboard.filesChanged')">{{ author.filesChanged }}</span>
             </div>
           </div>
@@ -61,20 +72,32 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import Skeleton from './Skeleton.vue'
+import ChangeBadge from './ChangeBadge.vue'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
 
-defineProps({
+const props = defineProps({
   dailyStats: { type: Array, required: true },
-  loading: { type: Boolean, required: true }
+  loading: { type: Boolean, required: true },
+  comparisonAuthors: { type: Array, default: () => [] }
+})
+
+const authorChangeMap = computed(() => {
+  const map = {}
+  for (const a of props.comparisonAuthors) {
+    map[a.email] = a.change
+  }
+  return map
 })
 </script>
 
 <style scoped>
 .daily-stats-section {
   margin-top: 2rem;
+  margin-bottom: 3rem;
 }
 
 .repo-daily-card {
@@ -182,6 +205,12 @@ defineProps({
   font-weight: 700;
   color: var(--color-primary);
   text-align: center;
+}
+
+.value-with-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .col-changes {

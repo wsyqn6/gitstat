@@ -212,6 +212,21 @@ type MonthlyCalendarItem struct {
 	Deletions int    `json:"deletions"`
 }
 
+// Dashboard 聚合响应（6 卡片 + 今日详情）
+type DashboardSummary struct {
+	TotalCommits    int `json:"totalCommits"`
+	TotalAdditions  int `json:"totalAdditions"`
+	TotalDeletions  int `json:"totalDeletions"`
+	ActiveAuthors   int `json:"activeAuthors"`
+	RepositoryCount int `json:"repositoryCount"`
+}
+
+type DashboardData struct {
+	Summary    DashboardSummary       `json:"summary"`
+	DailyRepos []RepositoryDailyStats `json:"dailyRepos"`
+	Comparison OverviewComparison     `json:"comparison"`
+}
+
 // 同比/环比单个指标变化
 type MetricChange struct {
 	Current  int     `json:"current"`

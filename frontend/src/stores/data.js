@@ -1,10 +1,9 @@
 import { reactive } from 'vue'
-import { setScanPath, getScanPath, getBuildVersion, getOverviewStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits, getRepoTagsCount, getRepoTagsPage } from '../api'
+import { setScanPath, getScanPath, getBuildVersion, getDashboardStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits, getRepoTagsCount, getRepoTagsPage } from '../api'
 import LRUCache from '../utils/lruCache'
 
 export const state = reactive({
-  overviewStats: null,
-  dailyStats: [],
+  dashboardData: null,
   repoDailyTrend: [],
   repoComparison: [],
   authorRank: [],
@@ -23,8 +22,7 @@ export const state = reactive({
 })
 
 function clearState() {
-  state.overviewStats = null
-  state.dailyStats = []
+  state.dashboardData = null
   state.repoDailyTrend = []
   state.repoComparison = []
   state.authorRank = []
@@ -37,12 +35,8 @@ export async function performScan(path) {
   
   try {
     await setScanPath(path)
-    const [overview, daily] = await Promise.all([
-      getOverviewStats(null, null, ['all']),
-      getDailyStats('', 'today', ['all'])
-    ])
-    state.overviewStats = overview
-    state.dailyStats = daily
+    const dashData = await getDashboardStats(null, null, ['all'])
+    state.dashboardData = dashData
   } catch (err) {
     state.error = err.message
   } finally {
@@ -50,27 +44,18 @@ export async function performScan(path) {
   }
 }
 
-export async function fetchOverviewStats() {
-  if (state.overviewStats) return
+export async function fetchDashboardData() {
+  if (state.dashboardData) return
   try {
-    state.overviewStats = await getOverviewStats(null, null, ['all'])
+    state.dashboardData = await getDashboardStats(null, null, ['all'])
   } catch (err) {
-    console.error('Failed to fetch overview stats:', err)
-  }
-}
-
-export async function fetchDailyStatsToday() {
-  if (state.dailyStats.length > 0) return
-  try {
-    state.dailyStats = await getDailyStats('', 'today', ['all'])
-  } catch (err) {
-    console.error('Failed to fetch daily stats:', err)
+    console.error('Failed to fetch dashboard data:', err)
   }
 }
 
 export async function loadDashboardS1() {
   await Promise.all([
-    fetchOverviewStats(),
+    fetchDashboardData(),
     fetchRepoDailyTrend(),
     fetchAuthorRank()
   ])
@@ -78,8 +63,7 @@ export async function loadDashboardS1() {
 
 export async function loadDashboardS2() {
   await Promise.all([
-    fetchRepoComparison(),
-    fetchDailyStatsToday()
+    fetchRepoComparison()
   ])
 }
 

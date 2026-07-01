@@ -2,18 +2,21 @@
   <div class="glass stat-card" :style="cardStyle">
     <div class="stat-icon">{{ icon }}</div>
     <div class="stat-value">{{ value }}</div>
+    <ChangeBadge v-if="change" :change="change" prefix="较昨日" />
     <div class="stat-label">{{ label }}</div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import ChangeBadge from './ChangeBadge.vue'
 
 const props = defineProps({
   value: { type: [Number, String], required: true },
   label: { type: String, required: true },
   icon: { type: String, default: '◈' },
-  color: { type: String, default: '#00d4ff' }
+  color: { type: String, default: '#00d4ff' },
+  change: { type: Object, default: null }
 })
 
 const cardStyle = computed(() => ({
