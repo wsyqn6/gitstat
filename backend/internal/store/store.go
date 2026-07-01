@@ -11,7 +11,7 @@ import (
 
 
 type RepoCache struct {
-	initMu sync.Mutex // 保护首次初始化扫描
+	ScanMu sync.Mutex // 保护 check+scan+store 流程，per-repo
 
 	Path           string
 	Name           string
@@ -25,7 +25,6 @@ type RepoCache struct {
 	LatestDate     time.Time
 	Commits        []model.Commit
 	Initialized    bool
-	FullyLoaded    bool
 	RepoSize       int64
 	Analyzed       bool
 	Branches       []string
@@ -195,18 +194,7 @@ func (s *Store) GetRepoCache(path string) *RepoCache {
 	return s.Repos[path]
 }
 
-// CheckInitRange 原子检查仓库初始化状态和日期范围
-func (s *Store) CheckInitRange(path string) (ok bool, initialized bool, earliest, latest time.Time) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	cache, exists := s.Repos[path]
-	if !exists {
-		return false, false, time.Time{}, time.Time{}
-	}
-	return true, cache.Initialized, cache.EarliestDate, cache.LatestDate
-}
-
-// GetAllCaches 获取所有缓存副本（用于增量检查）
+// GetAllCaches 获取所有缓存副本
 func (s *Store) GetAllCaches() map[string]*RepoCache {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -263,38 +251,6 @@ func (s *Store) RegisterRepos(repos []model.Repository) {
 	}
 }
 
-// EnsureFirstInit 首次初始化保护（双检锁，仅一个 goroutine 扫库）
-func (s *Store) EnsureFirstInit(path string, scanFn func() ([]model.Commit, error)) (bool, error) {
-	s.mu.RLock()
-	cache, exists := s.Repos[path]
-	s.mu.RUnlock()
-	if !exists {
-		return false, nil
-	}
-
-	cache.initMu.Lock()
-	_, initialized, _, _ := s.CheckInitRange(path)
-	if initialized {
-		cache.initMu.Unlock()
-		return true, nil
-	}
-
-	commits, err := scanFn()
-	if err != nil {
-		cache.initMu.Unlock()
-		return false, err
-	}
-
-	if len(commits) == 0 {
-		cache.initMu.Unlock()
-		return false, nil
-	}
-
-	s.SetRepoCommits(path, commits)
-	cache.initMu.Unlock()
-	return true, nil
-}
-
 // SetRepoCommits 设置仓库提交数据（保留元数据，仅更新 commits + Initialized）
 func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 	s.mu.Lock()
@@ -312,25 +268,6 @@ func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 		})
 	}
 	s.lastMutationAt = time.Now()
-}
-
-// SetFullyLoaded 标记仓库已加载完整历史
-func (s *Store) SetFullyLoaded(path string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if c, ok := s.Repos[path]; ok {
-		c.FullyLoaded = true
-	}
-}
-
-// IsFullyLoaded 检查仓库是否已加载完整历史
-func (s *Store) IsFullyLoaded(path string) bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if c, ok := s.Repos[path]; ok {
-		return c.FullyLoaded
-	}
-	return false
 }
 
 // GetAnalyzeCache 获取缓存的深度分析结果

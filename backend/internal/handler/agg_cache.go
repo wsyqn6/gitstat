@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"sort"
 	"sync"
 	"time"
@@ -20,6 +21,12 @@ var (
 	aggCache   = map[string]*aggCacheEntry{}
 )
 
+// inflight dedup: 相同 key 的并发请求只计算一次
+var (
+	inflightMu sync.Mutex
+	inflight   = map[string]chan struct{}{}
+)
+
 func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string) *aggregator.AggBucket {
 	key := cacheKey(repoPaths, startDate, endDate, email)
 
@@ -27,10 +34,43 @@ func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string
 	entry, ok := aggCache[key]
 	if ok && time.Now().Before(entry.expiresAt) {
 		aggCacheMu.Unlock()
+		log.Printf("[AggCache] TTL hit key=%s", key[:min(len(key), 60)])
 		return entry.bucket
 	}
 	aggCacheMu.Unlock()
 
+	inflightMu.Lock()
+	ch, ok := inflight[key]
+	if ok {
+		inflightMu.Unlock()
+		log.Printf("[AggCache] Inflight wait key=%s", key[:min(len(key), 60)])
+		<-ch
+		aggCacheMu.Lock()
+		entry, ok = aggCache[key]
+		aggCacheMu.Unlock()
+		if ok {
+			log.Printf("[AggCache] Inflight served key=%s", key[:min(len(key), 60)])
+			return entry.bucket
+		}
+		return nil
+	}
+	ch = make(chan struct{})
+	inflight[key] = ch
+	inflightMu.Unlock()
+
+	log.Printf("[AggCache] Compute key=%s", key[:min(len(key), 60)])
+	bucket := computeAggBucket(repoPaths, startDate, endDate, email)
+
+	aggCacheMu.Lock()
+	aggCache[key] = &aggCacheEntry{bucket: bucket, expiresAt: time.Now().Add(3 * time.Second)}
+	delete(inflight, key)
+	aggCacheMu.Unlock()
+	close(ch)
+
+	return bucket
+}
+
+func computeAggBucket(repoPaths []string, startDate, endDate time.Time, email string) *aggregator.AggBucket {
 	ensureDataLoaded(repoPaths, startDate)
 
 	repos := store.GlobalStore.GetReposWithRange(repoPaths, startDate, endDate)
@@ -44,13 +84,7 @@ func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string
 		}
 	}
 	bucket := acc.Build()
-
 	markSelf(bucket, email)
-
-	aggCacheMu.Lock()
-	aggCache[key] = &aggCacheEntry{bucket: bucket, expiresAt: time.Now().Add(3 * time.Second)}
-	aggCacheMu.Unlock()
-
 	return bucket
 }
 

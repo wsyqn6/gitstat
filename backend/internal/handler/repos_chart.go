@@ -28,7 +28,7 @@ func GetRepoChartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ensureRepoLoaded(path, time.Time{}, time.Now())
+	ensureRepoLoaded(cache, time.Time{}, time.Now())
 
 	ra := aggregator.NewRepoAccumulator(path)
 	for i := range cache.Commits {

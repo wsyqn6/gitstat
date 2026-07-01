@@ -2,24 +2,15 @@ package handler
 
 import (
 	"log"
-	"sync"
 	"time"
 
-	"gitstat/internal/model"
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
 )
 
 func ensureDataLoaded(repoPaths []string, startDate time.Time) {
-	caches := store.GlobalStore.GetAllCaches()
 	now := time.Now()
-
-	if len(caches) == 0 {
-		return
-	}
-
-	var wg sync.WaitGroup
-	for _, cache := range caches {
+	for _, cache := range store.GlobalStore.GetAllCaches() {
 		if len(repoPaths) > 0 {
 			found := false
 			for _, p := range repoPaths {
@@ -32,83 +23,43 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 				continue
 			}
 		}
-
-		wg.Add(1)
-		cache := cache
-		go func() {
-			defer wg.Done()
-			ensureRepoLoaded(cache.Path, startDate, now)
-		}()
+		ensureRepoLoaded(cache, startDate, now)
 	}
-	wg.Wait()
 }
 
-func ensureRepoLoaded(repoPath string, startDate, now time.Time) {
-	ok, initialized, earliest, latest := store.GlobalStore.CheckInitRange(repoPath)
-	if !ok {
+func ensureRepoLoaded(cache *store.RepoCache, startDate, now time.Time) {
+	cache.ScanMu.Lock()
+	defer cache.ScanMu.Unlock()
+
+	if cache.Initialized && !now.After(cache.LatestDate) {
 		return
 	}
 
-	if !initialized {
-		scanned := false
-		done, err := store.GlobalStore.EnsureFirstInit(repoPath, func() ([]model.Commit, error) {
-			scanned = true
-			return scanner.ScanCommitsByRange(repoPath, startDate, now)
-		})
-		if err != nil {
-			log.Printf("[LazyLoad] Scan failed for %s: %v", repoPath, err)
-		}
-		if err == nil && startDate.IsZero() {
-			store.GlobalStore.SetFullyLoaded(repoPath)
-		}
-		if !done {
-			return
-		}
-		if scanned {
-			return
-		}
-		// TOCTOU: 另一 goroutine 抢在中间初始化的，
-		// 本 goroutine 没扫到数据，需要 fall through 到增量逻辑。
-		_, _, earliest, latest = store.GlobalStore.CheckInitRange(repoPath)
-	}
-
-	// 已初始化 → 零锁并行增量
-	needReverse := false
-	if startDate.IsZero() {
-		needReverse = !store.GlobalStore.IsFullyLoaded(repoPath)
-	} else if !earliest.IsZero() && earliest.After(startDate) {
-		needReverse = true
-	} else if earliest.IsZero() && !store.GlobalStore.IsFullyLoaded(repoPath) {
-		needReverse = true
-	}
-
-	if needReverse {
-		revStart := time.Time{}
-		revEnd := earliest
-		if revEnd.IsZero() {
-			if !startDate.IsZero() {
-				revEnd = startDate
-			} else {
-				revEnd = now
+	var since time.Time
+	if !cache.Initialized {
+		since = startDate
+		if !since.IsZero() {
+			if minStart := now.AddDate(0, 0, -6); since.After(minStart) {
+				since = minStart
 			}
 		}
-		newCommits, err := scanner.ScanCommitsByRange(repoPath, revStart, revEnd)
-		if err != nil {
-			log.Printf("[LazyLoad] Backward scan failed for %s: %v", repoPath, err)
-		} else if len(newCommits) > 0 {
-			store.GlobalStore.MergeCommits(repoPath, newCommits)
-		}
-		if startDate.IsZero() {
-			store.GlobalStore.SetFullyLoaded(repoPath)
-		}
+	} else {
+		since = cache.LatestDate
 	}
 
-	if !latest.IsZero() && now.After(latest) {
-		newCommits, err := scanner.ScanCommitsByRange(repoPath, latest, now)
-		if err != nil {
-			log.Printf("[LazyLoad] Forward scan failed for %s: %v", repoPath, err)
-		} else if len(newCommits) > 0 {
-			store.GlobalStore.MergeCommits(repoPath, newCommits)
-		}
+	log.Printf("[LazyLoad] Scan %s range=%s～%s", cache.Path, since.Format("01-02"), now.Format("01-02"))
+	commits, err := scanner.ScanCommitsByRange(cache.Path, since, now)
+	if err != nil {
+		log.Printf("[LazyLoad] Scan failed for %s: %v", cache.Path, err)
+		return
+	}
+	if len(commits) == 0 {
+		return
+	}
+
+	if !cache.Initialized {
+		store.GlobalStore.SetRepoCommits(cache.Path, commits)
+	} else {
+		store.GlobalStore.MergeCommits(cache.Path, commits)
 	}
 }

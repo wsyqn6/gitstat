@@ -195,7 +195,7 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "month")
+	startDate, endDate := parseTimeParams(r, "all")
 	repoPaths := r.URL.Query()["repo"]
 	bucket := getAggBucket(repoPaths, startDate, endDate, "")
 

@@ -313,13 +313,13 @@ async function loadMoreTags() {
 
 async function loadFileRanking() {
   if (!activePath.value) return
-  await load([activePath.value], '', '', 'all')
+  await load([activePath.value])
   await nextTick()
   document.querySelector('.file-rank-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 async function loadMoreFileRanking() {
-  await loadMore([activePath.value], '', '', 'all')
+  await loadMore([activePath.value])
   await nextTick()
   document.querySelector('.file-rank-section')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
