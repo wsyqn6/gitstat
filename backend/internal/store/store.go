@@ -5,10 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"gitstat/internal/aggregator"
 	"gitstat/internal/model"
 )
-
-
 
 type RepoCache struct {
 	ScanMu sync.Mutex // 保护 check+scan+store 流程，per-repo
@@ -32,13 +31,15 @@ type RepoCache struct {
 	TotalLines     int
 	Languages      []model.LanguageStat
 	Tags           []string
+
+	PreAggregated *aggregator.AggBucket
 }
 
 type Store struct {
-	mu              sync.RWMutex
-	ScanPath        string
-	Repos           map[string]*RepoCache // path -> cache
-	lastMutationAt  time.Time
+	mu             sync.RWMutex
+	ScanPath       string
+	Repos          map[string]*RepoCache // path -> cache
+	lastMutationAt time.Time
 }
 
 func (s *Store) Touch() {
@@ -91,6 +92,7 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 	sort.Slice(cache.Commits, func(i, j int) bool {
 		return cache.Commits[i].Date.Before(cache.Commits[j].Date)
 	})
+	cache.PreAggregated = nil
 	s.lastMutationAt = time.Now()
 	return true
 }
@@ -261,6 +263,7 @@ func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 	}
 	cache.Commits = commits
 	cache.Initialized = true
+	cache.PreAggregated = nil
 	if len(commits) > 0 {
 		s.updateDateRange(cache, commits)
 		sort.Slice(cache.Commits, func(i, j int) bool {

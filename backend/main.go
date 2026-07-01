@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"gitstat/internal/handler"
 	"gitstat/internal/scanner"
 	"gitstat/internal/server"
 	"gitstat/internal/store"
@@ -63,8 +64,11 @@ func runDebug() {
 	if path == "" {
 		path = "D:/work/ems"
 	}
-	scanAndRegister(filepath.Clean(path))
 	fmt.Println("GitStat server starting on :12580...")
+	go func() {
+		scanAndRegister(filepath.Clean(path))
+		handler.PreWarmData()
+	}()
 	log.Fatal(http.ListenAndServe(":12580", server.NewServer(Version)))
 }
 
@@ -79,15 +83,6 @@ func runWeb(args []string) {
 	} else if p, err := os.Getwd(); err == nil {
 		scanPath = filepath.Clean(p)
 	}
-	scanAndRegister(scanPath)
-
-	distFS, err := fs.Sub(embeddedDist, "web/dist")
-	if err != nil {
-		log.Printf("Warning: Failed to load embedded static files: %v", err)
-		log.Println("Server will start with API only.")
-	}
-
-	r := server.NewServerWithStatic(distFS, Version)
 
 	addr := fmt.Sprintf(":%d", *port)
 	url := fmt.Sprintf("http://localhost:%d", *port)
@@ -98,7 +93,21 @@ func runWeb(args []string) {
 	fmt.Printf("Listening on %s\n", url)
 	fmt.Println("Open in browser to view analytics")
 
+	distFS, err := fs.Sub(embeddedDist, "web/dist")
+	if err != nil {
+		log.Printf("Warning: Failed to load embedded static files: %v", err)
+		log.Println("Server will start with API only.")
+	}
+
+	r := server.NewServerWithStatic(distFS, Version)
+
 	go openBrowser(url)
+	if scanPath != "" {
+		go func() {
+			scanAndRegister(scanPath)
+			handler.PreWarmData()
+		}()
+	}
 	log.Fatal(http.ListenAndServe(addr, r))
 }
 

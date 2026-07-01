@@ -2,15 +2,21 @@ package handler
 
 import (
 	"log"
+	"sync"
 	"time"
 
+	"gitstat/internal/aggregator"
+	"gitstat/internal/model"
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
 )
 
 func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 	now := time.Now()
-	for _, cache := range store.GlobalStore.GetAllCaches() {
+	caches := store.GlobalStore.GetAllCaches()
+
+	var wg sync.WaitGroup
+	for _, cache := range caches {
 		if len(repoPaths) > 0 {
 			found := false
 			for _, p := range repoPaths {
@@ -23,8 +29,13 @@ func ensureDataLoaded(repoPaths []string, startDate time.Time) {
 				continue
 			}
 		}
-		ensureRepoLoaded(cache, startDate, now)
+		wg.Add(1)
+		go func(c *store.RepoCache) {
+			defer wg.Done()
+			ensureRepoLoaded(c, startDate, now)
+		}(cache)
 	}
+	wg.Wait()
 }
 
 func ensureRepoLoaded(cache *store.RepoCache, startDate, now time.Time) {
@@ -62,4 +73,46 @@ func ensureRepoLoaded(cache *store.RepoCache, startDate, now time.Time) {
 	} else {
 		store.GlobalStore.MergeCommits(cache.Path, commits)
 	}
+
+	cache = store.GlobalStore.GetRepoCache(cache.Path)
+	if cache != nil {
+		buildPreAggregation(cache)
+	}
+}
+
+func PreWarmData() {
+	caches := store.GlobalStore.GetAllCaches()
+	if len(caches) == 0 {
+		return
+	}
+	log.Printf("[WarmUp] Start loading %d repos...", len(caches))
+	var wg sync.WaitGroup
+	for _, cache := range caches {
+		wg.Add(1)
+		go func(c *store.RepoCache) {
+			defer wg.Done()
+			ensureRepoLoaded(c, time.Time{}, time.Now())
+		}(cache)
+	}
+	wg.Wait()
+	log.Printf("[WarmUp] All repos loaded")
+}
+
+func buildPreAggregation(cache *store.RepoCache) {
+	if cache.PreAggregated != nil {
+		return
+	}
+	repo := model.Repository{
+		Path:           cache.Path,
+		Name:           cache.Name,
+		CurrentBranch:  cache.CurrentBranch,
+		LastCommitTime: cache.LastCommitTime,
+		Commits:        cache.Commits,
+	}
+	acc := aggregator.NewAccumulator(time.Time{}, time.Time{})
+	for i := range cache.Commits {
+		acc.Add(&cache.Commits[i], &repo)
+	}
+	cache.PreAggregated = acc.Build()
+	log.Printf("[PreAgg] Built for %s: %d commits", cache.Path, cache.PreAggregated.TotalCommits)
 }
