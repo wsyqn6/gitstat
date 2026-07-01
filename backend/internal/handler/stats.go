@@ -98,6 +98,25 @@ func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, "AuthorRank", model.ApiResponse{Code: 200, Data: bucket.AuthorRank})
 }
 
+func GetDailyTrendHandler(w http.ResponseWriter, r *http.Request) {
+	startDate, endDate := parseTimeParams(r, "")
+	repoPaths := r.URL.Query()["repo"]
+	email := emailForHandler(r)
+	bucket := getAggBucket(repoPaths, startDate, endDate, email)
+	if bucket == nil || bucket.TotalCommits == 0 {
+		writeJSON(w, "daily-trend empty", model.ApiResponse{Code: 200, Data: []model.DailyTrendItem{}})
+		return
+	}
+	items := make([]model.DailyTrendItem, 0, len(bucket.DailyByRepo))
+	for _, repo := range bucket.DailyByRepo {
+		items = append(items, model.DailyTrendItem{
+			RepoName:     repo.RepoName,
+			DailyCommits: repo.DailyCommits,
+		})
+	}
+	writeJSON(w, "DailyTrend", model.ApiResponse{Code: 200, Data: items})
+}
+
 func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
 	startDate, endDate := parseTimeParams(r, "month")
 	repoPaths := r.URL.Query()["repo"]

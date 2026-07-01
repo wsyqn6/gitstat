@@ -40,6 +40,12 @@ export async function getDailyStats(email, repos = [], startDate, endDate, timeR
   return res.data
 }
 
+export async function getDailyTrend(repos = [], startDate, endDate, timeRange) {
+  const params = buildParams({ repos, startDate, endDate, timeRange })
+  const res = await request(`${BASE}/stats/daily-trend?${params}`, { errorMsg: 'Failed to fetch daily trend' })
+  return res.data
+}
+
 export async function getAuthorRank(repos = [], timeRange = 'week') {
   const params = buildParams({ repos, timeRange })
   const res = await request(`${BASE}/stats/authors?${params}`, { errorMsg: 'Failed to fetch author rank' })

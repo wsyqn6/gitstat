@@ -68,6 +68,11 @@ type DayCommitCount struct {
 	Commits int    `json:"commits"`
 }
 
+type DailyTrendItem struct {
+	RepoName     string           `json:"repoName"`
+	DailyCommits []DayCommitCount `json:"dailyCommits,omitempty"`
+}
+
 type RepositoryDailyStats struct {
 	RepoName       string             `json:"repoName"`
 	RepoPath       string             `json:"repoPath"`

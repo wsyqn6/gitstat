@@ -26,6 +26,7 @@ func NewServer(version string) *chi.Mux {
 	r.Get("/api/stats/overview", handler.GetOverviewStatsHandler)
 	r.Get("/api/stats/dashboard", handler.GetDashboardHandler)
 	r.Get("/api/stats/daily", handler.GetStatsHandler("daily"))
+	r.Get("/api/stats/daily-trend", handler.GetDailyTrendHandler)
 	r.Get("/api/stats/weekly", handler.GetStatsHandler("weekly"))
 	r.Get("/api/stats/monthly", handler.GetStatsHandler("monthly"))
 	r.Get("/api/stats/yearly", handler.GetStatsHandler("yearly"))

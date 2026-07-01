@@ -79,12 +79,13 @@ const repoColors = computed(() =>
 
 const authorRankWithRepos = computed(() => {
   if (!state.authorRank || state.authorRank.length === 0) return []
+  const dailyRepos = state.dashboardData?.dailyRepos || []
   const repoOf = {}
-  for (const repo of state.repoDailyTrend) {
+  for (const repo of dailyRepos) {
     for (const author of repo.authors || []) {
       if (!repoOf[author.email]) repoOf[author.email] = []
       const total = author.dailyData ? author.dailyData.reduce((s, d) => s + d.commits, 0) : 0
-      repoOf[author.email].push({ name: repo.repoName, commits: total, color: CHART_COLORS[state.repoDailyTrend.indexOf(repo) % CHART_COLORS.length] })
+      repoOf[author.email].push({ name: repo.repoName, commits: total, color: CHART_COLORS[dailyRepos.indexOf(repo) % CHART_COLORS.length] })
     }
   }
   return state.authorRank.map(a => ({

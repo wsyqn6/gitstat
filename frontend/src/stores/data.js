@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { setScanPath, getScanPath, getBuildVersion, getDashboardStats, getDailyStats, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits, getRepoTagsCount, getRepoTagsPage } from '../api'
+import { setScanPath, getScanPath, getBuildVersion, getDashboardStats, getDailyTrend, getRepoComparison, getAuthorRank, getReposList, getRepoInfo, getRepoStats, getRepoChart, analyzeRepo, getRepoCommits, getRepoTagsCount, getRepoTagsPage } from '../api'
 import LRUCache from '../utils/lruCache'
 
 export const state = reactive({
@@ -69,7 +69,7 @@ export async function loadDashboardS2() {
 
 export async function fetchRepoDailyTrend() {
   try {
-    const daily = await getDailyStats('', ['all'], null, null, 'week')
+    const daily = await getDailyTrend(['all'], null, null, 'week')
     if (!Array.isArray(daily)) {
       state.repoDailyTrend = []
       return
@@ -77,7 +77,7 @@ export async function fetchRepoDailyTrend() {
     const result = []
     for (const repo of daily) {
       if (repo.dailyCommits && repo.dailyCommits.length > 0) {
-        result.push({ repoName: repo.repoName, data: repo.dailyCommits, authors: repo.authors })
+        result.push({ repoName: repo.repoName, data: repo.dailyCommits })
       }
     }
     state.repoDailyTrend = result
