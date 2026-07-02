@@ -33,7 +33,8 @@
   --bg-card: rgba(255, 255, 255, 0.015);
   --blur-card: 20px;
   --bg-card-header: rgba(0, 212, 255, 0.05);
-  --bg-nav: rgba(10, 14, 39, 0.8);
+  --bg-nav: rgba(13, 13, 13, 0.6);
+  --blur-nav: 6px;
   --bg-input: rgba(10, 14, 39, 0.6);
   --bg-input-focus: rgba(10, 14, 39, 0.8);
   --bg-tab: rgba(10, 14, 39, 0.6);
@@ -92,7 +93,7 @@
   --border-card-hover: rgba(0, 245, 255, 0.7);
   --border-input: rgba(0, 212, 255, 0.3);
   --border-input-focus: var(--color-primary);
-  --border-nav: rgba(0, 212, 255, 0.2);
+  --border-nav: rgba(0, 212, 255, 0.1);
   --border-active: rgba(0, 212, 255, 0.3);
   --border-tab: rgba(0, 212, 255, 0.2);
   --border-dropdown: rgba(0, 245, 255, 0.3);
@@ -289,7 +290,7 @@
   --bg-glow-3: rgba(255, 149, 0, 0.04);
   --bg-card: rgba(255, 255, 255, 0.04);
   --bg-card-header: rgba(0, 122, 255, 0.04);
-  --bg-nav: rgba(255, 255, 255, 0.8);
+  --bg-nav: rgba(242, 242, 247, 0.78);
   --bg-input: rgba(255, 255, 255, 0.8);
   --bg-input-focus: rgba(255, 255, 255, 0.95);
   --bg-tab: rgba(255, 255, 255, 0.6);
@@ -340,7 +341,7 @@
   --border-card-hover: rgba(60, 60, 67, 0.18);
   --border-input: rgba(60, 60, 67, 0.15);
   --border-input-focus: var(--color-primary);
-  --border-nav: rgba(60, 60, 67, 0.08);
+  --border-nav: rgba(60, 60, 67, 0.12);
   --border-active: rgba(0, 122, 255, 0.3);
   --border-tab: rgba(60, 60, 67, 0.1);
   --border-dropdown: rgba(60, 60, 67, 0.15);
@@ -378,7 +379,7 @@
   --shadow-card-hover-dark: 0 2px 8px rgba(0, 0, 0, 0.03);
   --shadow-btn: 0 4px 15px rgba(0, 122, 255, 0.3);
   --shadow-btn-hover: 0 6px 20px rgba(0, 122, 255, 0.4);
-  --shadow-nav: 0 1px 0 rgba(60, 60, 67, 0.08);
+  --shadow-nav: 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-inset:
     inset 0 1px 1px rgba(255, 255, 255, 0.8),
     inset 0 -1px 1px rgba(255, 255, 255, 0.4),
@@ -418,7 +419,7 @@
   --gradient-repo-title: linear-gradient(135deg, #007AFF, #34C759);
   --gradient-footer-active: linear-gradient(90deg, #007AFF, #AF52DE);
 
-  --color-nav-link: #636366;
+  --color-nav-link: #636670;
   --color-nav-link-hover: var(--color-primary);
   --color-nav-active: var(--color-primary);
   --color-range-hint: #AEAEB2;

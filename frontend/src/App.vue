@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <header class="header">
+    <header :class="['header', { 'header--hidden': navHidden }]">
       <div class="header-left">
         <div class="logo-container">
           <h1 class="logo">GITSTAT</h1>
@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineAsyncComponent, onMounted } from 'vue'
+import { ref, computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
 import { useI18n } from './i18n'
 import { initApp, state } from './stores/data'
 import { useTheme } from './composables/useTheme'
@@ -93,14 +93,40 @@ const savedView = localStorage.getItem('currentView')
 const currentView = ref(savedView === 'analytics' ? 'trends' : (savedView || 'dashboard'))
 const currentComponent = computed(() => componentMap[currentView.value])
 const showSettings = ref(false)
-const scanPath = ref('')
-const version = ref('')
+  const scanPath = ref('')
+  const version = ref('')
+  const navHidden = ref(false)
+  let lastScrollY = 0
+  let ticking = false
 
-onMounted(async () => {
-  await initApp()
-  scanPath.value = state.scanPath
-  version.value = state.gitVersion
-})
+  function handleScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY
+        const delta = currentScrollY - lastScrollY
+        const threshold = 60
+        if (currentScrollY > threshold && delta > 15) {
+          navHidden.value = true
+        } else if (delta < -25) {
+          navHidden.value = false
+        }
+        lastScrollY = currentScrollY
+        ticking = false
+      })
+      ticking = true
+    }
+  }
+
+  onMounted(async () => {
+    await initApp()
+    scanPath.value = state.scanPath
+    version.value = state.gitVersion
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll)
+  })
 
 function setView(view) {
   currentView.value = view
@@ -118,13 +144,20 @@ function setView(view) {
 
 .header {
   background: var(--bg-nav);
-  backdrop-filter: blur(var(--blur-card));
+  backdrop-filter: blur(var(--blur-nav));
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--border-nav);
   box-shadow: var(--shadow-nav);
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header--hidden {
+  transform: translateY(-100%);
 }
 
 .header-left {
