@@ -1,5 +1,5 @@
 <template>
-  <div class="cal-month-view glass card">
+  <div class="cal-month-view glass card" :style="{ '--cell-rgb': cellRgb }">
     <div class="cal-header">
       <span class="cal-title">{{ monthYearLabel }}</span>
     </div>
@@ -17,12 +17,14 @@
             <tr v-for="(week, wi) in monthGrid" :key="'w' + wi">
               <td v-for="(cell, ci) in week" :key="cell ? cell.dateStr : 'e-' + wi + '-' + ci"
                 class="cal-cell"
-                :class="{
-                  'is-today': cell?.isToday,
-                  'has-data': !!cell?.data,
-                  'weekend-cell': ci >= 5
-                }"
-                :style="cell ? { backgroundColor: cellBg(cell.data?.commits || 0, monthMaxCommits) } : {}"
+                :class="[
+                  cell ? 'cell-lvl' + cellLevel(cell.data?.commits || 0, monthMaxCommits) : '',
+                  {
+                    'is-today': cell?.isToday,
+                    'has-data': !!cell?.data,
+                    'weekend-cell': ci >= 5
+                  }
+                ]"
                 @click="cell && selectDate(cell)"
               >
                 <div v-if="cell" class="cell-inner">
@@ -100,11 +102,15 @@ const chartCfg = computed(() => getChartConfig(theme.value))
 
 const selectedCell = ref(null)
 
-function cellBg(commits, maxC) {
-  if (!commits || !maxC) return 'transparent'
-  const intensity = Math.min(commits / maxC, 1)
-  const alpha = 0.05 + intensity * 0.55
-  return `rgba(${chartCfg.value.primaryRgb}, ${alpha.toFixed(2)})`
+const cellRgb = computed(() => chartCfg.value.primaryRgb)
+
+function cellLevel(commits, maxC) {
+  if (!commits || !maxC) return 0
+  const ratio = commits / maxC
+  if (ratio <= 0.25) return 1
+  if (ratio <= 0.5) return 2
+  if (ratio <= 0.75) return 3
+  return 4
 }
 
 function isToday(dateStr) {
@@ -285,6 +291,11 @@ const netChange = computed(() => {
   height: 72px;
   width: 14.28%;
 }
+.cell-lvl0 { background: transparent; }
+.cell-lvl1 { background: rgba(var(--cell-rgb), 0.08); }
+.cell-lvl2 { background: rgba(var(--cell-rgb), 0.22); }
+.cell-lvl3 { background: rgba(var(--cell-rgb), 0.40); }
+.cell-lvl4 { background: rgba(var(--cell-rgb), 0.60); }
 .cal-cell.has-data {
   cursor: pointer;
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="cal-week-view glass card">
+  <div class="cal-week-view glass card" :style="{ '--cell-rgb': cellRgb }">
     <div class="cal-header">
       <span class="cal-title">{{ weekRangeLabel }}</span>
     </div>
@@ -31,8 +31,7 @@
             </td>
             <td v-for="day in weekDays" :key="day.date"
               class="data-cell"
-              :class="{ 'has-data': !!author.days[day.date] }"
-              :style="{ backgroundColor: cellBg(author.days[day.date]?.commits || 0, maxCommits) }"
+              :class="['cell-lvl' + cellLevel(author.days[day.date]?.commits || 0, maxCommits), { 'has-data': !!author.days[day.date] }]"
             >
               <div class="cell-commits">{{ author.days[day.date]?.commits ?? '-' }}</div>
               <div v-if="author.days[day.date]" class="cell-changes">
@@ -76,11 +75,15 @@ function toggleExpandAuthor(email) {
   expandedAuthor.value = expandedAuthor.value === email ? null : email
 }
 
-function cellBg(commits, maxC) {
-  if (!commits || !maxC) return 'transparent'
-  const intensity = Math.min(commits / maxC, 1)
-  const alpha = 0.05 + intensity * 0.55
-  return `rgba(${chartCfg.value.primaryRgb}, ${alpha.toFixed(2)})`
+const cellRgb = computed(() => chartCfg.value.primaryRgb)
+
+function cellLevel(commits, maxC) {
+  if (!commits || !maxC) return 0
+  const ratio = commits / maxC
+  if (ratio <= 0.25) return 1
+  if (ratio <= 0.5) return 2
+  if (ratio <= 0.75) return 3
+  return 4
 }
 
 const dayNames = computed(() => t('calendar.dayNamesShort'))
@@ -233,6 +236,11 @@ const maxCommits = computed(() => {
   transition: all 0.2s ease;
   cursor: default;
 }
+.cell-lvl0 { background: transparent; }
+.cell-lvl1 { background: rgba(var(--cell-rgb), 0.08); }
+.cell-lvl2 { background: rgba(var(--cell-rgb), 0.22); }
+.cell-lvl3 { background: rgba(var(--cell-rgb), 0.40); }
+.cell-lvl4 { background: rgba(var(--cell-rgb), 0.60); }
 .data-cell.has-data {
   cursor: pointer;
 }

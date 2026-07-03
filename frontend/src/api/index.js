@@ -86,14 +86,14 @@ export async function getReposList() {
   return request(`${BASE}/repos/list`, { errorMsg: 'Failed to fetch repos list' })
 }
 
-export async function getRepoInfo(path) {
+export async function getRepoInfo(path, signal) {
   const params = buildParams({ path })
-  return request(`${BASE}/repos/info?${params}`, { errorMsg: 'Failed to fetch repo info' })
+  return request(`${BASE}/repos/info?${params}`, { errorMsg: 'Failed to fetch repo info', signal })
 }
 
-export async function getRepoStats(path) {
+export async function getRepoStats(path, signal) {
   const params = buildParams({ path })
-  return request(`${BASE}/repos/stats?${params}`, { errorMsg: 'Failed to fetch repo stats' })
+  return request(`${BASE}/repos/stats?${params}`, { errorMsg: 'Failed to fetch repo stats', signal })
 }
 
 export async function analyzeRepo(path) {
@@ -109,14 +109,14 @@ export async function getRepoChart(path) {
   return request(`${BASE}/repos/chart?${params}`, { errorMsg: 'Failed to fetch repo chart' })
 }
 
-export async function getRepoCommits(path, offset = 0, limit = 30) {
+export async function getRepoCommits(path, offset = 0, limit = 30, signal) {
   const params = buildParams({ path, offset, limit })
-  return request(`${BASE}/repos/commits?${params}`, { errorMsg: 'Failed to fetch repo commits' })
+  return request(`${BASE}/repos/commits?${params}`, { errorMsg: 'Failed to fetch repo commits', signal })
 }
 
-export async function getRepoTagsCount(path) {
+export async function getRepoTagsCount(path, signal) {
   const params = buildParams({ path })
-  return request(`${BASE}/repos/tags?${params}`, { errorMsg: 'Failed to fetch repo tags' })
+  return request(`${BASE}/repos/tags?${params}`, { errorMsg: 'Failed to fetch repo tags', signal })
 }
 
 export async function getRepoTagsPage(path, offset = 0, limit = 30) {

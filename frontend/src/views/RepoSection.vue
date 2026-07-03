@@ -168,8 +168,13 @@ const tagsHasMore = ref(false)
 const tagsLoaded = ref(false)
 const { data: fileRanking, loading: fileRankingLoading, loaded: fileRankingLoaded, hasMore: fileRankingHasMore, load, loadMore, reset } = useFileRanking()
 const repoCommitsRef = ref(null)
+let loadAborter = null
 
 async function loadDetail(path) {
+  if (loadAborter) loadAborter.abort()
+  loadAborter = new AbortController()
+  const signal = loadAborter.signal
+
   loading.value = true
   statsLoaded.value = false
   chartLoaded.value = false
@@ -178,7 +183,7 @@ async function loadDetail(path) {
   tagsLoaded.value = false
   tagsOffset.value = 0
   try {
-    const info = await fetchRepoInfo(path)
+    const info = await fetchRepoInfo(path, signal)
     detail.value = {
       contributors: [], repoSize: 0,
       earliestDate: '', earliestCommitAuthor: '',
@@ -187,10 +192,10 @@ async function loadDetail(path) {
       remoteBranches: info.remoteBranches || [],
       branches: info.branches || []
     }
-    fetchRepoTagsCount(path).then(res => {
+    fetchRepoTagsCount(path, signal).then(res => {
       if (detail.value) detail.value.tagCount = res.tagCount ?? 0
     })
-    fetchRepoStats(path).then(stats => {
+    fetchRepoStats(path, signal).then(stats => {
       if (detail.value) {
         detail.value = { ...detail.value, ...stats }
         statsLoaded.value = true

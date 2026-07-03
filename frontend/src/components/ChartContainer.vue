@@ -30,23 +30,26 @@ const props = defineProps({
 
 const chartRef = ref(null)
 let chartInstance = null
+let ro = null
 
 onMounted(async () => {
-  window.addEventListener('resize', handleResize)
-  if (!props.loading && chartRef.value) {
+  const el = chartRef.value
+  if (!props.loading && el) {
     await nextTick()
     if (!chartInstance) {
-      chartInstance = echarts.init(chartRef.value)
+      chartInstance = echarts.init(el)
     }
     if (props.option) {
       chartInstance.setOption(props.option)
       chartInstance.resize()
     }
+    ro = new ResizeObserver(() => chartInstance?.resize())
+    ro.observe(el)
   }
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
+  ro?.disconnect()
   chartInstance?.dispose()
   chartInstance = null
 })
@@ -73,11 +76,6 @@ watch(() => props.option, (newVal) => {
   }
 })
 
-function handleResize() {
-  if (chartInstance) {
-    chartInstance.resize()
-  }
-}
 </script>
 
 <style scoped>

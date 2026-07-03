@@ -112,12 +112,12 @@ export async function fetchReposInfo() {
   }
 }
 
-export async function fetchRepoInfo(path) {
+export async function fetchRepoInfo(path, signal) {
   if (state.repoInfoCache.has(path)) {
     return state.repoInfoCache.get(path)
   }
   try {
-    const result = await getRepoInfo(path)
+    const result = await getRepoInfo(path, signal)
     state.repoInfoCache.set(path, result)
     return result
   } catch (err) {
@@ -126,12 +126,12 @@ export async function fetchRepoInfo(path) {
   }
 }
 
-export async function fetchRepoStats(path) {
+export async function fetchRepoStats(path, signal) {
   if (state.repoStatsCache.has(path)) {
     return state.repoStatsCache.get(path)
   }
   try {
-    const result = await getRepoStats(path)
+    const result = await getRepoStats(path, signal)
     state.repoStatsCache.set(path, result)
     return result
   } catch (err) {
@@ -154,21 +154,21 @@ export async function fetchRepoChart(path) {
   }
 }
 
-export async function fetchRepoCommits(path, offset = 0, limit = 30) {
+export async function fetchRepoCommits(path, offset = 0, limit = 30, signal) {
   try {
-    return await getRepoCommits(path, offset, limit)
+    return await getRepoCommits(path, offset, limit, signal)
   } catch (err) {
     console.error('Failed to fetch repo commits:', err)
     throw err
   }
 }
 
-export async function fetchRepoTagsCount(path) {
+export async function fetchRepoTagsCount(path, signal) {
   if (state.repoTagsCache.has(path)) {
     return state.repoTagsCache.get(path)
   }
   try {
-    const result = await getRepoTagsCount(path)
+    const result = await getRepoTagsCount(path, signal)
     state.repoTagsCache.set(path, result)
     return result
   } catch (err) {
