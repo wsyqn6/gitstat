@@ -3,6 +3,7 @@ package scanner
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -88,9 +89,7 @@ var extLangMap = map[string]string{
 
 var exactNameMap = map[string]string{
 	"Dockerfile":      "Dockerfile",
-	"Dockerfile.*":    "Dockerfile",
 	"Makefile":        "Makefile",
-	"Makefile.*":      "Makefile",
 	"CMakeLists.txt":  "CMake",
 	"go.mod":          "Go Module",
 	"go.sum":          "Go Sum",
@@ -109,6 +108,22 @@ var exactNameMap = map[string]string{
 	"build.gradle":    "Gradle",
 	".env.example":    "Config",
 	".gitattributes":  "Git Config",
+}
+
+var binaryExts = map[string]bool{
+	".exe": true, ".dll": true, ".so": true, ".dylib": true,
+	".o": true, ".obj": true, ".a": true, ".lib": true,
+	".class": true, ".pyc": true, ".pyo": true,
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true,
+	".ico": true, ".bmp": true, ".webp": true,
+	".ttf": true, ".otf": true, ".woff": true, ".woff2": true,
+	".pdf": true,
+	".zip": true, ".tar": true, ".gz": true, ".bz2": true, ".xz": true,
+	".7z": true, ".rar": true,
+	".mp3": true, ".mp4": true, ".avi": true, ".mov": true,
+	".wav": true, ".flac": true,
+	".jar": true, ".war": true,
+	".wasm": true,
 }
 
 func GetRepoMeta(repoPath string) (model.RepoInfo, error) {
@@ -182,18 +197,15 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 		branchNames = []string{currentBranch}
 	}
 
-	type fileInfo struct {
-		path  string
-		lines int
-		lang  string
-	}
-	var files []fileInfo
-
 	out, err = gitExec(repoPath, "ls-tree", "-r", "HEAD", "--name-only", "-z")
 	if err != nil {
 		return model.AnalyzeResult{}, fmt.Errorf("ls-tree: %w", err)
 	}
 	filePaths := strings.Split(strings.TrimSuffix(out, "\x00"), "\x00")
+
+	langMap := make(map[string]*model.LanguageStat)
+	totalLines := 0
+	analyzedCount := 0
 
 	for _, rel := range filePaths {
 		rel = strings.TrimSpace(rel)
@@ -203,48 +215,67 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 
 		ext := strings.ToLower(filepath.Ext(rel))
 		base := filepath.Base(rel)
-
 		fullPath := filepath.Join(repoPath, rel)
-		content, err := os.ReadFile(fullPath)
+
+		if binaryExts[ext] {
+			continue
+		}
+
+		lang := detectLanguageByExt(base, ext)
+		if lang == "" {
+			lang = "Other"
+		}
+
+		if isNonCode(ext) {
+			analyzedCount++
+			continue
+		}
+
+		f, err := os.Open(fullPath)
 		if err != nil {
 			continue
 		}
 
-		if isBinary(content) {
+		header := make([]byte, 8192)
+		n, err := f.Read(header)
+		if err != nil && err != io.EOF {
+			f.Close()
+			continue
+		}
+		header = header[:n]
+
+		if isBinary(header) {
+			f.Close()
 			continue
 		}
 
-		if isGenerated(content) {
+		if isGenerated(header) {
+			f.Close()
 			continue
 		}
 
-		var lang string
-		if l := detectByShebang(content); l != "" {
+		if l := detectByShebang(header); l != "" {
 			lang = l
-		} else if v, ok := exactNameMap[base]; ok {
-			lang = v
-		} else if v, ok := extLangMap[ext]; ok {
-			lang = v
-		} else {
-			lang = "Other"
 		}
 
-		lines := bytes.Count(content, []byte{'\n'})
-		files = append(files, fileInfo{rel, lines, lang})
-	}
-
-	langMap := make(map[string]*model.LanguageStat)
-	totalLines := 0
-	for _, f := range files {
-		if isNonCode(filepath.Ext(f.path)) {
+		lines := bytes.Count(header, []byte{'\n'})
+		more, err := countLinesStream(f)
+		f.Close()
+		if err != nil {
 			continue
 		}
-		totalLines += f.lines
-		if _, ok := langMap[f.lang]; !ok {
-			langMap[f.lang] = &model.LanguageStat{Name: f.lang}
+		lines += more
+
+		analyzedCount++
+		totalLines += lines
+
+		ls, ok := langMap[lang]
+		if !ok {
+			ls = &model.LanguageStat{Name: lang}
+			langMap[lang] = ls
 		}
-		langMap[f.lang].FileCount++
-		langMap[f.lang].Lines += f.lines
+		ls.FileCount++
+		ls.Lines += lines
 	}
 
 	var languages []model.LanguageStat
@@ -267,11 +298,44 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 		BranchCount:    branchCount,
 		Branches:       branchNames,
 		RemoteBranches: remoteBranches,
-		FileCount:      len(files),
+		FileCount:      analyzedCount,
 		TotalLines:     totalLines,
 		Languages:      languages,
 		Tags:           tags,
 	}, nil
+}
+
+func detectLanguageByExt(base, ext string) string {
+	if v, ok := exactNameMap[base]; ok {
+		return v
+	}
+	if v, ok := extLangMap[ext]; ok {
+		return v
+	}
+	if strings.HasPrefix(base, "Dockerfile.") {
+		return "Dockerfile"
+	}
+	if strings.HasPrefix(base, "Makefile.") {
+		return "Makefile"
+	}
+	return ""
+}
+
+func countLinesStream(r io.Reader) (int, error) {
+	buf := make([]byte, 32*1024)
+	count := 0
+	for {
+		n, err := r.Read(buf)
+		if n > 0 {
+			count += bytes.Count(buf[:n], []byte{'\n'})
+		}
+		if err != nil {
+			if err == io.EOF {
+				return count, nil
+			}
+			return 0, err
+		}
+	}
 }
 
 // ── binary detection ──
@@ -400,13 +464,11 @@ func detectByShebang(b []byte) string {
 func isNonCode(ext string) bool {
 	switch ext {
 	case ".md", ".rst", ".tex", ".txt":
-		return true // prose
+		return true
 	case ".yaml", ".yml", ".svg", ".lock":
-		return true // data
+		return true
 	case ".sum", ".mod":
-		return true // generated metadata
-	case ".gitignore", ".gitattributes", ".env.example":
-		return true // config
+		return true
 	}
 	return false
 }
