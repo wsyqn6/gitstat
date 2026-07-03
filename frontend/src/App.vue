@@ -2,8 +2,8 @@
   <div class="app">
     <header :class="['header', { 'header--hidden': navHidden }]">
       <div class="header-left">
-        <div class="logo-container">
-          <h1 class="logo">GITSTAT</h1>
+        <div class="logo-container" :class="{ 'logo--clicked': logoClickBoost }" @click="triggerCommitsplosion">
+          <h1 class="logo">{{ eggLogoText || 'GITSTAT' }}</h1>
           <div class="logo-glow"></div>
         </div>
         <div class="header-meta" v-if="version || scanPath">
@@ -63,6 +63,16 @@
         </a>
       </div>
     </header>
+    <div class="commitsplosion" v-if="particles.length">
+      <div v-for="p in particles" :key="p.id" class="particle"
+        :style="{
+          left: p.ox+'px', top: p.oy+'px',
+          width: p.size+'px', height: p.size+'px',
+          '--tx': p.tx+'px', '--ty': p.ty+'px', '--rot': p.rot+'deg',
+          '--delay': p.delay+'s', '--dur': p.dur+'s',
+          background: p.color,
+        }" />
+    </div>
     <main class="main-content">
       <KeepAlive>
         <component :is="currentComponent" />
@@ -78,6 +88,7 @@ import { ref, computed, defineAsyncComponent, onMounted, onUnmounted } from 'vue
 import { useI18n } from './i18n'
 import { initApp, state } from './stores/data'
 import { useTheme } from './composables/useTheme'
+import { useToast } from './composables/useToast'
 import ToastContainer from './components/ToastContainer.vue'
 import SettingsModal from './components/SettingsModal.vue'
 
@@ -131,6 +142,78 @@ function setView(view) {
   localStorage.setItem('currentView', view)
 }
 
+const { show } = useToast()
+const particles = ref([])
+const eggLogoText = ref('')
+let pid = 0
+const logoClickBoost = ref(false)
+let eggClicks = 0
+let eggClickTimer = 0
+const EGG_CLICK_THRESHOLD = 5
+
+const EGG_TEXTS = ['COMMIT', 'PUSH', 'MERGE', 'REBASE']
+
+const EGG_MSGS = [
+  '+42 contributions today! 🎉', '100% code coverage! 🧪',
+  'No bugs found! (just kidding) 🐛', 'git push --force 🚀',
+  'Merge conflict resolved! ⚔️', "You're a 10x engineer ⚡",
+  'Rebase completed without drama ✨', 'All tests pass! (probably) ✅',
+  'Zero dependencies added 🏆', 'Commit squashed successfully 🥫',
+]
+
+function triggerCommitsplosion(e) {
+  if (particles.value.length) return
+  eggClicks++
+  clearTimeout(eggClickTimer)
+  logoClickBoost.value = true
+  setTimeout(() => { logoClickBoost.value = false }, 250)
+  if (eggClicks < EGG_CLICK_THRESHOLD) {
+    eggClickTimer = setTimeout(() => { eggClicks = 0 }, 800)
+    return
+  }
+  eggClicks = 0
+  const rect = e.currentTarget.getBoundingClientRect()
+  const cx = rect.left + rect.width / 2
+  const cy = rect.top + rect.height / 2
+
+  const COLORS = ['#0e4429', '#006d32', '#26a641', '#39d353', '#ff6b6b', '#ffd93d']
+  const items = []
+  for (let i = 0; i < 36; i++) {
+    const angle = (Math.PI * 2 * i) / 36 + (Math.random() - 0.5) * 0.5
+    const dist = 80 + Math.random() * 180
+    const size = 6 + Math.random() * 8
+    items.push({
+      id: ++pid,
+      ox: cx - size / 2,
+      oy: cy - size / 2,
+      tx: Math.cos(angle) * dist,
+      ty: Math.sin(angle) * dist,
+      rot: (Math.random() - 0.5) * 720,
+      delay: Math.random() * 0.15,
+      dur: 0.8 + Math.random() * 0.5,
+      size,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    })
+  }
+  particles.value = items
+
+  let i = 0
+  eggLogoText.value = EGG_TEXTS[i]
+  const iv = setInterval(() => {
+    i++
+    if (i >= EGG_TEXTS.length) {
+      clearInterval(iv)
+      eggLogoText.value = ''
+      return
+    }
+    eggLogoText.value = EGG_TEXTS[i]
+  }, 600)
+
+  setTimeout(() => { particles.value = [] }, 2500)
+
+  show(EGG_MSGS[Math.floor(Math.random() * EGG_MSGS.length)])
+}
+
 </script>
 
 <style scoped>
@@ -167,6 +250,8 @@ function setView(view) {
 
 .logo-container {
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .header-meta {
@@ -228,6 +313,12 @@ function setView(view) {
   background: var(--gradient-nav-glow);
   filter: blur(20px);
   animation: pulse 3s ease-in-out infinite;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.logo--clicked .logo-glow {
+  opacity: 1 !important;
+  transform: translate(-50%, -50%) scale(1.3);
 }
 
 @keyframes pulse {
@@ -319,5 +410,38 @@ function setView(view) {
 .main-content {
   flex: 1;
   padding: 2rem;
+}
+
+.commitsplosion {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.particle {
+  position: fixed;
+  border-radius: 2px;
+  animation: particleFly var(--dur) ease-out var(--delay) forwards;
+  opacity: 0;
+}
+
+@keyframes particleFly {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(var(--tx) * 0.3), calc(var(--ty) * 0.3)) scale(1) rotate(calc(var(--rot) * 0.3));
+  }
+  60% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.3);
+  }
 }
 </style>
