@@ -88,6 +88,33 @@ const processedStats = computed(() => {
 const commitTrendTitle = computed(() => t('analytics.commitTrend'))
 const codeChangeTitle = computed(() => t('analytics.codeChange'))
 
+const indexedByDate = computed(() => {
+  const data = filteredStats.value
+  const map = new Map()
+  for (const repo of data) {
+    for (const author of (repo.authors || [])) {
+      for (const day of (author.dailyData || [])) {
+        let entry = map.get(day.date)
+        if (!entry) {
+          entry = { byEmail: new Map(), totalAdd: 0, totalDel: 0 }
+          map.set(day.date, entry)
+        }
+        let ae = entry.byEmail.get(author.email)
+        if (!ae) {
+          ae = { name: author.author, isMe: author.isMe, commits: 0, additions: 0, deletions: 0 }
+          entry.byEmail.set(author.email, ae)
+        }
+        ae.commits += day.commits
+        ae.additions += day.additions
+        ae.deletions += day.deletions
+        entry.totalAdd += day.additions
+        entry.totalDel += day.deletions
+      }
+    }
+  }
+  return map
+})
+
 const commitTrendOption = computed(() => {
   const { dates, authors } = processedStats.value
 
@@ -105,22 +132,8 @@ const commitTrendOption = computed(() => {
   const colors = chartCfg.value.chartColors
   const series = authors.map((author, idx) => {
     const data = dates.map(date => {
-      let commits = 0
-      const isMonth = granularity.value === 'month'
-      filteredStats.value.forEach(repo => {
-        const authorStat = repo.authors?.find(a => a.email === author.email)
-        if (authorStat && authorStat.dailyData) {
-          if (isMonth) {
-            commits += authorStat.dailyData
-              .filter(d => d.date.startsWith(date))
-              .reduce((s, d) => s + d.commits, 0)
-          } else {
-            const dayData = authorStat.dailyData.find(d => d.date === date)
-            if (dayData) commits += dayData.commits
-          }
-        }
-      })
-      return commits
+      const entry = indexedByDate.value.get(date)
+      return entry?.byEmail.get(author.email)?.commits || 0
     })
 
     return {
@@ -196,28 +209,21 @@ const commitTrendOption = computed(() => {
 
 const dateAggMap = computed(() => {
   const { dates } = processedStats.value
-  const isMonth = granularity.value === 'month'
   const map = {}
   for (const date of dates) {
-    let totalAdditions = 0
-    let totalDeletions = 0
+    const entry = indexedByDate.value.get(date)
+    if (!entry) {
+      map[date] = { totalAdditions: 0, totalDeletions: 0, authorAddMap: {}, authorDelMap: {} }
+      continue
+    }
     const authorAddMap = {}
     const authorDelMap = {}
-    const match = d => isMonth ? d.date.startsWith(date) : d.date === date
-    filteredStats.value.forEach(repo => {
-      repo.authors?.forEach(author => {
-        if (!author.dailyData) return
-        const days = author.dailyData.filter(match)
-        for (const day of days) {
-          totalAdditions += day.additions
-          totalDeletions += day.deletions
-          const name = author.author || author.email
-          authorAddMap[name] = (authorAddMap[name] || 0) + day.additions
-          authorDelMap[name] = (authorDelMap[name] || 0) + day.deletions
-        }
-      })
-    })
-    map[date] = { totalAdditions, totalDeletions, authorAddMap, authorDelMap }
+    for (const [, ae] of entry.byEmail) {
+      const name = ae.name || ae.email
+      if (ae.additions > 0) authorAddMap[name] = ae.additions
+      if (ae.deletions > 0) authorDelMap[name] = ae.deletions
+    }
+    map[date] = { totalAdditions: entry.totalAdd, totalDeletions: entry.totalDel, authorAddMap, authorDelMap }
   }
   return map
 })

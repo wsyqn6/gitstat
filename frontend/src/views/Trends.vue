@@ -165,8 +165,14 @@ const loadFileRanking = async () => {
   document.querySelector('.file-ranking')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
+let loadAborter = null
+
 const loadData = async () => {
   if (selectedRepos.value.length === 0) return
+
+  if (loadAborter) loadAborter.abort()
+  loadAborter = new AbortController()
+  const signal = loadAborter.signal
 
   loading.value = true
   try {
@@ -224,8 +230,8 @@ const loadData = async () => {
     const days = Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))
     const isMonth = days > 31
     const statsPromise = isMonth
-      ? getMonthlyStats(null, selectedRepos.value, startDate, endDate)
-      : getDailyStats(null, selectedRepos.value, startDate, endDate)
+      ? getMonthlyStats(null, selectedRepos.value, startDate, endDate, signal)
+      : getDailyStats(null, selectedRepos.value, startDate, endDate, undefined, signal)
 
     let prevStartDate = '', prevEndDate = ''
     const range = selectedTimeRange.value
@@ -245,14 +251,14 @@ const loadData = async () => {
       prevEndDate = `${ey}-12-31`
     }
     const comparisonPromise = prevStartDate && prevEndDate
-      ? getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, selectedRepos.value, 'all')
+      ? getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, selectedRepos.value, 'all', signal)
       : Promise.resolve(null)
 
     const [overview, rawResult, heatmap, fileRankRaw, comparisonResult] = await Promise.all([
-      getOverviewStats(startDate, endDate, selectedRepos.value, 'all'),
+      getOverviewStats(startDate, endDate, selectedRepos.value, 'all', signal),
       statsPromise,
-      getActivityHeatmap(selectedRepos.value, startDate, endDate),
-      getFileRanking(selectedRepos.value, startDate, endDate, fileRankingLimit.value),
+      getActivityHeatmap(selectedRepos.value, startDate, endDate, signal),
+      getFileRanking(selectedRepos.value, startDate, endDate, fileRankingLimit.value, signal),
       comparisonPromise
     ])
     overviewStats.value = overview

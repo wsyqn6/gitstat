@@ -10,11 +10,11 @@ export function useFileRanking() {
   const hasMore = ref(false)
   const limit = ref(INITIAL_LIMIT)
 
-  async function load(repos, startDate = '', endDate = '') {
+  async function load(repos, startDate = '', endDate = '', signal) {
     if (loading.value) return
     loading.value = true
     try {
-      const res = await getFileRanking(repos, startDate, endDate, limit.value)
+      const res = await getFileRanking(repos, startDate, endDate, limit.value, signal)
       if (res) {
         const existing = new Set(data.value.map(i => i.filePath))
         const newItems = res.filter(i => !existing.has(i.filePath))

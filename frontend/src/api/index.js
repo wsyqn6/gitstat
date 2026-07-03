@@ -24,9 +24,9 @@ export async function getDashboardStats(repos = [], scope) {
   return res.data
 }
 
-export async function getOverviewStats(startDate, endDate, repos = [], scope) {
+export async function getOverviewStats(startDate, endDate, repos = [], scope, signal) {
   const params = buildParams({ startDate, endDate, repos, scope })
-  const res = await request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats' })
+  const res = await request(`${BASE}/stats/overview?${params}`, { errorMsg: 'Failed to fetch stats', signal })
   return res.data
 }
 
@@ -34,9 +34,9 @@ export async function exportData() {
   return request(`${BASE}/export/json`, { errorMsg: 'Export failed', blob: true })
 }
 
-export async function getDailyStats(email, repos = [], startDate, endDate, timeRange) {
+export async function getDailyStats(email, repos = [], startDate, endDate, timeRange, signal) {
   const params = buildParams({ email, repos, startDate, endDate, timeRange })
-  const res = await request(`${BASE}/stats/daily?${params}`, { errorMsg: 'Failed to fetch daily stats' })
+  const res = await request(`${BASE}/stats/daily?${params}`, { errorMsg: 'Failed to fetch daily stats', signal })
   return res.data
 }
 
@@ -52,21 +52,21 @@ export async function getAuthorRank(repos = [], timeRange = 'week') {
   return res.data
 }
 
-export async function getMonthlyStats(email, repos = [], startDate, endDate) {
+export async function getMonthlyStats(email, repos = [], startDate, endDate, signal) {
   const params = buildParams({ email, repos, startDate, endDate })
-  const res = await request(`${BASE}/stats/monthly?${params}`, { errorMsg: 'Failed to fetch monthly stats' })
+  const res = await request(`${BASE}/stats/monthly?${params}`, { errorMsg: 'Failed to fetch monthly stats', signal })
   return res.data
 }
 
-export async function getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, repos = [], scope) {
+export async function getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, repos = [], scope, signal) {
   const params = buildParams({ startDate, endDate, prevStartDate, prevEndDate, repos, scope })
-  const res = await request(`${BASE}/stats/compare?${params}`, { errorMsg: 'Failed to fetch comparison' })
+  const res = await request(`${BASE}/stats/compare?${params}`, { errorMsg: 'Failed to fetch comparison', signal })
   return res.data
 }
 
-export async function getActivityHeatmap(repos = [], startDate, endDate) {
+export async function getActivityHeatmap(repos = [], startDate, endDate, signal) {
   const params = buildParams({ repos, startDate, endDate })
-  const res = await request(`${BASE}/stats/activity-heatmap?${params}`, { errorMsg: 'Failed to fetch activity heatmap' })
+  const res = await request(`${BASE}/stats/activity-heatmap?${params}`, { errorMsg: 'Failed to fetch activity heatmap', signal })
   return res.data
 }
 
@@ -76,9 +76,9 @@ export async function getRepoComparison(repos = [], timeRange = 'week') {
   return res.data
 }
 
-export async function getFileRanking(repos = [], startDate, endDate, limit) {
+export async function getFileRanking(repos = [], startDate, endDate, limit, signal) {
   const params = buildParams({ repos, startDate, endDate, limit })
-  const res = await request(`${BASE}/stats/file-ranking?${params}`, { errorMsg: 'Failed to fetch file ranking' })
+  const res = await request(`${BASE}/stats/file-ranking?${params}`, { errorMsg: 'Failed to fetch file ranking', signal })
   return res.data
 }
 

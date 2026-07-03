@@ -116,6 +116,25 @@ function isToday(dateStr) {
 const dayNames = computed(() => t('calendar.dayNamesShort'))
 const monthNames = computed(() => t('calendar.monthNames'))
 
+const dateCommitMap = computed(() => {
+  const map = new Map()
+  for (const repo of props.dailyStats) {
+    for (const author of (repo.authors || [])) {
+      for (const day of (author.dailyData || [])) {
+        let entry = map.get(day.date)
+        if (!entry) {
+          entry = { commits: 0, additions: 0, deletions: 0 }
+          map.set(day.date, entry)
+        }
+        entry.commits += day.commits
+        entry.additions += day.additions
+        entry.deletions += day.deletions
+      }
+    }
+  }
+  return map
+})
+
 const monthYearLabel = computed(() => {
   if (!props.startDate) return ''
   const d = new Date(props.startDate + 'T00:00:00')
@@ -133,21 +152,6 @@ const monthGrid = computed(() => {
   const year = d.getFullYear()
   const month = d.getMonth()
 
-  const dateMap = new Map()
-  for (const repo of props.dailyStats) {
-    for (const author of repo.authors) {
-      for (const day of author.dailyData) {
-        if (!dateMap.has(day.date)) {
-          dateMap.set(day.date, { commits: 0, additions: 0, deletions: 0 })
-        }
-        const data = dateMap.get(day.date)
-        data.commits += day.commits
-        data.additions += day.additions
-        data.deletions += day.deletions
-      }
-    }
-  }
-
   const firstDay = new Date(year, month, 1)
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   let startCol = firstDay.getDay() - 1
@@ -158,7 +162,7 @@ const monthGrid = computed(() => {
   for (let i = 0; i < startCol; i++) week.push(null)
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${pad(month+1)}-${pad(day)}`
-    const data = dateMap.get(dateStr) || null
+    const data = dateCommitMap.value.get(dateStr) || null
     week.push({ day, dateStr, data, isToday: isToday(dateStr) })
     if (week.length === 7) {
       grid.push(week)
@@ -191,8 +195,8 @@ const dateDetail = computed(() => {
   const dateStr = selectedCell.value.dateStr
   const items = []
   for (const repo of props.dailyStats) {
-    for (const author of repo.authors) {
-      for (const day of author.dailyData) {
+    for (const author of (repo.authors || [])) {
+      for (const day of (author.dailyData || [])) {
         if (day.date === dateStr && day.commits > 0) {
           items.push({
             repoName: repo.repoName,
