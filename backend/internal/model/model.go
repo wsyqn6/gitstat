@@ -279,27 +279,22 @@ type RepoComparison struct {
 	AvgCommitsPerDay float64 `json:"avgCommitsPerDay"` // 日均提交数
 }
 
-// 提交日历数据点
-type CalendarPoint struct {
-	Date  string `json:"date"`  // "2006-01-02"
-	Count int    `json:"count"` // 当日提交数
-}
-
-// 累计提交数据点
-type CumulativePoint struct {
-	Date  string `json:"date"`  // "2006-01-02"
-	Total int    `json:"total"` // 累计提交数(含当天)
-}
-
 // 提交时段数据点
 type HourlyPoint struct {
 	Hour  int `json:"hour"`  // 0-23
 	Count int `json:"count"` // 该时段提交数
 }
 
+// 每日聚合数据点（合并日历/累计/代码行）
+type DailyAggPoint struct {
+	Date     string `json:"date"`     // "2006-01-02"
+	Commits  int    `json:"commits"`  // 当日提交数
+	Total    int    `json:"total"`    // 累计提交数
+	NetLines int    `json:"netLines"` // 累计净增行数
+}
+
 // Repo 图表数据集
 type RepoChartData struct {
-	Calendar   []CalendarPoint   `json:"calendar"`
-	Cumulative []CumulativePoint `json:"cumulative"`
-	Hourly     []HourlyPoint     `json:"hourly"`
+	DailyAgg []DailyAggPoint `json:"dailyAgg"`
+	Hourly   []HourlyPoint   `json:"hourly"`
 }

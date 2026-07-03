@@ -160,6 +160,7 @@ const messages = {
       empty: '暂无仓库信息，请先在设置页面扫描目录',
       charts: {
         commitsUnit: '次提交',
+        codeGrowthLabel: '净增行数',
         less: '少',
         more: '多'
       },
@@ -229,6 +230,7 @@ const messages = {
       chartBtn: '加载图表',
       commitCalendar: '提交日历',
       cumulativeGrowth: '项目成长曲线',
+      codeGrowth: '代码行增长趋势',
       hourlyDistribution: '提交时段分布',
       weekLabel: '周',
       noChartData: '暂无提交数据',
@@ -418,6 +420,7 @@ const messages = {
       empty: 'No repo info available. Please scan a directory in Settings first.',
       charts: {
         commitsUnit: 'commits',
+        codeGrowthLabel: 'Net Lines',
         less: 'Less',
         more: 'More'
       },
@@ -487,6 +490,7 @@ const messages = {
       chartBtn: 'Load Charts',
       commitCalendar: 'Commit Calendar',
       cumulativeGrowth: 'Cumulative Growth',
+      codeGrowth: 'Code Line Growth',
       hourlyDistribution: 'Hourly Distribution',
       weekLabel: 'W',
       noChartData: 'No commit data',

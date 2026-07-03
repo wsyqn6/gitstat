@@ -35,6 +35,14 @@
         class="chart-card"
       />
       <ChartContainer
+        :title="t('repo.codeGrowth')"
+        :option="codeGrowthOption"
+        :loading="loading"
+        class="chart-card"
+      />
+    </div>
+    <div class="chart-row chart-row-full">
+      <ChartContainer
         :title="t('repo.hourlyDistribution')"
         :option="hourlyOption"
         :loading="loading"
@@ -80,19 +88,19 @@ function getLevel(count) {
 }
 
 const calYears = computed(() => {
-  if (!props.data?.calendar?.length) return []
+  if (!props.data?.dailyAgg?.length) return []
   const dayMap = new Map()
-  for (const d of props.data.calendar) {
-    dayMap.set(d.date, d.count)
+  for (const d of props.data.dailyAgg) {
+    dayMap.set(d.date, d.commits)
   }
 
   const years = new Set()
-  for (const d of props.data.calendar) {
+  for (const d of props.data.dailyAgg) {
     years.add(d.date.slice(0, 4))
   }
 
   const pad = (n) => String(n).padStart(2, '0')
-  const lastDate = props.data.calendar[props.data.calendar.length - 1]?.date || ''
+  const lastDate = props.data.dailyAgg[props.data.dailyAgg.length - 1]?.date || ''
 
   return Array.from(years).sort().map(yearStr => {
     const year = parseInt(yearStr)
@@ -245,7 +253,7 @@ function emptyOption() {
 }
 
 const cumulativeOption = computed(() => {
-  const data = props.data?.cumulative
+  const data = props.data?.dailyAgg
   if (!data?.length) return emptyOption()
   return {
     tooltip: {
@@ -282,6 +290,48 @@ const cumulativeOption = computed(() => {
         ])
       },
       data: data.map(d => d.total)
+    }]
+  }
+})
+
+const codeGrowthOption = computed(() => {
+  const data = props.data?.dailyAgg
+  if (!data?.length) return emptyOption()
+  return {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: chartCfg.value.tooltipBg,
+      borderColor: chartCfg.value.accent,
+      textStyle: { color: chartCfg.value.tooltipText },
+      formatter: (p) => `${p[0].axisValue}<br/>${t('repo.charts.codeGrowthLabel')}: ${p[0].value}`
+    },
+    grid: { left: '3%', right: '3%', bottom: '3%', containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: data.map(d => d.date),
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
+      axisLabel: { color: chartCfg.value.axisLabel, fontSize: 10 },
+      splitLine: { show: false }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisLabel: { color: chartCfg.value.axisLabel },
+      splitLine: { lineStyle: { color: chartCfg.value.splitLine, type: 'dashed' } }
+    },
+    series: [{
+      type: 'line',
+      smooth: data.length > 1,
+      symbol: data.length > 1 ? 'none' : 'circle',
+      lineStyle: { width: 2, color: chartCfg.value.chartColors[3] },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: chartCfg.value.chartColors[3] + '4D' },
+          { offset: 1, color: chartCfg.value.chartColors[3] + '05' }
+        ])
+      },
+      data: data.map(d => d.netLines)
     }]
   }
 })
@@ -445,5 +495,9 @@ const hourlyOption = computed(() => {
 }
 .chart-card :deep(.chart) {
   height: 280px;
+}
+
+.chart-row-full {
+  grid-template-columns: 1fr;
 }
 </style>

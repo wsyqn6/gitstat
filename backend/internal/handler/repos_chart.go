@@ -38,16 +38,14 @@ func GetRepoChartHandler(w http.ResponseWriter, r *http.Request) {
 
 	if repoAgg == nil {
 		writeJSON(w, "RepoChart", model.RepoChartData{
-			Calendar:   []model.CalendarPoint{},
-			Cumulative: []model.CumulativePoint{},
-			Hourly:     []model.HourlyPoint{},
+			DailyAgg: []model.DailyAggPoint{},
+			Hourly:   []model.HourlyPoint{},
 		})
 		return
 	}
 
 	writeJSON(w, "RepoChart", model.RepoChartData{
-		Calendar:   repoAgg.ChartCalendar,
-		Cumulative: repoAgg.ChartCumulative,
-		Hourly:     repoAgg.ChartHourly,
+		DailyAgg: repoAgg.ChartDailyAgg,
+		Hourly:   repoAgg.ChartHourly,
 	})
 }

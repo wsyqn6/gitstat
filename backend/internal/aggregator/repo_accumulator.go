@@ -12,9 +12,13 @@ type RepoAgg struct {
 	EarliestDate         time.Time
 	EarliestCommitAuthor string
 	Contributors         []model.ContributorStat
-	ChartCalendar        []model.CalendarPoint
-	ChartCumulative      []model.CumulativePoint
+	ChartDailyAgg        []model.DailyAggPoint
 	ChartHourly          []model.HourlyPoint
+}
+
+type dateChangeAcc struct {
+	additions int
+	deletions int
 }
 
 type RepoAccumulator struct {
@@ -24,6 +28,7 @@ type RepoAccumulator struct {
 	contributors   map[string]*contributorAcc
 	calendar       map[string]int
 	hourly         map[int]int
+	changes        map[string]*dateChangeAcc
 }
 
 type contributorAcc struct {
@@ -37,6 +42,7 @@ func NewRepoAccumulator(repoPath string) *RepoAccumulator {
 		contributors: make(map[string]*contributorAcc),
 		calendar:     make(map[string]int),
 		hourly:       make(map[int]int),
+		changes:      make(map[string]*dateChangeAcc),
 	}
 }
 
@@ -64,6 +70,14 @@ func (ra *RepoAccumulator) Add(c *model.Commit) {
 	dateKey := c.Date.Format("2006-01-02")
 	ra.calendar[dateKey]++
 
+	dc, ok := ra.changes[dateKey]
+	if !ok {
+		dc = &dateChangeAcc{}
+		ra.changes[dateKey] = dc
+	}
+	dc.additions += c.Additions
+	dc.deletions += c.Deletions
+
 	hour := c.Date.Hour()
 	ra.hourly[hour]++
 }
@@ -85,36 +99,32 @@ func (ra *RepoAccumulator) Build() *RepoAgg {
 		agg.Contributors = []model.ContributorStat{}
 	}
 
-	agg.ChartCalendar = buildFullCalendar(ra.calendar, ra.earliestDate, time.Now())
-	agg.ChartCumulative = buildCumulative(agg.ChartCalendar)
+	agg.ChartDailyAgg = buildDailyAgg(ra.calendar, ra.changes, ra.earliestDate, time.Now())
 	agg.ChartHourly = buildHourly(ra.hourly)
 
 	return agg
 }
 
-func buildFullCalendar(dayMap map[string]int, earliest time.Time, now time.Time) []model.CalendarPoint {
+func buildDailyAgg(commits map[string]int, changes map[string]*dateChangeAcc, earliest time.Time, now time.Time) []model.DailyAggPoint {
 	if earliest.IsZero() {
-		return []model.CalendarPoint{}
+		return []model.DailyAggPoint{}
 	}
 	loc := now.Location()
 	start := time.Date(earliest.Year(), earliest.Month(), earliest.Day(), 0, 0, 0, 0, loc)
 	end := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
-	result := make([]model.CalendarPoint, 0)
+	result := make([]model.DailyAggPoint, 0)
+	runningTotal := 0
+	runningNet := 0
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 		dateKey := d.Format("2006-01-02")
-		result = append(result, model.CalendarPoint{
-			Date: dateKey, Count: dayMap[dateKey],
+		c := commits[dateKey]
+		runningTotal += c
+		if dc, ok := changes[dateKey]; ok {
+			runningNet += dc.additions - dc.deletions
+		}
+		result = append(result, model.DailyAggPoint{
+			Date: dateKey, Commits: c, Total: runningTotal, NetLines: runningNet,
 		})
-	}
-	return result
-}
-
-func buildCumulative(calendar []model.CalendarPoint) []model.CumulativePoint {
-	result := make([]model.CumulativePoint, len(calendar))
-	running := 0
-	for i, cp := range calendar {
-		running += cp.Count
-		result[i] = model.CumulativePoint{Date: cp.Date, Total: running}
 	}
 	return result
 }
