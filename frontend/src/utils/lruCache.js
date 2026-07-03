@@ -24,6 +24,10 @@ class LRUCache {
   has(key) {
     return this._map.has(key)
   }
+
+  clear() {
+    this._map.clear()
+  }
 }
 
 export default LRUCache

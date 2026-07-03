@@ -12,7 +12,7 @@
           </svg>
           <span class="meta-version">{{ version || 'dev' }}</span>
           <span class="meta-sep">│</span>
-          <span class="meta-path" :title="scanPath">{{ scanPath || '—' }}</span>
+          <span class="meta-path" :title="state.scanPath">{{ state.scanPath || '—' }}</span>
         </div>
       </div>
       <nav class="header-center">
@@ -93,7 +93,6 @@ const savedView = localStorage.getItem('currentView')
 const currentView = ref(savedView === 'analytics' ? 'trends' : (savedView || 'dashboard'))
 const currentComponent = computed(() => componentMap[currentView.value])
 const showSettings = ref(false)
-  const scanPath = ref('')
   const version = ref('')
   const navHidden = ref(false)
   let lastScrollY = 0
@@ -119,7 +118,6 @@ const showSettings = ref(false)
 
   onMounted(async () => {
     await initApp()
-    scanPath.value = state.scanPath
     version.value = state.gitVersion
     window.addEventListener('scroll', handleScroll, { passive: true })
   })

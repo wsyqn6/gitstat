@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { useI18n } from '../i18n'
 import { state, fetchReposInfo, fetchRepoInfo, fetchRepoStats, fetchRepoChart, fetchRepoCommits, fetchRepoTagsCount, fetchRepoTagsPage, triggerAnalyze } from '../stores/data'
 import { useFileRanking } from '../composables/useFileRanking'
@@ -342,6 +342,8 @@ function init() {
 }
 
 onMounted(init)
+
+watch(() => state.dataVersion, () => init())
 </script>
 
 <style scoped>

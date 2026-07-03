@@ -14,6 +14,7 @@ export const state = reactive({
   error: null,
   reposInfo: [],
   analyzing: false,
+  dataVersion: 0,
   analyzeCache: new LRUCache(50),
   repoInfoCache: new LRUCache(50),
   repoStatsCache: new LRUCache(50),
@@ -26,17 +27,42 @@ function clearState() {
   state.repoDailyTrend = []
   state.repoComparison = []
   state.authorRank = []
+  state.reposInfo = []
+  state.repoInfoCache.clear()
+  state.repoStatsCache.clear()
+  state.repoChartCache.clear()
+  state.repoTagsCache.clear()
+  state.analyzeCache.clear()
 }
 
 export async function performScan(path) {
   clearState()
   state.loading = true
   state.error = null
-  
+
   try {
     await setScanPath(path)
-    const dashData = await getDashboardStats(['all'])
+    const [dashData, daily, comp, rank, repos] = await Promise.all([
+      getDashboardStats(['all']),
+      getDailyTrend(['all'], null, null, 'week'),
+      getRepoComparison(['all']),
+      getAuthorRank(['all']),
+      getReposList()
+    ])
     state.dashboardData = dashData
+    const result = []
+    if (Array.isArray(daily)) {
+      for (const repo of daily) {
+        if (repo.dailyCommits && repo.dailyCommits.length > 0) {
+          result.push({ repoName: repo.repoName, data: repo.dailyCommits })
+        }
+      }
+    }
+    state.repoDailyTrend = result
+    state.repoComparison = comp
+    state.authorRank = rank
+    state.reposInfo = repos
+    state.dataVersion++
   } catch (err) {
     state.error = err.message
   } finally {

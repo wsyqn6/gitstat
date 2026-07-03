@@ -103,7 +103,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
+import { state } from '../stores/data'
 import { getDailyStats, getMonthlyStats, getReposList, getOverviewStats, getActivityHeatmap, getFileRanking, getComparisonStats } from '../api'
 import AnalyticsControls from '../components/AnalyticsControls.vue'
 import OverviewCards from '../components/OverviewCards.vue'
@@ -294,6 +295,11 @@ onMounted(async () => {
   } catch (error) {
     console.error('Failed to load repositories:', error)
   }
+})
+
+watch(() => state.dataVersion, () => {
+  getReposList().then(list => { repositories.value = list })
+  if (selectedRepos.value.length > 0) loadData()
 })
 </script>
 
