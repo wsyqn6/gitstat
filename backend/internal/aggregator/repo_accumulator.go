@@ -67,7 +67,7 @@ func (ra *RepoAccumulator) Add(c *model.Commit) {
 		ca.LastCommitDate = c.Date.Format("2006-01-02 15:04:05")
 	}
 
-	dateKey := c.Date.Format("2006-01-02")
+	dateKey := c.Date.In(time.Local).Format("2006-01-02")
 	ra.calendar[dateKey]++
 
 	dc, ok := ra.changes[dateKey]
@@ -78,7 +78,7 @@ func (ra *RepoAccumulator) Add(c *model.Commit) {
 	dc.additions += c.Additions
 	dc.deletions += c.Deletions
 
-	hour := c.Date.Hour()
+	hour := c.Date.In(time.Local).Hour()
 	ra.hourly[hour]++
 }
 

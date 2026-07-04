@@ -338,19 +338,19 @@ const codeGrowthOption = computed(() => {
 
 const hourlyOption = computed(() => {
   const data = props.data?.hourly
-  if (!data?.length) return emptyOption()
+  if (!data?.some(d => d.count > 0)) return emptyOption()
   return {
     tooltip: {
       trigger: 'axis',
       backgroundColor: chartCfg.value.tooltipBg,
       borderColor: chartCfg.value.accent,
       textStyle: { color: chartCfg.value.tooltipText },
-      formatter: (p) => `${p[0].name}:00<br/>${t('repo.commits')}: ${p[0].value}`
+      formatter: (p) => `${p[0].name}<br/>${t('repo.commits')}: ${p[0].value}`
     },
     grid: { left: '3%', right: '3%', bottom: '3%', containLabel: true },
     xAxis: {
       type: 'category',
-      data: data.map(d => String(d.hour)),
+      data: data.map(d => String(d.hour).padStart(2, '0') + ':00'),
       axisLine: { lineStyle: { color: chartCfg.value.axisLine } },
       axisLabel: { color: chartCfg.value.axisLabel, fontSize: 10 },
       splitLine: { show: false }

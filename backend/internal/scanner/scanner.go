@@ -94,7 +94,8 @@ func parseGitLog(r io.Reader) ([]model.Commit, error) {
 
 		commitTime, _ := time.Parse("2006-01-02 15:04:05 -0700", dateStr)
 		if commitTime.IsZero() {
-			commitTime, _ = time.Parse("2006-01-02 15:04:05", dateStr)
+			t, _ := time.Parse("2006-01-02 15:04:05", dateStr)
+			commitTime = t.In(time.Local)
 		}
 
 		var additions, deletions int
