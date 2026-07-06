@@ -6,31 +6,17 @@ import (
 
 	"gitstat/internal/aggregator"
 	"gitstat/internal/model"
-	"gitstat/internal/store"
 )
 
 func GetRepoChartHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if path == "" {
-		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
-		return
-	}
-
-	path, err := validatePath(path)
-	if err != nil {
-		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	cache := store.GlobalStore.GetRepoCache(path)
+	cache := getRepoCache(w, r)
 	if cache == nil {
-		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
 
 	ensureRepoLoaded(cache, time.Time{}, time.Now())
 
-	ra := aggregator.NewRepoAccumulator(path)
+	ra := aggregator.NewRepoAccumulator(cache.Path)
 	for i := range cache.Commits {
 		ra.Add(&cache.Commits[i])
 	}

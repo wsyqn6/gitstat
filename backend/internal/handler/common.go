@@ -10,7 +10,28 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"gitstat/internal/store"
 )
+
+func getRepoCache(w http.ResponseWriter, r *http.Request) *store.RepoCache {
+	path := r.URL.Query().Get("path")
+	if path == "" {
+		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
+		return nil
+	}
+	path, err := validatePath(path)
+	if err != nil {
+		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
+		return nil
+	}
+	cache := store.GlobalStore.GetRepoCache(path)
+	if cache == nil {
+		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
+		return nil
+	}
+	return cache
+}
 
 func parseIntParam(r *http.Request, key string, defaultVal int) int {
 	val := r.URL.Query().Get(key)

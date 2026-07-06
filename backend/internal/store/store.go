@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"gitstat/internal/aggregator"
 	"gitstat/internal/model"
 )
 
@@ -30,9 +29,7 @@ type RepoCache struct {
 	RemoteBranches []string
 	TotalLines     int
 	Languages      []model.LanguageStat
-	Tags           []string
-
-	PreAggregated *aggregator.AggBucket
+	Tags []string
 }
 
 type Store struct {
@@ -40,6 +37,17 @@ type Store struct {
 	ScanPath       string
 	Repos          map[string]*RepoCache // path -> cache
 	lastMutationAt time.Time
+}
+
+func (c *RepoCache) toRepo(commits []model.Commit) model.Repository {
+	return model.Repository{
+		Path:           c.Path,
+		Name:           c.Name,
+		UserEmail:      c.UserEmail,
+		CurrentBranch:  c.CurrentBranch,
+		LastCommitTime: c.LastCommitTime,
+		Commits:        commits,
+	}
 }
 
 func (s *Store) Touch() {
@@ -92,7 +100,6 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 	sort.Slice(cache.Commits, func(i, j int) bool {
 		return cache.Commits[i].Date.Before(cache.Commits[j].Date)
 	})
-	cache.PreAggregated = nil
 	s.lastMutationAt = time.Now()
 	return true
 }
@@ -102,14 +109,7 @@ func (s *Store) GetRepositories() []model.Repository {
 	defer s.mu.RUnlock()
 	var repos []model.Repository
 	for _, cache := range s.Repos {
-		repos = append(repos, model.Repository{
-			Path:           cache.Path,
-			Name:           cache.Name,
-			UserEmail:      cache.UserEmail,
-			CurrentBranch:  cache.CurrentBranch,
-			LastCommitTime: cache.LastCommitTime,
-			Commits:        cache.Commits,
-		})
+		repos = append(repos, cache.toRepo(cache.Commits))
 	}
 	return repos
 }
@@ -158,14 +158,7 @@ func (s *Store) GetReposWithRange(paths []string, startDate, endDate time.Time) 
 			filtered = []model.Commit{}
 		}
 
-		repos = append(repos, model.Repository{
-			Path:           cache.Path,
-			Name:           cache.Name,
-			UserEmail:      cache.UserEmail,
-			CurrentBranch:  cache.CurrentBranch,
-			LastCommitTime: cache.LastCommitTime,
-			Commits:        filtered,
-		})
+		repos = append(repos, cache.toRepo(filtered))
 	}
 	return repos
 }
@@ -178,14 +171,7 @@ func (s *Store) GetAllInitializedRepos() []model.Repository {
 		if !cache.Initialized {
 			continue
 		}
-		repos = append(repos, model.Repository{
-			Path:           cache.Path,
-			Name:           cache.Name,
-			UserEmail:      cache.UserEmail,
-			CurrentBranch:  cache.CurrentBranch,
-			LastCommitTime: cache.LastCommitTime,
-			Commits:        cache.Commits,
-		})
+		repos = append(repos, cache.toRepo(cache.Commits))
 	}
 	return repos
 }
@@ -263,7 +249,6 @@ func (s *Store) SetRepoCommits(path string, commits []model.Commit) {
 	}
 	cache.Commits = commits
 	cache.Initialized = true
-	cache.PreAggregated = nil
 	if len(commits) > 0 {
 		s.updateDateRange(cache, commits)
 		sort.Slice(cache.Commits, func(i, j int) bool {

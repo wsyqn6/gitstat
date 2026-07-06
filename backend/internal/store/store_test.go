@@ -51,11 +51,4 @@ func TestStoreEmpty(t *testing.T) {
 	if len(s.GetRepositories()) != 0 {
 		t.Errorf("Expected 0 repositories, got %d", len(s.GetRepositories()))
 	}
-
-	repos2 := s.GetRepositories()
-	for _, r := range repos2 {
-		if len(r.Commits) != 0 {
-			t.Errorf("Expected 0 commits in %s, got %d", r.Name, len(r.Commits))
-		}
-	}
 }

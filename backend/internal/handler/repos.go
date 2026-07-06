@@ -38,21 +38,8 @@ func GetReposListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if path == "" {
-		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
-		return
-	}
-
-	path, err := validatePath(path)
-	if err != nil {
-		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	cache := store.GlobalStore.GetRepoCache(path)
+	cache := getRepoCache(w, r)
 	if cache == nil {
-		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
 
@@ -105,27 +92,14 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if path == "" {
-		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
-		return
-	}
-
-	path, err := validatePath(path)
-	if err != nil {
-		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	cache := store.GlobalStore.GetRepoCache(path)
+	cache := getRepoCache(w, r)
 	if cache == nil {
-		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
 
 	ensureRepoLoaded(cache, time.Time{}, time.Now())
 
-	ra := aggregator.NewRepoAccumulator(path)
+	ra := aggregator.NewRepoAccumulator(cache.Path)
 	for i := range cache.Commits {
 		ra.Add(&cache.Commits[i])
 	}
@@ -144,8 +118,8 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	repoSize := cache.RepoSize
 	if repoSize == 0 {
-		repoSize = scanner.GetRepoSize(path)
-		store.GlobalStore.UpdateRepo(path, func(c *store.RepoCache) {
+		repoSize = scanner.GetRepoSize(cache.Path)
+		store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
 			c.RepoSize = repoSize
 		})
 	}
@@ -177,21 +151,8 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetRepoCommitsHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if path == "" {
-		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
-		return
-	}
-
-	path, err := validatePath(path)
-	if err != nil {
-		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	cache := store.GlobalStore.GetRepoCache(path)
+	cache := getRepoCache(w, r)
 	if cache == nil {
-		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
 
@@ -270,21 +231,8 @@ func GetRepoAnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetRepoTagsHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	if path == "" {
-		writeError(w, ErrCodePathRequired, "path is required", http.StatusBadRequest)
-		return
-	}
-
-	path, err := validatePath(path)
-	if err != nil {
-		writeError(w, ErrCodeInvalidRequest, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	cache := store.GlobalStore.GetRepoCache(path)
+	cache := getRepoCache(w, r)
 	if cache == nil {
-		writeError(w, ErrCodeRepoNotFound, "repo not found", http.StatusNotFound)
 		return
 	}
 
@@ -297,7 +245,7 @@ func GetRepoTagsHandler(w http.ResponseWriter, r *http.Request) {
 		if len(cache.Tags) > 0 {
 			count = len(cache.Tags)
 		} else {
-			count = scanner.GetTagsCount(path)
+			count = scanner.GetTagsCount(cache.Path)
 		}
 		writeJSON(w, "RepoTags", map[string]int{"tagCount": count})
 		return
@@ -309,11 +257,11 @@ func GetRepoTagsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// lazy load full tag list into cache
 	if len(cache.Tags) == 0 {
-		tags := scanner.GetTags(path)
+		tags := scanner.GetTags(cache.Path)
 		if tags == nil {
 			tags = []string{}
 		}
-		store.GlobalStore.UpdateRepo(path, func(c *store.RepoCache) {
+		store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
 			c.Tags = tags
 		})
 	}

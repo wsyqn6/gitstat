@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"gitstat/internal/aggregator"
-	"gitstat/internal/model"
 	"gitstat/internal/scanner"
 	"gitstat/internal/store"
 )
@@ -73,11 +71,6 @@ func ensureRepoLoaded(cache *store.RepoCache, startDate, now time.Time) {
 	} else {
 		store.GlobalStore.MergeCommits(cache.Path, commits)
 	}
-
-	cache = store.GlobalStore.GetRepoCache(cache.Path)
-	if cache != nil {
-		buildPreAggregation(cache)
-	}
 }
 
 func PreWarmData() {
@@ -98,21 +91,4 @@ func PreWarmData() {
 	log.Printf("[WarmUp] All repos loaded")
 }
 
-func buildPreAggregation(cache *store.RepoCache) {
-	if cache.PreAggregated != nil {
-		return
-	}
-	repo := model.Repository{
-		Path:           cache.Path,
-		Name:           cache.Name,
-		CurrentBranch:  cache.CurrentBranch,
-		LastCommitTime: cache.LastCommitTime,
-		Commits:        cache.Commits,
-	}
-	acc := aggregator.NewAccumulator(time.Time{}, time.Time{})
-	for i := range cache.Commits {
-		acc.Add(&cache.Commits[i], &repo)
-	}
-	cache.PreAggregated = acc.Build()
-	log.Printf("[PreAgg] Built for %s: %d commits", cache.Path, cache.PreAggregated.TotalCommits)
-}
+
