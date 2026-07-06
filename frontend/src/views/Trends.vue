@@ -281,6 +281,7 @@ const loadData = async () => {
     calendarViewType.value = computeCalendarViewType()
     loading.value = false
   } catch (error) {
+    if (error.name === 'AbortError') return
     console.error('Failed to load analytics data:', error)
     loading.value = false
   }

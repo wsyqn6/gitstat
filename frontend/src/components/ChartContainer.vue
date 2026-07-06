@@ -40,7 +40,7 @@ onMounted(async () => {
       chartInstance = echarts.init(el)
     }
     if (props.option) {
-      chartInstance.setOption(props.option)
+      chartInstance.setOption(props.option, { notMerge: true })
       chartInstance.resize()
     }
     ro = new ResizeObserver(() => chartInstance?.resize())
@@ -61,7 +61,7 @@ watch(() => props.loading, async (newVal) => {
       chartInstance = echarts.init(chartRef.value)
     }
     if (props.option) {
-      chartInstance.setOption(props.option)
+      chartInstance.setOption(props.option, { notMerge: true })
       chartInstance.resize()
     }
   }
@@ -69,7 +69,7 @@ watch(() => props.loading, async (newVal) => {
 
 watch(() => props.option, (newVal) => {
   if (newVal && chartInstance) {
-    chartInstance.setOption(newVal)
+    chartInstance.setOption(newVal, { notMerge: true })
     nextTick(() => {
       chartInstance?.resize()
     })
