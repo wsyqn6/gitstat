@@ -119,7 +119,6 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 	entry.NetChange = entry.Additions - entry.Deletions
 	if c.Date.After(a.lastSeen[c.Email]) {
 		a.lastSeen[c.Email] = c.Date
-		entry.LastCommitDate = c.Date.Format("2006-01-02 15:04:05")
 	}
 
 	dateKey := c.Date.Format("2006-01-02")

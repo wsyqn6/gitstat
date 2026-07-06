@@ -96,7 +96,7 @@ type AuthorPeriodStats struct {
 	Commits    int               `json:"commits"`
 	Additions  int               `json:"additions"`
 	Deletions  int               `json:"deletions"`
-	IsMe       bool              `json:"-"`
+	IsMe       bool              `json:"isMe"`
 	PeriodData []PeriodCommitData `json:"periodData,omitempty"`
 }
 
@@ -122,8 +122,7 @@ type AuthorRankItem struct {
 	Additions     int     `json:"additions"`
 	Deletions     int     `json:"deletions"`
 	NetChange     int     `json:"netChange"` // 新增-删除
-	IsMe           bool   `json:"isMe"`
-	LastCommitDate string `json:"-"` // 最后提交时间
+	IsMe bool `json:"isMe"`
 }
 
 // 活动热力图数据点

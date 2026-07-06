@@ -95,11 +95,23 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 		return true
 	}
 
-	cache.Commits = append(cache.Commits, uniqueCommits...)
+	// merge two sorted slices: cache.Commits (sorted) + uniqueCommits (chronological)
+	merged := make([]model.Commit, 0, len(cache.Commits)+len(uniqueCommits))
+	i, j := 0, 0
+	for i < len(cache.Commits) && j < len(uniqueCommits) {
+		if cache.Commits[i].Date.Before(uniqueCommits[j].Date) {
+			merged = append(merged, cache.Commits[i])
+			i++
+		} else {
+			merged = append(merged, uniqueCommits[j])
+			j++
+		}
+	}
+	merged = append(merged, cache.Commits[i:]...)
+	merged = append(merged, uniqueCommits[j:]...)
+	cache.Commits = merged
+
 	s.updateDateRange(cache, uniqueCommits)
-	sort.Slice(cache.Commits, func(i, j int) bool {
-		return cache.Commits[i].Date.Before(cache.Commits[j].Date)
-	})
 	s.lastMutationAt = time.Now()
 	return true
 }
@@ -118,14 +130,17 @@ func (s *Store) GetReposWithRange(paths []string, startDate, endDate time.Time) 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	pathSet := make(map[string]bool, len(paths))
-	for _, p := range paths {
-		pathSet[p] = true
+	var pathSet map[string]bool
+	if len(paths) > 0 {
+		pathSet = make(map[string]bool, len(paths))
+		for _, p := range paths {
+			pathSet[p] = true
+		}
 	}
 
 	var repos []model.Repository
 	for _, cache := range s.Repos {
-		if len(pathSet) > 0 && !pathSet[cache.Path] {
+		if pathSet != nil && !pathSet[cache.Path] {
 			continue
 		}
 		if !cache.Initialized {
