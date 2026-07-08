@@ -54,7 +54,9 @@ const granularity = computed(() => {
 })
 
 const netChangeData = computed(() => {
+  const isMonth = granularity.value === 'month'
   const dateMap = {}
+  const monthMap = isMonth ? {} : null
   for (const repo of filteredStats.value) {
     for (const author of (repo.authors || [])) {
       for (const day of (author.dailyData || [])) {
@@ -63,28 +65,29 @@ const netChangeData = computed(() => {
         }
         dateMap[day.date].additions += day.additions
         dateMap[day.date].deletions += day.deletions
+        if (monthMap) {
+          const m = day.date.substring(0, 7)
+          if (!monthMap[m]) monthMap[m] = { additions: 0, deletions: 0 }
+          monthMap[m].additions += day.additions
+          monthMap[m].deletions += day.deletions
+        }
       }
     }
   }
-  const isMonth = granularity.value === 'month'
-  const dates = props.startDate && props.endDate
-    ? (isMonth ? eachMonth(props.startDate, props.endDate) : eachDay(props.startDate, props.endDate))
-    : Object.keys(dateMap).sort()
+  let dates
+  if (props.startDate && props.endDate) {
+    dates = isMonth
+      ? eachMonth(props.startDate, props.endDate)
+      : eachDay(props.startDate, props.endDate)
+  } else {
+    dates = Object.keys(dateMap).sort()
+  }
   if (isMonth) {
-    const monthMap = {}
-    for (const d of dates) {
-      let add = 0, del = 0
-      Object.keys(dateMap).filter(k => k.startsWith(d)).forEach(k => {
-        add += dateMap[k].additions
-        del += dateMap[k].deletions
-      })
-      monthMap[d] = { additions: add, deletions: del }
-    }
     return dates.map(d => ({
       date: d,
-      additions: monthMap[d].additions,
-      deletions: monthMap[d].deletions,
-      net: monthMap[d].additions - monthMap[d].deletions
+      additions: monthMap[d]?.additions || 0,
+      deletions: monthMap[d]?.deletions || 0,
+      net: (monthMap[d]?.additions || 0) - (monthMap[d]?.deletions || 0)
     }))
   }
   return dates.map(d => ({
