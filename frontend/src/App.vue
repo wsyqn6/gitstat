@@ -74,7 +74,7 @@
         }" />
     </div>
     <main class="main-content">
-      <KeepAlive>
+      <KeepAlive :max="1">
         <component :is="currentComponent" />
       </KeepAlive>
     </main>

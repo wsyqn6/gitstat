@@ -53,36 +53,24 @@ const filteredStats = computed(() => {
 })
 
 const processedStats = computed(() => {
-  const data = filteredStats.value
-  const dateSet = new Set()
-  const authorMap = new Map()
-
-  data.forEach(repo => {
-    repo.authors?.forEach(author => {
-      author.dailyData?.forEach(day => dateSet.add(day.date))
-      if (!authorMap.has(author.email)) {
-        authorMap.set(author.email, {
-          name: author.author,
-          email: author.email,
-          isMe: author.isMe
-        })
-      }
-    })
-  })
-
+  const map = indexedByDate.value
   let dates
   if (props.startDate && props.endDate) {
     dates = granularity.value === 'month'
       ? eachMonth(props.startDate, props.endDate)
       : eachDay(props.startDate, props.endDate)
   } else {
-    dates = Array.from(dateSet).sort()
+    dates = Array.from(map.keys()).sort()
   }
-
-  return {
-    dates,
-    authors: Array.from(authorMap.values())
+  const authorMap = new Map()
+  for (const [, entry] of map) {
+    for (const [, ae] of entry.byEmail) {
+      if (!authorMap.has(ae.email)) {
+        authorMap.set(ae.email, { name: ae.name, email: ae.email, isMe: ae.isMe })
+      }
+    }
   }
+  return { dates, authors: Array.from(authorMap.values()) }
 })
 
 const commitTrendTitle = computed(() => t('analytics.commitTrend'))

@@ -49,7 +49,7 @@ export async function performScan(path) {
       getAuthorRank(['all']),
       getReposList()
     ])
-    state.dashboardData = dashData
+    state.dashboardData = Object.freeze(dashData)
     const result = []
     if (Array.isArray(daily)) {
       for (const repo of daily) {
@@ -58,10 +58,10 @@ export async function performScan(path) {
         }
       }
     }
-    state.repoDailyTrend = result
-    state.repoComparison = comp
-    state.authorRank = rank
-    state.reposInfo = repos
+    state.repoDailyTrend = Object.freeze(result)
+    state.repoComparison = Object.freeze(comp)
+    state.authorRank = Object.freeze(rank)
+    state.reposInfo = Object.freeze(repos)
     state.dataVersion++
   } catch (err) {
     state.error = err.message
@@ -73,7 +73,7 @@ export async function performScan(path) {
 export async function fetchDashboardData() {
   if (state.dashboardData) return
   try {
-    state.dashboardData = await getDashboardStats(['all'])
+    state.dashboardData = Object.freeze(await getDashboardStats(['all']))
   } catch (err) {
     console.error('Failed to fetch dashboard data:', err)
   }
@@ -106,7 +106,7 @@ export async function fetchRepoDailyTrend() {
         result.push({ repoName: repo.repoName, data: repo.dailyCommits })
       }
     }
-    state.repoDailyTrend = result
+    state.repoDailyTrend = Object.freeze(result)
   } catch (err) {
     console.error('Failed to fetch repo daily trend:', err)
   }
@@ -115,7 +115,7 @@ export async function fetchRepoDailyTrend() {
 export async function fetchRepoComparison() {
   if (state.repoComparison.length > 0) return
   try {
-    state.repoComparison = await getRepoComparison(['all'])
+    state.repoComparison = Object.freeze(await getRepoComparison(['all']))
   } catch (err) {
     console.error('Failed to fetch repo comparison:', err)
   }
@@ -124,7 +124,7 @@ export async function fetchRepoComparison() {
 export async function fetchAuthorRank() {
   if (state.authorRank.length > 0) return
   try {
-    state.authorRank = await getAuthorRank(['all'])
+    state.authorRank = Object.freeze(await getAuthorRank(['all']))
   } catch (err) {
     console.error('Failed to fetch author rank:', err)
   }
@@ -132,7 +132,7 @@ export async function fetchAuthorRank() {
 
 export async function fetchReposInfo() {
   try {
-    state.reposInfo = await getReposList()
+    state.reposInfo = Object.freeze(await getReposList())
   } catch (err) {
     console.error('Failed to fetch repos info:', err)
   }
