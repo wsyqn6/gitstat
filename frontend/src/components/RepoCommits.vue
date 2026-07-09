@@ -13,7 +13,7 @@
       </div>
     </div>
     <div v-else-if="!commitsLoaded" class="cta-body">
-      <div class="cta-icon">⎔</div>
+      <div class="cta-icon" aria-hidden="true">⎔</div>
       <p class="cta-text">{{ t('repo.commitsCta') }}</p>
       <button class="cta-btn btn" :disabled="commitsLoading" @click="emit('loadCommits')">
         <span v-if="commitsLoading" class="spinner"></span>
@@ -33,12 +33,12 @@
           <span class="commit-author">{{ c.author }}</span>
           <span class="commit-time">{{ formatTimeAgo(c.date) }}</span>
           <span class="commit-changes">
-            <span v-if="c.additions > 0" class="add">+{{ c.additions }}</span>
-            <span v-if="c.deletions > 0" class="del">-{{ c.deletions }}</span>
+            <span v-if="c.additions > 0" class="c-add">+{{ c.additions }}</span>
+            <span v-if="c.deletions > 0" class="c-del">-{{ c.deletions }}</span>
           </span>
         </div>
         <div v-if="expandedCommit === c.hash" class="commit-body">
-          <pre>{{ c.message }}</pre>
+          <pre tabindex="0">{{ c.message }}</pre>
         </div>
       </div>
 
@@ -155,9 +155,7 @@ function toggleCommit(hash) {
 .commit-author { font-size: 0.8rem; }
 .commit-time { font-family: var(--font-mono); color: var(--color-text-muted); font-size: 0.8rem; }
 .commit-changes { text-align: right; }
-.commit-changes .add { margin-right: 0.3rem; }
-.add { color: var(--color-green); }
-.del { color: var(--color-red); }
+.commit-changes .c-add { margin-right: 0.3rem; }
 .commit-body pre {
   margin: 0; padding: 0.6rem 0.5rem;
   background: var(--bg-detail-msg);
@@ -189,13 +187,5 @@ function toggleCommit(hash) {
   border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.06);
 }
 
-.spinner {
-  display: inline-block;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-}
+
 </style>

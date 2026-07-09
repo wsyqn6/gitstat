@@ -111,8 +111,8 @@ const netChangeOption = computed(() => {
     }
   }
 
-  const red = '#ff6b6b'
-  const green = '#00ff88'
+  const red = chartCfg.value.chartColors[4]
+  const green = chartCfg.value.chartColors[3]
 
   return {
     tooltip: {

@@ -94,16 +94,7 @@ function formatNumber(n) {
 .lang-skeleton { padding: 0.25rem 0; }
 .section-loading { text-align: center; padding: 2rem; color: var(--color-primary); font-family: var(--font-body); }
 
-.spinner {
-  display: inline-block;
-  width: 16px; height: 16px;
-  border: 2px solid var(--bg-spinner);
-  border-top-color: var(--color-white);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-  margin-right: 0.5rem;
-}
+
 
 .lang-bar {
   display: flex;

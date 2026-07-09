@@ -350,14 +350,6 @@ watch(() => state.dataVersion, () => {
   margin-top: 2rem;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  gap: 1rem;
-}
-
 .section-title {
   font-family: var(--font-display);
   font-size: 1.25rem;

@@ -40,7 +40,7 @@
               <input v-model="scanPath" :placeholder="t('settings.pathPlaceholder')" />
               <button @click="handleScan" :disabled="scanning" class="btn scan-btn" style="flex-shrink:0">
                 <span v-if="!scanning">{{ t('settings.startScan') }}</span>
-                <span v-else><span class="spinner"></span> {{ t('settings.scanning') }}</span>
+                <span v-else><span class="spinner spinner-sm"></span> {{ t('settings.scanning') }}</span>
               </button>
             </div>
           </div>
@@ -374,17 +374,6 @@ onUnmounted(() => {
   transform: translateY(-1px);
 }
 
-.spinner {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -393,9 +382,5 @@ onUnmounted(() => {
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 </style>

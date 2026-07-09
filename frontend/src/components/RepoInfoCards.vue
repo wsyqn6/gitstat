@@ -2,22 +2,22 @@
   <div>
     <div class="card-row l1-row">
       <div class="glass info-card">
-        <span class="info-icon" style="color:var(--color-primary)">⑂</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-primary)">⑂</span>
         <span class="info-value">{{ detail.currentBranch }}</span>
         <span class="info-label">{{ t('repo.currentBranch') }}</span>
       </div>
       <div class="glass info-card clickable" :class="{ expanded: expandedBranch }" @click="toggleBranch">
-        <span class="info-icon" style="color:var(--color-purple-soft)">⑂</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-purple-soft)">⑂</span>
         <span class="info-value">{{ localBranchCount }}</span>
         <span class="info-label">{{ t('repo.branchCount') }} <span class="expand-icon">{{ expandedBranch ? '▼' : '▶' }}</span></span>
       </div>
       <div class="glass info-card">
-        <span class="info-icon" style="color:var(--color-amber)">◈</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-amber)">◈</span>
         <span class="info-value">{{ detail.fileCount ?? '--' }}</span>
         <span class="info-label">{{ t('repo.fileCount') }}</span>
       </div>
       <div class="glass info-card clickable" :class="{ expanded: expandedTags }" @click="toggleTags">
-        <span class="info-icon" style="color:var(--color-emerald)">◉</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-emerald)">◉</span>
         <span class="info-value">{{ detail.tagCount ?? '--' }}</span>
         <span class="info-label">{{ t('repo.tags') }} <span class="expand-icon">{{ expandedTags ? '▼' : '▶' }}</span></span>
       </div>
@@ -53,13 +53,13 @@
     <div v-if="expandedTags" class="expand-panel glass card">
       <h4>{{ t('repo.tags') }}</h4>
       <div v-if="tagsLoading && tags.length === 0" class="expand-hint">
-        <span class="spinner" style="display:inline-block;width:14px;height:14px;margin-right:0.5rem;vertical-align:middle"></span>{{ t('repo.statsLoading') }}
+        <span class="spinner" style="margin-right:0.5rem"></span>{{ t('repo.statsLoading') }}
       </div>
       <div v-else-if="tags.length > 0" class="tag-cloud">
         <span v-for="t in tags" :key="t" class="tag-item">{{ t }}</span>
         <div v-if="tagsHasMore" class="load-more-tags">
           <button class="btn btn-sm" :disabled="tagsLoading" @click="emit('load-more-tags')">
-            <span v-if="tagsLoading" class="spinner" style="display:inline-block;width:12px;height:12px;margin-right:0.3rem;vertical-align:middle"></span>
+            <span v-if="tagsLoading" class="spinner spinner-sm" style="margin-right:0.3rem"></span>
             {{ t('repo.loadMore') }}
           </button>
         </div>
@@ -69,7 +69,7 @@
 
     <div class="card-row l2-row">
       <div class="glass info-card dim" :class="{ 'has-data': statsLoaded && detail.repoSize > 0 }">
-        <span class="info-icon" style="color:var(--color-cyan)">◆</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-cyan)">◆</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ detail.repoSize > 0 ? formatBytes(detail.repoSize) : '--' }}</template>
           <Skeleton v-else w="40" h="22" radius="6" center />
@@ -77,7 +77,7 @@
         <span class="info-label">{{ t('repo.diskSize') }}</span>
       </div>
       <div class="glass info-card clickable dim" :class="statsLoaded ? { expanded: expandedContributor, 'has-data': hasCommits } : {}" @click="toggleContributor">
-        <span class="info-icon" style="color:var(--color-purple-soft)">⊕</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-purple-soft)">⊕</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ hasCommits ? detail.contributors.length : '--' }}</template>
           <Skeleton v-else w="30" h="22" radius="6" center />
@@ -85,7 +85,7 @@
         <span class="info-label">{{ t('repo.contributors') }} <span class="expand-icon">{{ expandedContributor ? '▼' : '▶' }}</span></span>
       </div>
       <div class="glass info-card dim" :class="{ 'has-data': statsLoaded && !!detail.earliestCommitAuthor }">
-        <span class="info-icon" style="color:var(--color-amber)">◎</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-amber)">◎</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ formatDate(detail.earliestDate) }}</template>
           <Skeleton v-else w="55" h="22" radius="6" center />
@@ -93,7 +93,7 @@
         <span class="info-label">{{ t('repo.createDate') }} · {{ timeSpan }}</span>
       </div>
       <div class="glass info-card dim" :class="{ 'has-data': statsLoaded && !!detail.lastCommitTime }">
-        <span class="info-icon" style="color:var(--color-emerald)">◉</span>
+        <span class="info-icon" aria-hidden="true" style="color:var(--color-emerald)">◉</span>
         <span class="info-value">
           <template v-if="statsLoaded">{{ formatTimeAgo(detail.lastCommitTime) }}</template>
           <Skeleton v-else w="45" h="22" radius="6" center />
@@ -109,15 +109,15 @@
           <div class="contrib-header">
             <span>{{ t('repo.author') }}</span>
             <span>{{ t('repo.commits') }}</span>
-            <span class="add">{{ t('repo.additions') }}</span>
-            <span class="del">{{ t('repo.deletions') }}</span>
+            <span class="c-add">{{ t('repo.additions') }}</span>
+            <span class="c-del">{{ t('repo.deletions') }}</span>
             <span>{{ t('repo.lastCommit') }}</span>
           </div>
           <div v-for="ct in detail.contributors" :key="ct.email" class="contrib-row">
             <span class="contrib-name">{{ ct.author }}</span>
             <span>{{ ct.commitCount }}</span>
-            <span class="add">+{{ ct.additions }}</span>
-            <span class="del">-{{ ct.deletions }}</span>
+            <span class="c-add">+{{ ct.additions }}</span>
+            <span class="c-del">-{{ ct.deletions }}</span>
             <span class="contrib-time">{{ ct.lastCommitDate?.slice(0, 10) }}</span>
           </div>
         </div>
@@ -147,7 +147,7 @@
         </div>
         <div class="chart-overlay" @click="emit('load-chart')">
           <div class="chart-overlay-content">
-            <span class="chart-cta-icon">▦</span>
+            <span class="chart-cta-icon" aria-hidden="true">▦</span>
             <h4>{{ t('repo.chartTitle') }}</h4>
             <p>{{ t('repo.chartDesc') }}</p>
             <button class="btn" :disabled="chartLoading" @click.stop="emit('load-chart')">
@@ -416,18 +416,9 @@ function toggleContributor() {
 .contrib-row { border-bottom: 1px solid var(--border-row-subtle); color: var(--color-text-primary); }
 .contrib-name { font-weight: 600; }
 .contrib-time { font-family: var(--font-body); color: var(--color-text-muted); font-size: 0.8rem; }
-.add { color: var(--color-green); }
-.del { color: var(--color-red); }
 
-.spinner {
-  display: inline-block;
-  width: 16px; height: 16px;
-  border: 2px solid var(--bg-spinner);
-  border-top-color: var(--color-white);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-}
+
+
 
 .charts-wrapper {
   position: relative;

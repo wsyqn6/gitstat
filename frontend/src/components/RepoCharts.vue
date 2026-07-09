@@ -383,12 +383,6 @@ const hourlyOption = computed(() => {
 .charts-section {
   margin-top: 2rem;
 }
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
 .section-title {
   font-family: var(--font-display);
   font-size: 0.95rem;

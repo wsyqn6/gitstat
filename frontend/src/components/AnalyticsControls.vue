@@ -94,7 +94,7 @@
           <svg v-if="!loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
-          <div v-else class="btn-spinner"></div>
+          <div v-else class="spinner"></div>
           <span>{{ loading ? t('analytics.analyzing') : t('analytics.startAnalyze') }}</span>
         </button>
       </div>
@@ -291,14 +291,7 @@ onUnmounted(() => {
   height: 18px;
 }
 
-.btn-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
+
 
 .time-selector-cyber {
   position: relative;

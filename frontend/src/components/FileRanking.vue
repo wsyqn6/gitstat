@@ -177,6 +177,8 @@ function netPrefix(val) {
 
 <style scoped>
 .file-ranking {
+  content-visibility: auto;
+  contain-intrinsic-size: 500px;
   animation: fadeIn 0.4s ease;
 }
 

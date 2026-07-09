@@ -1,7 +1,7 @@
 <template>
   <div class="repo-page">
     <div v-if="state.reposInfo.length === 0" class="empty-state glass card">
-      <span class="empty-icon">▤</span>
+      <span class="empty-icon" aria-hidden="true">▤</span>
       <p>{{ t('repo.empty') }}</p>
     </div>
 
@@ -19,7 +19,7 @@
 
       <div class="content">
           <div v-if="loading" class="loading-state">
-            <span class="spinner large"></span>
+            <span class="spinner spinner-lg"></span>
             <p>{{ t('repo.loading') }}</p>
           </div>
 
@@ -117,7 +117,7 @@
               />
             </template>
             <div v-else class="file-rank-cta glass card" @click.stop="loadFileRanking">
-              <span class="cta-icon">▤</span>
+              <span class="cta-icon" aria-hidden="true">▤</span>
               <h4>{{ t('repo.fileRankingTitle') }}</h4>
               <p>{{ t('repo.fileRankingDesc') }}</p>
               <button class="btn" :disabled="fileRankingLoading" @click.stop="loadFileRanking">
@@ -385,16 +385,7 @@ watch(() => state.dataVersion, () => init())
 }
 .loading-state p { font-family: var(--font-display); color: var(--color-primary); letter-spacing: 1px; margin-top: 1rem; }
 
-.spinner {
-  display: inline-block;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-}
-.spinner.large { width: 32px; height: 32px; border-width: 3px; border-color: var(--border-insight-card); border-top-color: var(--color-primary); }
+
 
 .title-row {
   display: flex;

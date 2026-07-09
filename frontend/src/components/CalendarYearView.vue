@@ -145,24 +145,6 @@ const monthDetail = computed(() => {
 <style scoped>
 
 
-.cal-header {
-  margin-bottom: 1.25rem;
-}
-.cal-title {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  color: var(--color-accent);
-  letter-spacing: 2px;
-}
-
-.cal-empty {
-  text-align: center;
-  padding: 3rem 0;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
-  letter-spacing: 1px;
-}
-
 .year-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

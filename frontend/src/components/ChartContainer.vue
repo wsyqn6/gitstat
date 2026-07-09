@@ -7,7 +7,7 @@
       </div>
     </div>
     <div v-show="loading" class="chart-loading">
-      <div class="loading-spinner"></div>
+      <div class="spinner spinner-xl"></div>
       <p>{{ t('repo.loading') }}</p>
     </div>
     <div v-show="!loading" ref="chartRef" class="chart"></div>
@@ -121,15 +121,7 @@ watch(() => props.option, (newVal) => {
   color: var(--color-text-muted);
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 3px solid var(--bg-insight-hover);
-  border-top-color: var(--color-accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  box-shadow: 0 0 20px var(--border-dropdown);
-}
+
 
 .chart {
   height: 400px;

@@ -41,7 +41,7 @@ const icons = { success: '✓', error: '✗', info: 'ℹ' }
   font-size: 0.9rem;
   font-weight: 600;
   backdrop-filter: blur(var(--blur-card));
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-toast);
   pointer-events: auto;
   min-width: 200px;
 }

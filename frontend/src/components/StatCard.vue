@@ -1,6 +1,6 @@
 <template>
   <div class="glass stat-card" :style="cardStyle">
-    <div class="stat-icon">{{ icon }}</div>
+    <div class="stat-icon" aria-hidden="true">{{ icon }}</div>
     <div class="stat-value">{{ value }}</div>
     <ChangeBadge v-if="change" :change="change" prefix="较昨日" />
     <div class="stat-label">{{ label }}</div>
