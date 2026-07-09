@@ -167,22 +167,28 @@ func GetRepoCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	all := cache.Commits
 	total := len(all)
 
-	// cache.Commits is newest-first (git log default)
-	start := offset
-	if start > total {
-		start = total
+	// cache.Commits is sorted ascending (oldest first) from store.SetRepoCommits
+	endIdx := total - offset
+	if endIdx < 0 {
+		endIdx = 0
 	}
-	end := start + limit
-	if end > total {
-		end = total
-	}
-
-	commits := all[start:end]
-	if commits == nil {
-		commits = []model.Commit{}
+	startIdx := endIdx - limit
+	if startIdx < 0 {
+		startIdx = 0
 	}
 
-	hasMore := end < total
+	raw := all[startIdx:endIdx]
+	if raw == nil {
+		raw = []model.Commit{}
+	}
+
+	// reverse page so newest appears first
+	commits := make([]model.Commit, len(raw))
+	for i, c := range raw {
+		commits[len(raw)-1-i] = c
+	}
+
+	hasMore := startIdx > 0
 
 	writeJSON(w, "RepoCommits", model.CommitPage{Commits: commits, HasMore: hasMore})
 }

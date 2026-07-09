@@ -95,21 +95,10 @@ func (s *Store) MergeCommits(path string, newCommits []model.Commit) bool {
 		return true
 	}
 
-	// merge two sorted slices: cache.Commits (sorted) + uniqueCommits (chronological)
-	merged := make([]model.Commit, 0, len(cache.Commits)+len(uniqueCommits))
-	i, j := 0, 0
-	for i < len(cache.Commits) && j < len(uniqueCommits) {
-		if cache.Commits[i].Date.Before(uniqueCommits[j].Date) {
-			merged = append(merged, cache.Commits[i])
-			i++
-		} else {
-			merged = append(merged, uniqueCommits[j])
-			j++
-		}
-	}
-	merged = append(merged, cache.Commits[i:]...)
-	merged = append(merged, uniqueCommits[j:]...)
-	cache.Commits = merged
+	cache.Commits = append(cache.Commits, uniqueCommits...)
+	sort.Slice(cache.Commits, func(i, j int) bool {
+		return cache.Commits[i].Date.Before(cache.Commits[j].Date)
+	})
 
 	s.updateDateRange(cache, uniqueCommits)
 	s.lastMutationAt = time.Now()
