@@ -151,6 +151,34 @@ func parseGitLog(r io.Reader) ([]model.Commit, error) {
 }
 
 
+func GetHEADHash(repoPath string) (string, error) {
+	return gitExec(repoPath, "rev-parse", "HEAD")
+}
+
+func IsAncestor(repoPath, hash string) bool {
+	_, err := gitExec(repoPath, "merge-base", "--is-ancestor", hash, "HEAD")
+	return err == nil
+}
+
+func ScanCommitsSince(repoPath, sinceHash string) ([]model.Commit, error) {
+	args := []string{"log", sinceHash + "..HEAD", "--format=---GITSTAT_COMMIT---%n%H%n%an%n%ae%n%ci%n%s", "--numstat"}
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repoPath
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("git log stdout pipe in %s: %w", repoPath, err)
+	}
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("git log start in %s: %w", repoPath, err)
+	}
+	commits, parseErr := parseGitLog(stdout)
+	waitErr := cmd.Wait()
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	return commits, waitErr
+}
+
 func DiscoverRepos(rootPath string) ([]model.Repository, error) {
 	var repos []model.Repository
 
