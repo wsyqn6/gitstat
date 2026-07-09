@@ -17,11 +17,12 @@ type RepoCache struct {
 	CurrentBranch  string
 	LastCommitTime string
 	RemoteUrl      string
-	BranchCount    int
-	FileCount      int
-	EarliestDate   time.Time
-	LatestDate     time.Time
-	Commits        []model.Commit
+	BranchCount      int
+	FileCount        int
+	EarliestDate     time.Time
+	LatestDate       time.Time
+	LastScannedHash  string
+	Commits          []model.Commit
 	Initialized    bool
 	RepoSize       int64
 	Analyzed       bool
