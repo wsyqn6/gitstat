@@ -82,6 +82,10 @@ export async function getFileRanking(repos = [], startDate, endDate, limit, sign
   return res.data
 }
 
+export async function checkUpdate() {
+  return request(`${BASE}/update/check`, { errorMsg: 'Update check failed' })
+}
+
 export async function getReposList() {
   return request(`${BASE}/repos/list`, { errorMsg: 'Failed to fetch repos list' })
 }

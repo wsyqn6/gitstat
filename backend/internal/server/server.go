@@ -48,6 +48,8 @@ func NewServer(version string) *chi.Mux {
 		w.Write([]byte("OK"))
 	})
 
+	r.Get("/api/update/check", handler.GetUpdateCheckHandler(version))
+
 	r.HandleFunc("/api/version", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"version": version})

@@ -48,12 +48,28 @@
           <p v-if="scanSuccess" class="msg success-msg">{{ scanSuccess }}</p>
         </div>
 
-        <!--<div class="section">
-          <h3 class="section-title">{{ t('settings.dataManagement') }}</h3>
-          <button @click="handleExport" class="btn export-btn" style="width:100%">
-            <span style="font-size:1.2rem">↓</span> {{ t('settings.exportData') }}
+        <div class="section">
+          <h3 class="section-title">{{ t('settings.update') }}</h3>
+          <div class="update-row">
+            <span class="update-label">{{ t('settings.updateCurrent') }}</span>
+            <span class="update-version">{{ state.buildVersion || 'dev' }}</span>
+          </div>
+          <div class="update-row">
+            <span class="update-label">{{ t('settings.updateLatestVersion') }}</span>
+            <span class="update-version">{{ updateLatest || '—' }}</span>
+          </div>
+          <button @click="handleUpdateCheck" :disabled="updateChecking" class="btn scan-btn" style="width:100%;margin-top:0.75rem">
+            <span v-if="!updateChecking">{{ t('settings.updateCheckBtn') }}</span>
+            <span v-else><span class="spinner spinner-sm"></span> {{ t('settings.updateChecking') }}</span>
           </button>
-        </div>-->
+          <p v-if="updateUpToDate" class="msg success-msg">{{ t('settings.updateLatest') }} ({{ state.buildVersion || 'dev' }})</p>
+          <p v-if="updateAvailable" class="msg update-available-msg">
+            <span class="update-available-icon">⚡</span>
+            {{ t('settings.updateAvailable') }}: <strong>{{ updateLatest }}</strong>
+            <a :href="updateUrl" target="_blank" rel="noopener noreferrer" class="update-download-link">{{ t('settings.updateDownload') }}</a>
+          </p>
+          <p v-if="updateErrorMsg" class="msg error-msg">{{ updateErrorMsg }}</p>
+        </div>
 
         <div class="section about-section">
           <h3 class="section-title">{{ t('settings.about') }}</h3>
@@ -79,7 +95,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../i18n'
 import { useTheme } from '../composables/useTheme'
 import { performScan, state } from '../stores/data'
-import { exportData } from '../api'
+import { checkUpdate } from '../api'
 import { useToast } from '../composables/useToast'
 import SegmentToggle from './SegmentToggle.vue'
 
@@ -94,6 +110,12 @@ const scanning = ref(false)
 const scanError = ref('')
 const scanSuccess = ref('')
 const version = ref('dev')
+const updateChecking = ref(false)
+const updateLatest = ref('')
+const updateUrl = ref('')
+const updateUpToDate = ref(false)
+const updateAvailable = ref(false)
+const updateErrorMsg = ref('')
 let successTimer = null
 
 onMounted(async () => {
@@ -114,6 +136,27 @@ async function handleScan() {
     scanError.value = err.message
   } finally {
     scanning.value = false
+  }
+}
+
+async function handleUpdateCheck() {
+  updateChecking.value = true
+  updateUpToDate.value = false
+  updateAvailable.value = false
+  updateErrorMsg.value = ''
+  try {
+    const res = await checkUpdate()
+    if (res.hasUpdate) {
+      updateLatest.value = res.latestVersion
+      updateUrl.value = res.downloadUrl
+      updateAvailable.value = true
+    } else {
+      updateUpToDate.value = true
+    }
+  } catch (err) {
+    updateErrorMsg.value = t('settings.updateError')
+  } finally {
+    updateChecking.value = false
   }
 }
 
@@ -309,6 +352,56 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.5rem;
 }
+
+.update-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+}
+
+.update-label {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.update-version {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.update-available-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.update-available-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.update-download-link {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-btn);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.update-download-link:hover { opacity: 0.8; }
 
 .about-section { text-align: center; }
 
