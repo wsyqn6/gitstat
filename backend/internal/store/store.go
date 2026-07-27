@@ -145,25 +145,20 @@ func (s *Store) GetReposWithRange(paths []string, startDate, endDate time.Time) 
 			continue
 		}
 
-		var filtered []model.Commit
 		startIdx := 0
 		if !startDate.IsZero() {
 			startIdx = sort.Search(len(cache.Commits), func(i int) bool {
 				return !cache.Commits[i].Date.Before(startDate)
 			})
 		}
-		for i := startIdx; i < len(cache.Commits); i++ {
-			c := cache.Commits[i]
-			if !endDate.IsZero() && c.Date.After(endDate) {
-				break
-			}
-			filtered = append(filtered, c)
-		}
-		if filtered == nil {
-			filtered = []model.Commit{}
+		endIdx := len(cache.Commits)
+		if !endDate.IsZero() {
+			endIdx = sort.Search(len(cache.Commits), func(i int) bool {
+				return cache.Commits[i].Date.After(endDate)
+			})
 		}
 
-		repos = append(repos, cache.toRepo(filtered))
+		repos = append(repos, cache.toRepo(cache.Commits[startIdx:endIdx]))
 	}
 	return repos
 }

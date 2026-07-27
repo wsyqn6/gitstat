@@ -17,12 +17,17 @@ func GetDashboardHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	email := emailForHandler(r)
-	bucket := getAggBucket(repoPaths, startDate, endDate, email)
 
 	duration := endDate.Sub(startDate)
-	prevStartDate := startDate.Add(-duration)
-	prevEndDate := endDate.Add(-duration)
-	prevBucket := getAggBucket(repoPaths, prevStartDate, prevEndDate, email)
+	prevStartDate, prevEndDate := startDate.Add(-duration), endDate.Add(-duration)
+
+	fullStart, fullEnd := prevStartDate, endDate
+	ensureDataLoaded(repoPaths, fullStart)
+	repos := store.GlobalStore.GetReposWithRange(repoPaths, fullStart, fullEnd)
+	repos = filterCommitsByEmail(repos, email)
+
+	bucket := computeBucket(repos, startDate, endDate)
+	prevBucket := computeBucket(repos, prevStartDate, prevEndDate)
 
 	current := overviewFromBucket(bucket)
 	previous := overviewFromBucket(prevBucket)
