@@ -60,19 +60,18 @@ func validatePath(p string) (string, error) {
 	return clean, nil
 }
 
-func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate time.Time) {
+func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate time.Time, err error) {
 	startDateStr := r.URL.Query().Get("startDate")
 	endDateStr := r.URL.Query().Get("endDate")
 
 	if startDateStr != "" && endDateStr != "" {
-		var parseErr error
-		startDate, parseErr = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
-		if parseErr != nil {
-			log.Printf("warning: invalid startDate %q: %v", startDateStr, parseErr)
+		startDate, err = time.ParseInLocation("2006-01-02", startDateStr, time.Local)
+		if err != nil {
+			return startDate, endDate, fmt.Errorf("invalid startDate %q: %w", startDateStr, err)
 		}
-		endDate, parseErr = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
-		if parseErr != nil {
-			log.Printf("warning: invalid endDate %q: %v", endDateStr, parseErr)
+		endDate, err = time.ParseInLocation("2006-01-02", endDateStr, time.Local)
+		if err != nil {
+			return startDate, endDate, fmt.Errorf("invalid endDate %q: %w", endDateStr, err)
 		}
 		endDate = endDate.Add(24*time.Hour - time.Second)
 	} else {
@@ -83,7 +82,7 @@ func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate t
 		startDate, endDate = ParseTimeRange(timeRange)
 	}
 
-	return startDate, endDate
+	return startDate, endDate, nil
 }
 
 func writeJSON(w http.ResponseWriter, tag string, data interface{}) {

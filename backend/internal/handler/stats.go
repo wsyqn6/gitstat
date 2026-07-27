@@ -11,7 +11,11 @@ import (
 
 func GetDashboardHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
-	startDate, endDate := parseTimeParams(r, "today")
+	startDate, endDate, err := parseTimeParams(r, "today")
+	if err != nil {
+		writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+		return
+	}
 	email := emailForHandler(r)
 	bucket := getAggBucket(repoPaths, startDate, endDate, email)
 
@@ -44,7 +48,11 @@ func GetDashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
-	startDate, endDate := parseTimeParams(r, "today")
+	startDate, endDate, err := parseTimeParams(r, "today")
+	if err != nil {
+		writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	email := emailForHandler(r)
 
@@ -55,7 +63,11 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetStatsHandler(period string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		startDate, endDate := parseTimeParams(r, "")
+		startDate, endDate, err := parseTimeParams(r, "")
+		if err != nil {
+			writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+			return
+		}
 		repoPaths := r.URL.Query()["repo"]
 
 		email := emailForHandler(r)
@@ -84,7 +96,11 @@ func GetStatsHandler(period string) http.HandlerFunc {
 }
 
 func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "week")
+	startDate, endDate, err := parseTimeParams(r, "week")
+	if err != nil {
+		writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+		return
+	}
 	repoPaths := r.URL.Query()["repo"]
 
 	email := emailForHandler(r)
@@ -99,7 +115,11 @@ func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDailyTrendHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "")
+	startDate, endDate, err := parseTimeParams(r, "")
+	if err != nil {
+		writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+		return
+	}
 	repoPaths := r.URL.Query()["repo"]
 	email := emailForHandler(r)
 	bucket := getAggBucket(repoPaths, startDate, endDate, email)
@@ -118,7 +138,11 @@ func GetDailyTrendHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "month")
+	startDate, endDate, err := parseTimeParams(r, "month")
+	if err != nil {
+		writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+		return
+	}
 	repoPaths := r.URL.Query()["repo"]
 	bucket := getAggBucket(repoPaths, startDate, endDate, "")
 
@@ -130,7 +154,11 @@ func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "week")
+	startDate, endDate, err := parseTimeParams(r, "week")
+	if err != nil {
+		writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+		return
+	}
 	repoPaths := r.URL.Query()["repo"]
 	bucket := getAggBucket(repoPaths, startDate, endDate, "")
 
@@ -214,7 +242,11 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
-	startDate, endDate := parseTimeParams(r, "all")
+	startDate, endDate, err := parseTimeParams(r, "all")
+	if err != nil {
+		writeError(w, ErrCodeInvalidParams, err.Error(), http.StatusBadRequest)
+		return
+	}
 	repoPaths := r.URL.Query()["repo"]
 	bucket := getAggBucket(repoPaths, startDate, endDate, "")
 
