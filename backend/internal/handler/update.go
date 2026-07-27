@@ -65,7 +65,7 @@ func versionGreaterThan(a, b string) bool {
 	ma, mi, pa, oka := parseVersion(a)
 	mb, mi2, pb, okb := parseVersion(b)
 	if !oka || !okb {
-		return strings.TrimPrefix(a, "v") > strings.TrimPrefix(b, "v")
+		return false
 	}
 	if ma != mb {
 		return ma > mb

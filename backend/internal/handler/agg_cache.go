@@ -88,40 +88,6 @@ func computeAggBucket(repoPaths []string, startDate, endDate time.Time, email st
 	return bucket
 }
 
-func isDateInRange(dateStr string, startDate, endDate time.Time) bool {
-	if startDate.IsZero() && endDate.IsZero() {
-		return true
-	}
-	date, err := time.Parse("2006-01-02", dateStr)
-	if err != nil {
-		return true
-	}
-	if !startDate.IsZero() && date.Before(startDate) {
-		return false
-	}
-	if !endDate.IsZero() && date.After(endDate) {
-		return false
-	}
-	return true
-}
-
-func isMonthInRange(monthStr string, startDate, endDate time.Time) bool {
-	if startDate.IsZero() && endDate.IsZero() {
-		return true
-	}
-	month, err := time.Parse("2006-01", monthStr)
-	if err != nil {
-		return true
-	}
-	if !startDate.IsZero() && month.Before(startDate) {
-		return false
-	}
-	if !endDate.IsZero() && month.After(endDate.AddDate(0, 1, 0)) {
-		return false
-	}
-	return true
-}
-
 func cacheKey(repoPaths []string, startDate, endDate time.Time, email string) string {
 	k := email + "|"
 	if !startDate.IsZero() {
