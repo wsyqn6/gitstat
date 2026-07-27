@@ -67,11 +67,6 @@ func ensureRepoLoaded(cache *store.RepoCache, startDate, now time.Time) {
 		var since time.Time
 		if !cache.Initialized {
 			since = startDate
-			if !since.IsZero() {
-				if minStart := now.AddDate(0, 0, -6); since.After(minStart) {
-					since = minStart
-				}
-			}
 		} else {
 			since = cache.LatestDate
 		}
