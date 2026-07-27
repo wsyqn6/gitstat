@@ -48,40 +48,23 @@
           <p v-if="scanSuccess" class="msg success-msg">{{ scanSuccess }}</p>
         </div>
 
-        <div class="section">
-          <h3 class="section-title">{{ t('settings.update') }}</h3>
-          <div class="update-row">
-            <span class="update-label">{{ t('settings.updateCurrent') }}</span>
-            <span class="update-version">{{ state.buildVersion || 'dev' }}</span>
-          </div>
-          <div class="update-row">
-            <span class="update-label">{{ t('settings.updateLatestVersion') }}</span>
-            <span class="update-version">{{ updateLatest || '—' }}</span>
-          </div>
-          <button @click="handleUpdateCheck" :disabled="updateChecking" class="btn scan-btn" style="width:100%;margin-top:0.75rem">
-            <span v-if="!updateChecking">{{ t('settings.updateCheckBtn') }}</span>
-            <span v-else><span class="spinner spinner-sm"></span> {{ t('settings.updateChecking') }}</span>
-          </button>
-          <p v-if="updateUpToDate" class="msg success-msg">{{ t('settings.updateLatest') }} ({{ state.buildVersion || 'dev' }})</p>
-          <p v-if="updateAvailable" class="msg update-available-msg">
-            <span class="update-available-icon">⚡</span>
-            {{ t('settings.updateAvailable') }}: <strong>{{ updateLatest }}</strong>
-            <a :href="updateUrl" target="_blank" rel="noopener noreferrer" class="update-download-link">{{ t('settings.updateDownload') }}</a>
-          </p>
-          <p v-if="updateErrorMsg" class="msg error-msg">{{ updateErrorMsg }}</p>
-        </div>
-
         <div class="section about-section">
           <h3 class="section-title">{{ t('settings.about') }}</h3>
           <div class="about-content">
             <div class="about-logo">GITSTAT</div>
-            <span class="build-version">{{ t('settings.buildVersion') }} <em>{{ state.buildVersion || 'dev' }}</em></span>
-            <p class="about-git-version">{{ t('settings.gitVersion') }} {{ version }}</p>
-            <div class="tech-stack">
-              <span class="tech-item">Go 1.26</span>
-              <span class="tech-item">Vue 3</span>
-              <span class="tech-item">ECharts</span>
-              <span class="tech-item">Bun</span>
+            <div class="about-versions">
+              <div class="app-version-row">
+                <span class="app-version">{{ state.buildVersion || 'dev' }}</span>
+                <span v-if="!updateUpToDate && !updateAvailable && !updateChecking && !updateErrorMsg" class="update-action update-check-link" @click="handleUpdateCheck">{{ t('settings.updateCheck') }}</span>
+                <span v-if="updateChecking" class="update-action"><span class="spinner spinner-xs"></span> {{ t('settings.updateChecking') }}</span>
+                <span v-if="updateUpToDate" class="update-action update-latest">✓</span>
+                <template v-if="updateAvailable">
+                  <span class="update-action update-new">→ <strong>{{ updateLatest }}</strong></span>
+                  <a :href="updateUrl" target="_blank" rel="noopener noreferrer" class="update-download-link-sm">{{ t('settings.updateDownload') }}</a>
+                </template>
+                <span v-if="updateErrorMsg" class="update-action update-check-link" @click="handleUpdateCheck">{{ t('settings.updateCheck') }}</span>
+              </div>
+              <div class="git-version-row">{{ t('settings.gitVersion') }} {{ version }}</div>
             </div>
           </div>
         </div>
@@ -346,62 +329,17 @@ onUnmounted(() => {
   border: 1px solid var(--border-badge-success);
 }
 
-.export-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-xs {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1.5px solid var(--color-text-muted);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
 }
-
-.update-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.35rem 0;
-}
-
-.update-label {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-}
-
-.update-version {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--color-text-primary);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.update-available-msg {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
-}
-
-.update-available-icon {
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.update-download-link {
-  margin-left: auto;
-  padding: 0.25rem 0.75rem;
-  background: var(--color-primary);
-  color: #fff;
-  border-radius: var(--radius-btn);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-.update-download-link:hover { opacity: 0.8; }
 
 .about-section { text-align: center; }
 
@@ -423,49 +361,59 @@ onUnmounted(() => {
   letter-spacing: 4px;
 }
 
-.build-version {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  color: var(--color-nav-link);
-  letter-spacing: 0.5px;
-}
-.build-version em {
-  font-style: normal;
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.about-git-version {
-  color: var(--color-nav-link);
-  font-size: 0.75rem;
-  font-family: var(--font-body);
-  opacity: 0.6;
-  margin: 0;
-}
-
-.tech-stack {
+.about-versions {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.tech-item {
-  padding: 0.35rem 1rem;
-  background: var(--bg-btn-hover);
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-btn);
-  font-size: 0.85rem;
+.app-version-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-version {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 1px;
+}
+
+.git-version-row {
   font-family: var(--font-body);
-  color: var(--color-text-secondary);
-  transition: all 0.3s;
+  font-size: 0.7rem;
+  color: var(--color-nav-link);
+  opacity: 0.5;
 }
 
-.tech-item:hover {
-  background: var(--border-insight-card);
-  border-color: var(--color-primary);
-  transform: translateY(-1px);
+.update-action {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }
+.update-check-link {
+  cursor: pointer;
+  color: var(--color-primary);
+  transition: opacity 0.2s;
+}
+.update-check-link:hover { opacity: 0.7; }
+.update-latest { color: var(--color-green); }
+.update-new { color: var(--color-primary); }
+
+.update-download-link-sm {
+  padding: 0.1rem 0.5rem;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-btn);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.5;
+  transition: opacity 0.2s;
+}
+.update-download-link-sm:hover { opacity: 0.8; }
 
 @keyframes fadeIn {
   from { opacity: 0; }
