@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -87,14 +86,7 @@ func parseTimeParams(r *http.Request, defaultRange string) (startDate, endDate t
 
 func writeJSON(w http.ResponseWriter, tag string, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-
-	buf := &bytes.Buffer{}
-	if err := json.NewEncoder(buf).Encode(data); err != nil {
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Printf("[%s] Serialize error: %v", tag, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(ErrorResponse{Error: "serialization failed", Code: ErrCodeInternalError})
-		return
 	}
-
-	w.Write(buf.Bytes())
 }
