@@ -103,8 +103,8 @@ type AuthorPeriodStats struct {
 type RepositoryPeriodStats struct {
 	RepoName       string             `json:"repoName"`
 	RepoPath       string             `json:"repoPath"`
-	CurrentBranch  string              `json:"-"`
-	LastCommitTime string              `json:"-"`
+	CurrentBranch  string             `json:"currentBranch"`
+	LastCommitTime string             `json:"lastCommitTime"`
 	Authors        []AuthorPeriodStats `json:"authors"`
 }
 
@@ -138,10 +138,10 @@ type RepoInfo struct {
 	Name              string   `json:"name"`
 	CurrentBranch     string   `json:"currentBranch"`
 	BranchCount       int      `json:"branchCount"`
-	RemoteBranchCount int      `json:"-"`
+	RemoteBranchCount int      `json:"remoteBranchCount"`
 	FileCount         int      `json:"fileCount"`
 	LastCommitTime    string   `json:"lastCommitTime"`
-	RemoteUrl         string   `json:"-"`
+	RemoteUrl         string   `json:"remoteUrl"`
 	Branches          []string `json:"branches"`
 	RemoteBranches    []string `json:"remoteBranches"`
 }
@@ -156,15 +156,15 @@ type LanguageStat struct {
 
 // 深度分析结果
 type AnalyzeResult struct {
-	Name            string        `json:"-"`
-	Path            string        `json:"-"`
-	BranchCount     int           `json:"-"`
-	Branches        []string      `json:"-"`
-	RemoteBranches  []string      `json:"-"`
+	Name            string        `json:"name"`
+	Path            string        `json:"path"`
+	BranchCount     int           `json:"branchCount"`
+	Branches        []string      `json:"branches"`
+	RemoteBranches  []string      `json:"remoteBranches"`
 	FileCount       int           `json:"fileCount"`
 	TotalLines      int           `json:"totalLines"`
 	Languages       []LanguageStat `json:"languages"`
-	Tags            []string      `json:"-"`
+	Tags            []string      `json:"tags"`
 }
 
 // 深度分析请求
