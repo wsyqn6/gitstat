@@ -35,6 +35,7 @@ type cachedResult struct {
 }
 
 var (
+	httpClient = &http.Client{Timeout: 10 * time.Second}
 	cacheMu   sync.Mutex
 	cache     *cachedResult
 )
@@ -77,7 +78,6 @@ func versionGreaterThan(a, b string) bool {
 }
 
 func fetchLatestRelease() (*githubRelease, error) {
-	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest("GET", githubAPI, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
@@ -85,7 +85,7 @@ func fetchLatestRelease() (*githubRelease, error) {
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("User-Agent", "gitstat")
 
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("fetch release: %w", err)
 	}
