@@ -17,14 +17,14 @@ type RepoCache struct {
 	CurrentBranch  string
 	LastCommitTime string
 	RemoteUrl      string
-	BranchCount      int
+	BranchCount      int     // -1 = not fetched
 	FileCount        int
 	EarliestDate     time.Time
 	LatestDate       time.Time
 	LastScannedHash  string
 	Commits          []model.Commit
 	Initialized    bool
-	RepoSize       int64
+	RepoSize       int64     // -1 = not fetched
 	Analyzed       bool
 	Branches       []string
 	RemoteBranches []string
@@ -234,6 +234,8 @@ func (s *Store) RegisterRepos(repos []model.Repository) {
 			CurrentBranch:  repo.CurrentBranch,
 			LastCommitTime: repo.LastCommitTime,
 			Initialized:    false,
+			BranchCount:    -1,
+			RepoSize:       -1,
 			Commits:        []model.Commit{},
 		}
 	}

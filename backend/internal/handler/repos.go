@@ -48,7 +48,7 @@ func GetRepoInfoHandler(w http.ResponseWriter, r *http.Request) {
 	branches := cache.Branches
 	remoteUrl := cache.RemoteUrl
 
-	if branchCount == 0 || len(branches) == 0 {
+	if branchCount < 0 {
 		meta, err := scanner.GetRepoMeta(cache.Path)
 		if err == nil {
 			branchCount = meta.BranchCount
@@ -117,7 +117,7 @@ func GetRepoStatsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repoSize := cache.RepoSize
-	if repoSize == 0 {
+	if repoSize < 0 {
 		repoSize = scanner.GetRepoSize(cache.Path)
 		store.GlobalStore.UpdateRepo(cache.Path, func(c *store.RepoCache) {
 			c.RepoSize = repoSize
