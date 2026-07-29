@@ -310,18 +310,35 @@ func (a *Accumulator) Build() *AggBucket {
 		RepositoryCount: len(a.repoSet),
 	}
 
-	if len(a.authorMap) > 0 {
-		b.AuthorList = make([]model.AuthorRankItem, 0, len(a.authorMap))
-		for _, item := range a.authorMap {
-			b.AuthorList = append(b.AuthorList, *item)
-		}
-		slices.SortFunc(b.AuthorList, func(x, y model.AuthorRankItem) int {
-			return cmp.Compare(y.Commits, x.Commits)
-		})
-	} else {
-		b.AuthorList = []model.AuthorRankItem{}
-	}
+	a.buildAuthorList(b)
+	a.buildDailyByRepo(b)
+	a.buildMonthlyByRepo(b)
+	a.buildAuthorRank(b)
+	a.buildRepoComp(b)
+	a.buildHeatmap(b)
+	a.buildCalendar(b)
+	a.buildFileRank(b)
 
+	a.ensureEmptySlices(b)
+	return b
+}
+
+func (a *Accumulator) buildAuthorList(b *AggBucket) {
+	n := len(a.authorMap)
+	if n == 0 {
+		b.AuthorList = []model.AuthorRankItem{}
+		return
+	}
+	b.AuthorList = make([]model.AuthorRankItem, 0, n)
+	for _, item := range a.authorMap {
+		b.AuthorList = append(b.AuthorList, *item)
+	}
+	slices.SortFunc(b.AuthorList, func(x, y model.AuthorRankItem) int {
+		return cmp.Compare(y.Commits, x.Commits)
+	})
+}
+
+func (a *Accumulator) buildDailyByRepo(b *AggBucket) {
 	for repoPath, dateMap := range a.dailyRepoDate {
 		dailyCommits := make([]model.DayCommitCount, 0, len(dateMap))
 		for _, dd := range dateMap {
@@ -368,7 +385,12 @@ func (a *Accumulator) Build() *AggBucket {
 			return cmp.Compare(y.Commits, x.Commits)
 		})
 	}
+	if len(b.DailyByRepo) == 0 {
+		b.DailyByRepo = []model.RepositoryDailyStats{}
+	}
+}
 
+func (a *Accumulator) buildMonthlyByRepo(b *AggBucket) {
 	monthlyByRepoMap := make(map[string]*model.RepositoryPeriodStats)
 	for repoPath := range a.monthlyRepoPeriod {
 		repoName := a.repoNameOf[repoPath]
@@ -416,10 +438,20 @@ func (a *Accumulator) Build() *AggBucket {
 	slices.SortFunc(b.MonthlyByRepo, func(x, y model.RepositoryPeriodStats) int {
 		return cmp.Compare(x.RepoName, y.RepoName)
 	})
+	if len(b.MonthlyByRepo) == 0 {
+		b.MonthlyByRepo = []model.RepositoryPeriodStats{}
+	}
+}
 
+func (a *Accumulator) buildAuthorRank(b *AggBucket) {
 	b.AuthorRank = make([]model.AuthorRankItem, len(b.AuthorList))
 	copy(b.AuthorRank, b.AuthorList)
+	if len(b.AuthorRank) == 0 {
+		b.AuthorRank = []model.AuthorRankItem{}
+	}
+}
 
+func (a *Accumulator) buildRepoComp(b *AggBucket) {
 	activeDaysMap := make(map[string]map[string]bool)
 	for repoPath, dateMap := range a.dailyRepoDate {
 		for date := range dateMap {
@@ -457,7 +489,12 @@ func (a *Accumulator) Build() *AggBucket {
 	slices.SortFunc(b.RepoComp, func(x, y model.RepoComparison) int {
 		return cmp.Compare(y.Commits, x.Commits)
 	})
+	if len(b.RepoComp) == 0 {
+		b.RepoComp = []model.RepoComparison{}
+	}
+}
 
+func (a *Accumulator) buildHeatmap(b *AggBucket) {
 	for dow, hourMap := range a.heatmapDayHour {
 		for hour, count := range hourMap {
 			b.Heatmap = append(b.Heatmap, model.ActivityHeatmapPoint{
@@ -474,7 +511,9 @@ func (a *Accumulator) Build() *AggBucket {
 	if b.Heatmap == nil {
 		b.Heatmap = []model.ActivityHeatmapPoint{}
 	}
+}
 
+func (a *Accumulator) buildCalendar(b *AggBucket) {
 	b.Calendar = make([]model.MonthlyCalendarItem, 0, len(a.calendar))
 	for _, item := range a.calendar {
 		b.Calendar = append(b.Calendar, *item)
@@ -485,7 +524,9 @@ func (a *Accumulator) Build() *AggBucket {
 	if b.Calendar == nil {
 		b.Calendar = []model.MonthlyCalendarItem{}
 	}
+}
 
+func (a *Accumulator) buildFileRank(b *AggBucket) {
 	b.FileRank = make([]model.FileRankItem, 0, len(a.fileRank))
 	for _, item := range a.fileRank {
 		b.FileRank = append(b.FileRank, *item)
@@ -496,22 +537,10 @@ func (a *Accumulator) Build() *AggBucket {
 	if len(b.FileRank) == 0 {
 		b.FileRank = []model.FileRankItem{}
 	}
+}
 
-	if len(b.DailyByRepo) == 0 {
-		b.DailyByRepo = []model.RepositoryDailyStats{}
-	}
-	if len(b.MonthlyByRepo) == 0 {
-		b.MonthlyByRepo = []model.RepositoryPeriodStats{}
-	}
-	if len(b.AuthorRank) == 0 {
-		b.AuthorRank = []model.AuthorRankItem{}
-	}
-	if len(b.RepoComp) == 0 {
-		b.RepoComp = []model.RepoComparison{}
-	}
+func (a *Accumulator) ensureEmptySlices(b *AggBucket) {
 	if len(b.AuthorList) == 0 {
 		b.AuthorList = []model.AuthorRankItem{}
 	}
-
-	return b
 }
