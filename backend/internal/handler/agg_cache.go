@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"container/list"
 	"log"
 	"sort"
 	"sync"
@@ -11,15 +12,71 @@ import (
 	"gitstat/internal/store"
 )
 
-type aggCacheEntry struct {
+type aggCache struct {
+	mu    sync.Mutex
+	max   int
+	m     map[string]*list.Element
+	order *list.List
+}
+
+type cacheEntry struct {
+	key       string
 	bucket    *aggregator.AggBucket
 	expiresAt time.Time
 }
 
-var (
-	aggCacheMu sync.Mutex
-	aggCache   = map[string]*aggCacheEntry{}
-)
+func newAggCache(max int) *aggCache {
+	return &aggCache{
+		max:   max,
+		m:     make(map[string]*list.Element),
+		order: list.New(),
+	}
+}
+
+func (c *aggCache) get(key string) *aggregator.AggBucket {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	el, ok := c.m[key]
+	if !ok {
+		return nil
+	}
+	e := el.Value.(*cacheEntry)
+	if time.Now().Before(e.expiresAt) {
+		c.order.MoveToFront(el)
+		return e.bucket
+	}
+	c.order.Remove(el)
+	delete(c.m, key)
+	return nil
+}
+
+func (c *aggCache) set(key string, bucket *aggregator.AggBucket, ttl time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if el, ok := c.m[key]; ok {
+		c.order.MoveToFront(el)
+		e := el.Value.(*cacheEntry)
+		e.bucket = bucket
+		e.expiresAt = time.Now().Add(ttl)
+		return
+	}
+
+	if c.order.Len() >= c.max {
+		oldest := c.order.Back()
+		if oldest != nil {
+			e := oldest.Value.(*cacheEntry)
+			delete(c.m, e.key)
+			c.order.Remove(oldest)
+		}
+	}
+
+	e := &cacheEntry{key: key, bucket: bucket, expiresAt: time.Now().Add(ttl)}
+	c.order.PushFront(e)
+	c.m[key] = c.order.Front()
+}
+
+var cache = newAggCache(100)
 
 // inflight dedup: 相同 key 的并发请求只计算一次
 var (
@@ -30,14 +87,10 @@ var (
 func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string, simple bool) *aggregator.AggBucket {
 	key := cacheKey(repoPaths, startDate, endDate, email, simple)
 
-	aggCacheMu.Lock()
-	entry, ok := aggCache[key]
-	if ok && time.Now().Before(entry.expiresAt) {
-		aggCacheMu.Unlock()
+	if bucket := cache.get(key); bucket != nil {
 		log.Printf("[AggCache] TTL hit key=%s", key[:min(len(key), 60)])
-		return entry.bucket
+		return bucket
 	}
-	aggCacheMu.Unlock()
 
 	inflightMu.Lock()
 	ch, ok := inflight[key]
@@ -45,12 +98,9 @@ func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string
 		inflightMu.Unlock()
 		log.Printf("[AggCache] Inflight wait key=%s", key[:min(len(key), 60)])
 		<-ch
-		aggCacheMu.Lock()
-		entry, ok = aggCache[key]
-		aggCacheMu.Unlock()
-		if ok {
+		if bucket := cache.get(key); bucket != nil {
 			log.Printf("[AggCache] Inflight served key=%s", key[:min(len(key), 60)])
-			return entry.bucket
+			return bucket
 		}
 		return nil
 	}
@@ -61,10 +111,8 @@ func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string
 	log.Printf("[AggCache] Compute key=%s", key[:min(len(key), 60)])
 	bucket := computeAggBucket(repoPaths, startDate, endDate, email, simple)
 
-	aggCacheMu.Lock()
-	aggCache[key] = &aggCacheEntry{bucket: bucket, expiresAt: time.Now().Add(3 * time.Second)}
+	cache.set(key, bucket, 3*time.Second)
 	delete(inflight, key)
-	aggCacheMu.Unlock()
 	close(ch)
 
 	return bucket

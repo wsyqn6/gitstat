@@ -35,9 +35,9 @@ type cachedResult struct {
 }
 
 var (
-	httpClient = &http.Client{Timeout: 10 * time.Second}
-	cacheMu   sync.Mutex
-	cache     *cachedResult
+	httpClient  = &http.Client{Timeout: 10 * time.Second}
+	cacheMu    sync.Mutex
+	updateCache *cachedResult
 )
 
 func parseVersion(v string) (major, minor, patch int, ok bool) {
@@ -107,7 +107,7 @@ func fetchLatestRelease() (*githubRelease, error) {
 func GetUpdateCheckHandler(currentVersion string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cacheMu.Lock()
-		cached := cache
+		cached := updateCache
 		cacheMu.Unlock()
 
 		if cached != nil && time.Now().Before(cached.expiresAt) {
@@ -137,7 +137,7 @@ func GetUpdateCheckHandler(currentVersion string) http.HandlerFunc {
 		}
 
 		cacheMu.Lock()
-		cache = &cachedResult{data: resp, expiresAt: time.Now().Add(cacheTTL)}
+		updateCache = &cachedResult{data: resp, expiresAt: time.Now().Add(cacheTTL)}
 		cacheMu.Unlock()
 
 		writeJSON(w, "update-check", resp)
