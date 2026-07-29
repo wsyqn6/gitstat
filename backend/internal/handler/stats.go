@@ -26,8 +26,8 @@ func GetDashboardHandler(w http.ResponseWriter, r *http.Request) {
 	repos := store.GlobalStore.GetReposWithRange(repoPaths, fullStart, fullEnd)
 	repos = filterCommitsByEmail(repos, email)
 
-	bucket := computeBucket(repos, startDate, endDate)
-	prevBucket := computeBucket(repos, prevStartDate, prevEndDate)
+	bucket := computeBucket(repos, startDate, endDate, false)
+	prevBucket := computeBucket(repos, prevStartDate, prevEndDate, false)
 
 	current := overviewFromBucket(bucket)
 	previous := overviewFromBucket(prevBucket)
@@ -61,7 +61,7 @@ func GetOverviewStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	email := emailForHandler(r)
 
-	bucket := getAggBucket(repoPaths, startDate, endDate, email)
+	bucket := getAggBucket(repoPaths, startDate, endDate, email, true)
 
 	writeJSON(w, "Overview", model.ApiResponse{Code: 200, Data: overviewFromBucket(bucket)})
 }
@@ -76,7 +76,7 @@ func GetStatsHandler(period string) http.HandlerFunc {
 		repoPaths := r.URL.Query()["repo"]
 
 		email := emailForHandler(r)
-		bucket := getAggBucket(repoPaths, startDate, endDate, email)
+		bucket := getAggBucket(repoPaths, startDate, endDate, email, false)
 		if bucket == nil || bucket.TotalCommits == 0 {
 			writeJSON(w, period+" empty", model.ApiResponse{Code: 200, Data: []model.RepositoryDailyStats{}})
 			return
@@ -109,7 +109,7 @@ func GetAuthorRankHandler(w http.ResponseWriter, r *http.Request) {
 	repoPaths := r.URL.Query()["repo"]
 
 	email := emailForHandler(r)
-	bucket := getAggBucket(repoPaths, startDate, endDate, email)
+	bucket := getAggBucket(repoPaths, startDate, endDate, email, true)
 
 	if bucket == nil {
 		writeJSON(w, "AuthorRank", model.ApiResponse{Code: 200, Data: []model.AuthorRankItem{}})
@@ -127,7 +127,7 @@ func GetDailyTrendHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	repoPaths := r.URL.Query()["repo"]
 	email := emailForHandler(r)
-	bucket := getAggBucket(repoPaths, startDate, endDate, email)
+	bucket := getAggBucket(repoPaths, startDate, endDate, email, false)
 	if bucket == nil || bucket.TotalCommits == 0 {
 		writeJSON(w, "daily-trend empty", model.ApiResponse{Code: 200, Data: []model.DailyTrendItem{}})
 		return
@@ -149,7 +149,7 @@ func GetActivityHeatmapHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	repoPaths := r.URL.Query()["repo"]
-	bucket := getAggBucket(repoPaths, startDate, endDate, "")
+	bucket := getAggBucket(repoPaths, startDate, endDate, "", false)
 
 	if bucket == nil {
 		writeJSON(w, "Heatmap", model.ApiResponse{Code: 200, Data: []model.ActivityHeatmapPoint{}})
@@ -165,7 +165,7 @@ func GetRepoComparisonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	repoPaths := r.URL.Query()["repo"]
-	bucket := getAggBucket(repoPaths, startDate, endDate, "")
+	bucket := getAggBucket(repoPaths, startDate, endDate, "", false)
 
 	if bucket == nil {
 		writeJSON(w, "RepoComparison", model.ApiResponse{Code: 200, Data: []model.RepoComparison{}})
@@ -234,8 +234,8 @@ func GetComparisonHandler(w http.ResponseWriter, r *http.Request) {
 		repos = filterCommitsByEmail(repos, userEmail)
 	}
 
-	currentBucket := computeBucket(repos, startDate, endDate)
-	prevBucket := computeBucket(repos, prevStartDate, prevEndDate)
+	currentBucket := computeBucket(repos, startDate, endDate, true)
+	prevBucket := computeBucket(repos, prevStartDate, prevEndDate, true)
 
 	markSelf(currentBucket, userEmail)
 	markSelf(prevBucket, userEmail)
@@ -253,7 +253,7 @@ func GetFileRankingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	repoPaths := r.URL.Query()["repo"]
-	bucket := getAggBucket(repoPaths, startDate, endDate, "")
+	bucket := getAggBucket(repoPaths, startDate, endDate, "", false)
 
 	if bucket == nil {
 		writeJSON(w, "FileRanking", model.ApiResponse{Code: 200, Data: []model.FileRankItem{}})

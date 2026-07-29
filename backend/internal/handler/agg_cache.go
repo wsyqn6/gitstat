@@ -27,8 +27,8 @@ var (
 	inflight   = map[string]chan struct{}{}
 )
 
-func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string) *aggregator.AggBucket {
-	key := cacheKey(repoPaths, startDate, endDate, email)
+func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string, simple bool) *aggregator.AggBucket {
+	key := cacheKey(repoPaths, startDate, endDate, email, simple)
 
 	aggCacheMu.Lock()
 	entry, ok := aggCache[key]
@@ -59,7 +59,7 @@ func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string
 	inflightMu.Unlock()
 
 	log.Printf("[AggCache] Compute key=%s", key[:min(len(key), 60)])
-	bucket := computeAggBucket(repoPaths, startDate, endDate, email)
+	bucket := computeAggBucket(repoPaths, startDate, endDate, email, simple)
 
 	aggCacheMu.Lock()
 	aggCache[key] = &aggCacheEntry{bucket: bucket, expiresAt: time.Now().Add(3 * time.Second)}
@@ -70,11 +70,24 @@ func getAggBucket(repoPaths []string, startDate, endDate time.Time, email string
 	return bucket
 }
 
-func computeAggBucket(repoPaths []string, startDate, endDate time.Time, email string) *aggregator.AggBucket {
+func computeAggBucket(repoPaths []string, startDate, endDate time.Time, email string, simple bool) *aggregator.AggBucket {
 	ensureDataLoaded(repoPaths, startDate)
 
 	repos := store.GlobalStore.GetReposWithRange(repoPaths, startDate, endDate)
 	repos = filterCommitsByEmail(repos, email)
+
+	if simple {
+		acc := aggregator.NewSimpleAccumulator(startDate, endDate)
+		for ri := range repos {
+			repo := &repos[ri]
+			for ci := range repo.Commits {
+				acc.Add(&repo.Commits[ci], repo)
+			}
+		}
+		bucket := acc.Build()
+		markSelf(bucket, email)
+		return bucket
+	}
 
 	acc := aggregator.NewAccumulator(startDate, endDate)
 	for ri := range repos {
@@ -88,8 +101,13 @@ func computeAggBucket(repoPaths []string, startDate, endDate time.Time, email st
 	return bucket
 }
 
-func cacheKey(repoPaths []string, startDate, endDate time.Time, email string) string {
+func cacheKey(repoPaths []string, startDate, endDate time.Time, email string, simple bool) string {
 	k := email + "|"
+	if simple {
+		k = "S|" + k
+	} else {
+		k = "F|" + k
+	}
 	if !startDate.IsZero() {
 		k += startDate.Format(time.RFC3339)
 	}
@@ -123,10 +141,22 @@ func filterCommitsByEmail(repos []model.Repository, email string) []model.Reposi
 	return repos
 }
 
-func computeBucket(repos []model.Repository, startDate, endDate time.Time) *aggregator.AggBucket {
+func computeBucket(repos []model.Repository, startDate, endDate time.Time, simple bool) *aggregator.AggBucket {
 	if startDate.IsZero() && endDate.IsZero() {
 		return nil
 	}
+
+	if simple {
+		acc := aggregator.NewSimpleAccumulator(startDate, endDate)
+		for ri := range repos {
+			repo := &repos[ri]
+			for ci := range repo.Commits {
+				acc.Add(&repo.Commits[ci], repo)
+			}
+		}
+		return acc.Build()
+	}
+
 	acc := aggregator.NewAccumulator(startDate, endDate)
 	for ri := range repos {
 		repo := &repos[ri]
