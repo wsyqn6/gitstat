@@ -9,10 +9,14 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"gitstat/internal/model"
 )
+
+var headerPool = sync.Pool{New: func() any { return make([]byte, 8192) }}
+var lineBufPool = sync.Pool{New: func() any { return make([]byte, 32*1024) }}
 
 var extLangMap = map[string]string{
 	".rs":      "Rust",
@@ -236,7 +240,8 @@ func AnalyzeRepoDeep(repoPath string) (model.AnalyzeResult, error) {
 			continue
 		}
 
-		header := make([]byte, 8192)
+		header := headerPool.Get().([]byte)
+		defer headerPool.Put(header)
 		n, err := f.Read(header)
 		if err != nil && err != io.EOF {
 			f.Close()
@@ -322,7 +327,8 @@ func detectLanguageByExt(base, ext string) string {
 }
 
 func countLinesStream(r io.Reader) (int, error) {
-	buf := make([]byte, 32*1024)
+	buf := lineBufPool.Get().([]byte)
+	defer lineBufPool.Put(buf)
 	count := 0
 	for {
 		n, err := r.Read(buf)
