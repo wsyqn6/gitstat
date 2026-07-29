@@ -95,16 +95,37 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 		return
 	}
 
+	a.addToTotals(c)
+	a.addToRepoSet(repo)
+	a.addToAuthorMap(c)
+
+	dateKey := c.Date.Format("2006-01-02")
+	periodKey := a.periodKey(c.Date)
+
+	a.addToDailyStats(c, repo, dateKey)
+	a.addToMonthlyStats(c, repo, periodKey)
+	a.addToCalendar(c, periodKey)
+	a.addToHeatmap(c)
+	a.addToRepoComp(c, repo)
+	a.addToFileRank(c, repo)
+}
+
+func (a *Accumulator) addToTotals(c *model.Commit) {
 	a.totalCommits++
 	a.totalAdditions += c.Additions
 	a.totalDeletions += c.Deletions
+}
+
+func (a *Accumulator) addToRepoSet(repo *model.Repository) {
 	a.repoSet[repo.Path] = true
 	a.repoNameOf[repo.Path] = repo.Name
 	a.repoBranchOf[repo.Path] = repo.CurrentBranch
 	if repo.LastCommitTime != "" {
 		a.repoLastCommit[repo.Path] = repo.LastCommitTime
 	}
+}
 
+func (a *Accumulator) addToAuthorMap(c *model.Commit) {
 	entry, ok := a.authorMap[c.Email]
 	if !ok {
 		entry = &model.AuthorRankItem{
@@ -120,9 +141,9 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 	if c.Date.After(a.lastSeen[c.Email]) {
 		a.lastSeen[c.Email] = c.Date
 	}
+}
 
-	dateKey := c.Date.Format("2006-01-02")
-
+func (a *Accumulator) addToDailyStats(c *model.Commit, repo *model.Repository, dateKey string) {
 	repoDaily, ok := a.dailyRepoDate[repo.Path]
 	if !ok {
 		repoDaily = make(map[string]*model.DayCommitData)
@@ -164,8 +185,9 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 			Additions: c.Additions, Deletions: c.Deletions,
 		})
 	}
+}
 
-	periodKey := a.periodKey(c.Date)
+func (a *Accumulator) addToMonthlyStats(c *model.Commit, repo *model.Repository, periodKey string) {
 	repoMonthly, ok := a.monthlyRepoPeriod[repo.Path]
 	if !ok {
 		repoMonthly = make(map[string]*model.PeriodCommitData)
@@ -204,7 +226,9 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 			Additions: c.Additions, Deletions: c.Deletions,
 		})
 	}
+}
 
+func (a *Accumulator) addToCalendar(c *model.Commit, periodKey string) {
 	cal, ok := a.calendar[periodKey]
 	if !ok {
 		cal = &model.MonthlyCalendarItem{Month: periodKey}
@@ -213,7 +237,9 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 	cal.Commits++
 	cal.Additions += c.Additions
 	cal.Deletions += c.Deletions
+}
 
+func (a *Accumulator) addToHeatmap(c *model.Commit) {
 	loc := time.Now().Location()
 	dow := int(c.Date.In(loc).Weekday())
 	hour := c.Date.In(loc).Hour()
@@ -221,7 +247,9 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 		a.heatmapDayHour[dow] = make(map[int]int)
 	}
 	a.heatmapDayHour[dow][hour]++
+}
 
+func (a *Accumulator) addToRepoComp(c *model.Commit, repo *model.Repository) {
 	rc, ok := a.repoCompMap[repo.Path]
 	if !ok {
 		rc = &repoCompAcc{
@@ -236,7 +264,10 @@ func (a *Accumulator) Add(c *model.Commit, repo *model.Repository) {
 	rc.authorSet[c.Email] = true
 	rc.additions += c.Additions
 	rc.deletions += c.Deletions
+}
 
+func (a *Accumulator) addToFileRank(c *model.Commit, repo *model.Repository) {
+	rc := a.repoCompMap[repo.Path]
 	for _, f := range c.Files {
 		item, exists := a.fileRank[f.Path]
 		if !exists {
