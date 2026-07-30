@@ -49,7 +49,7 @@
           </div>
           <div class="row-body">
             <div class="file-path-row">
-              <span class="lang-icon" v-html="langIcon(item.filePath)" aria-hidden="true"></span>
+              <span class="lang-icon"><LangIcon :filePath="item.filePath" /></span>
               <span class="file-path" :title="item.filePath">{{ truncatePath(item.filePath) }}</span>
             </div>
             <div class="row-stats">
@@ -96,7 +96,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from '../i18n'
 import Skeleton from './Skeleton.vue'
-import { getLangIcon } from '../utils/langIcons'
+import LangIcon from './LangIcon.vue'
 
 const { t } = useI18n()
 
@@ -125,20 +125,6 @@ const maxVal = computed(() => {
   }
   return Math.max(...sortedData.value.map(d => d.commits), 1)
 })
-
-function langIcon(path) {
-  const name = path.split('/').pop() || ''
-  const dot = name.lastIndexOf('.')
-  const ext = dot === -1 ? '' : name.slice(dot + 1).toLowerCase()
-  const icon = getLangIcon(ext)
-  if (!icon) {
-    return `<svg viewBox="0 0 24 24" width="18" height="18" class="fi"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" opacity=".15"/><text x="12" y="16" text-anchor="middle" font-size="8" fill="currentColor" opacity=".35" font-family="system-ui,sans-serif">${ext.slice(0,2) || '?'}</text></svg>`
-  }
-  if (icon.letter) {
-    return `<svg viewBox="0 0 24 24" width="18" height="18" class="fi"><rect x="0" y="0" width="24" height="24" rx="4" fill="${icon.bg}"/><text x="12" y="16" text-anchor="middle" font-size="${icon.letter.length > 2 ? 7 : 9}" font-weight="700" fill="${icon.color}" font-family="system-ui,sans-serif">${icon.letter}</text></svg>`
-  }
-  return `<svg viewBox="0 0 24 24" width="18" height="18" class="fi"><path d="${icon.path}" fill="${icon.color}"/></svg>`
-}
 
 function barWidth(item) {
   const val = sortMode.value === 'changes' ? item.additions + item.deletions : item.commits
@@ -361,12 +347,6 @@ function netPrefix(val) {
   align-items: center;
   flex-shrink: 0;
   line-height: 0;
-}
-
-.lang-icon :deep(svg) {
-  display: block;
-  border-radius: 3px;
-  overflow: hidden;
 }
 
 .file-path {

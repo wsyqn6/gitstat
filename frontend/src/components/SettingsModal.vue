@@ -143,20 +143,6 @@ async function handleUpdateCheck() {
   }
 }
 
-async function handleExport() {
-  try {
-    const blob = await exportData()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'gitstat-data.json'
-    a.click()
-    window.URL.revokeObjectURL(url)
-  } catch {
-    show(t('settings.exportError'), 'error')
-  }
-}
-
 onUnmounted(() => {
   if (successTimer) clearTimeout(successTimer)
 })

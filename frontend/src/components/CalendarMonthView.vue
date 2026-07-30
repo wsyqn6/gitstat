@@ -96,7 +96,7 @@ const props = defineProps({
   startDate: { type: String, default: '' }
 })
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const { theme } = useTheme()
 const chartCfg = computed(() => getChartConfig(theme.value))
 
