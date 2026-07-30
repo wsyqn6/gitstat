@@ -59,6 +59,7 @@ import { useI18n } from '../i18n'
 import { useTheme } from '../composables/useTheme'
 import { getChartConfig } from '../utils/constants'
 import { pad } from '../utils/dates'
+import { cellLevel } from '../utils/calendar'
 
 const props = defineProps({
   dailyStats: { type: Array, default: () => [] },
@@ -76,15 +77,6 @@ function toggleExpandAuthor(email) {
 }
 
 const cellRgb = computed(() => chartCfg.value.primaryRgb)
-
-function cellLevel(commits, maxC) {
-  if (!commits || !maxC) return 0
-  const ratio = commits / maxC
-  if (ratio <= 0.25) return 1
-  if (ratio <= 0.5) return 2
-  if (ratio <= 0.75) return 3
-  return 4
-}
 
 const dayNames = computed(() => t('calendar.dayNamesShort'))
 

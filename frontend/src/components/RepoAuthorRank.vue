@@ -17,7 +17,7 @@
         <div class="bar-track">
           <div class="bar-fill" :style="{ width: barWidth(c), background: colors[i] }"></div>
         </div>
-        <span class="author-commits">{{ formatNum(c.commitCount) }}</span>
+        <span class="author-commits">{{ formatNumber(c.commitCount) }}</span>
       </div>
       <div class="author-footer">
         <span>{{ t('repo.total') }} {{ formatNum(totalCommits) }}</span>
@@ -31,6 +31,7 @@
 import { computed } from 'vue'
 import { useI18n } from '../i18n'
 import Skeleton from './Skeleton.vue'
+import { formatNumber } from '../utils/format'
 
 const { t } = useI18n()
 
@@ -77,11 +78,6 @@ function barWidth(c) {
   return (c.commitCount / maxCommits.value * 100).toFixed(1) + '%'
 }
 
-function formatNum(n) {
-  if (!n) return '0'
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-  return String(n)
-}
 </script>
 
 <style scoped>

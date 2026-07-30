@@ -47,6 +47,7 @@
 <script setup>
 import Skeleton from './Skeleton.vue'
 import { useI18n } from '../i18n'
+import { formatNumber } from '../utils/format'
 
 const { t } = useI18n()
 
@@ -75,10 +76,6 @@ function getLangColor(name) {
   return LANG_COLORS[name] || LANG_COLORS.Default
 }
 
-function formatNumber(n) {
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'k'
-  return String(n)
-}
 </script>
 
 <style scoped>
