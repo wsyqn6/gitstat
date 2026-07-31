@@ -128,7 +128,7 @@ const repositories = ref([])
 const dailyStats = ref([])
 const monthlyCalendar = ref([])
 const activityHeatmap = ref([])
-const { data: fileRanking, hasMore: fileRankingHasMore, limit: fileRankingLimit, load, setData } = useFileRanking()
+const { data: fileRanking, hasMore: fileRankingHasMore, limit: fileRankingLimit, setData, loadMore, reset } = useFileRanking()
 const viewMode = ref('chart')
 const viewOptions = [
   { value: 'chart', label: t('calendar.chartView') },
@@ -160,8 +160,7 @@ function computeCalendarViewType() {
 
 const loadFileRanking = async () => {
   if (!currentStartDate.value || !currentEndDate.value) return
-  fileRankingLimit.value += 5
-  await load(selectedRepos.value, currentStartDate.value, currentEndDate.value)
+  await loadMore(selectedRepos.value, currentStartDate.value, currentEndDate.value)
   await nextTick()
   document.querySelector('.file-ranking')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
@@ -255,6 +254,7 @@ const loadData = async () => {
       ? getComparisonStats(startDate, endDate, prevStartDate, prevEndDate, selectedRepos.value, 'all', signal)
       : Promise.resolve(null)
 
+    reset()
     const [overview, rawResult, heatmap, fileRankRaw, comparisonResult] = await Promise.all([
       getOverviewStats(startDate, endDate, selectedRepos.value, 'all', signal),
       statsPromise,

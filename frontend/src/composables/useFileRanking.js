@@ -35,9 +35,9 @@ export function useFileRanking() {
     loaded.value = true
   }
 
-  function loadMore(repos, startDate = '', endDate = '') {
+  function loadMore(repos, startDate = '', endDate = '', signal) {
     limit.value += 5
-    return load(repos, startDate, endDate)
+    return load(repos, startDate, endDate, signal)
   }
 
   function reset() {
