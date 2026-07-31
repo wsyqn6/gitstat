@@ -106,20 +106,9 @@ function renderTrendChart() {
   })
 }
 
-watch(() => props.repoDailyTrend, () => {
-  if (!props.loading) {
-    nextTick(() => renderTrendChart())
-  }
-})
-
-watch(() => props.loading, (loading) => {
-  if (!loading) {
-    nextTick(() => renderTrendChart())
-  }
-})
-
-watch(chartCfg, () => {
-  renderTrendChart()
+watch([() => props.loading, () => props.repoDailyTrend, chartCfg], () => {
+  if (props.loading) return
+  nextTick(() => renderTrendChart())
 })
 
 function handleResize() {
